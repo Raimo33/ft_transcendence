@@ -1,0 +1,89 @@
+services:
+
+  nginx:
+    build:
+      context: ./services/nginx
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: nginx
+    environment:
+    volumes:
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - backend
+    restart: always
+    init: true
+
+  postgresql: #database for the backend (Web-3)
+    build:
+      context: ./services/postgresql
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: postgresql
+    environment:
+    volumes:
+    
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    restart: always
+    init: true
+  
+  keycloak: #2fa with JWT (Cybersecurity-3)
+    build:
+      context: ./services/keycloak
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: keycloak
+    environment:
+    volumes:
+    
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    restart: always
+    init: true
+  
+  ethereum-node: #node to interact and store data on the blockchain (Web-4)
+    build:
+      context: ./services/ethereum-node
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: ethereum-node
+    environment:
+    volumes:
+      #some volume to keep blockchain state locally to prevent re-syncing each downtime
+    ports:
+      - "8545:8545"
+      - "8546:8546"
+    networks:
+      - backend
+    restart: always
+    init: true
+
+
+
+
+volumes:
+
+secrets:
+
+networks:
+  backend:
+    name: backend
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/28
+
+  
+
