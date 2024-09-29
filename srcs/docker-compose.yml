@@ -74,6 +74,8 @@ services:
     depends_on:
     init: true
 
+#TODO ADD elk
+
 volumes:
 
 secrets:
