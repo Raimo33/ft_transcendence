@@ -16,6 +16,7 @@ services:
     networks:
       - backend
     restart: always
+    depends_on:
     init: true
 
   postgresql: #database for the backend (Web-3)
@@ -33,6 +34,7 @@ services:
     networks:
       - backend
     restart: always
+    depends_on:
     init: true
   
   keycloak: #2fa with JWT (Cybersecurity-3)
@@ -50,6 +52,7 @@ services:
     networks:
       - backend
     restart: always
+    depends_on:
     init: true
   
   ethereum-node: #node to interact and store data on the blockchain (Web-4)
@@ -68,10 +71,10 @@ services:
     networks:
       - backend
     restart: always
+    depends_on:
     init: true
 
-
-
+#TODO ADD elk
 
 volumes:
 
