@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/09/28 19:08:08 by craimond          #+#    #+#              #
-#    Updated: 2024/09/29 11:28:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/01 10:48:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,4 +46,3 @@ VOLUME ["/var/www/html", "/etc/ssl/certs"]
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["curl", "-fks", "https://nginx.backend:443"]
-
