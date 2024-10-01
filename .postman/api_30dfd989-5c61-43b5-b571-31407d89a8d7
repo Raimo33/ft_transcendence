@@ -13,8 +13,8 @@ rootDirectory = postman/collections
 [config.relations.collections.metaData]
 
 [config.relations.apiDefinition]
-files[] = {"path":"RESTful_API_swagger.yaml","metaData":{}}
+files[] = {"path":"API_swagger.yaml","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
 type = openapi:3
-rootFiles[] = RESTful_API_swagger.yaml
+rootFiles[] = API_swagger.yaml
