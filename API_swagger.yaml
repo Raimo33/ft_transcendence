@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Pongmasters API
-  description: The REST-ful API to interact with the Pongmasters gateway.
+  description: REST-ful API to interact with the Pongmasters gateway.
   version: 1.0.0
 servers:
   - url: /api/v1
@@ -40,14 +40,14 @@ paths:
       parameters:
         - name: page
           in: query
-          description: The page number of the results to retrieve.
+          description: Page number of the results to retrieve.
           schema:
             type: integer
             format: int32
             minimum: 1
         - name: results_per_page
           in: query
-          description: The number of users to display per page.
+          description: Number of users to retrieve per page.
           schema:
             type: integer
             format: int32
@@ -78,7 +78,7 @@ paths:
         - name: user_id
           in: path
           required: true
-          description: The unique identifier of the user to retrieve.
+          description: Unique identifier of the user to retrieve.
           schema:
             $ref: "#/components/schemas/user_id"
       security:
@@ -104,7 +104,7 @@ paths:
         - name: user_id
           in: path
           required: true
-          description: The unique identifier of the user to update.
+          description: Unique identifier of the user to update.
           schema:
             $ref: "#/components/schemas/user_id"
       security:
@@ -134,7 +134,7 @@ paths:
         - name: user_id
           in: path
           required: true
-          description: The unique identifier of the user to delete.
+          description: Unique identifier of the user to delete.
           schema:
             $ref: "#/components/schemas/user_id"
       security:
@@ -142,6 +142,53 @@ paths:
       responses:
         "204":
           description: User account deleted successfully.
+        "404":
+          description: User not found.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+  /user/{user_id}/matches:
+    get:
+      summary: Get list of user matches.
+      description: Returns the list of matches a user has ever played in.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Unique identifier of the user to retrieve data from.
+          schema:
+            $ref: "#/components/schemas/user_id"
+        - name: page
+          in: query
+          description: Page number of the results to retrieve.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: results_per_page
+          in: query
+          description: Number of matches to retrieve per page.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Returns an array of matches.
+          content:
+            application/json:
+              schema:
+                description: Array of matches the user played in.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Match"
+            application/xml:
+              schema:
+                description: Array of matches the user played in.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Match"
         "404":
           description: User not found.
         "401":
@@ -159,14 +206,14 @@ paths:
           content:
             application/json:
               schema:
-                type: object
                 description: a map of user_ids and their respective status.
+                type: object
                 additionalProperties:
                   $ref: "#/components/schemas/user_status"
             application/xml:
               schema:
-                type: object
                 description: a map of user IDs and their respective status.
+                type: object
                 additionalProperties:
                   $ref: "#/components/schemas/user_status"
         "401":
@@ -189,7 +236,7 @@ paths:
         - name: user_id
           in: path
           required: true
-          description: The unique identifier of the user attempting to log in.
+          description: Unique identifier of the user attempting to log in.
           schema:
             $ref: "#/components/schemas/user_id"
       requestBody:
@@ -222,7 +269,7 @@ paths:
         - name: user_id
           in: path
           required: true
-          description: The unique identifier of the user to check.
+          description: Unique identifier of the user to check.
           schema:
             $ref: "#/components/schemas/user_id"
       security:
@@ -248,7 +295,7 @@ paths:
         - name: user_id
           in: path
           required: true
-          description: The unique identifier of the user to log out.
+          description: Unique identifier of the user to log out.
           schema:
             $ref: "#/components/schemas/user_id"
       security:
@@ -310,7 +357,7 @@ paths:
         - name: match_id
           in: path
           required: true
-          description: The unique identifier of the match to join.
+          description: Unique identifier of the match to join.
           schema:
             $ref: "#/components/schemas/match_id"
       security:
@@ -336,7 +383,7 @@ paths:
         - name: match_id
           in: path
           required: true
-          description: The unique identifier of the match to retrieve information for.
+          description: Unique identifier of the match to retrieve information for.
           schema:
             $ref: "#/components/schemas/match_id"
       responses:
@@ -360,7 +407,7 @@ paths:
         - name: match_id
           in: path
           required: true
-          description: The unique identifier of the match to abandon.
+          description: Unique identifier of the match to abandon.
           schema:
             $ref: "#/components/schemas/match_id"
       security:
@@ -372,64 +419,205 @@ paths:
           description: Match not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+  
+  /tournaments:
+    post:
+      summary: Start a new tournament
+      description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
+      security:
+        - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              description: Array of users to invite and mode of the new tournament.
+              type: object
+              properties:
+                players:
+                  description: Array of users to invite.
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/User"
+                tournament_mode:
+                  $ref: "#/components/schemas/tournament_mode"
+          application/xml:
+            schema:
+              description: Array of users to invite and mode of the new tournament.
+              type: object
+              properties:
+                players:
+                  description: Array of users to invite.
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/User"
+                tournament_mode:
+                  $ref: "#/components/schemas/tournament_mode"
+      responses:
+        "200":
+          description: Returns a Tournament object, including details of each match.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tournament"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Tournament"
+        "400":
+          description: Bad request due to invalid invited user.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+        "409":
+          description: Conflict, e.g., too many tournaments in progress.
+    delete:
+      summary: Interrupt all ongoing tournaments
+      description: Terminate all currently active tournaments and clear session data.
+      security:
+        - jwtAuth: []
+      responses:
+        "204":
+          description: All tournaments interrupted successfully.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+  /tournaments/{tournament_id}:
+    post:
+      summary: Join an ongoing tournament
+      description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          description: Unique identifier of the tournament to join.
+          schema:
+            $ref: "#/components/schemas/tournament_id"
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Successfully joined the tournament.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tournament"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Tournament"
+        "404":
+          description: Tournament not found.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+    get:
+      summary: Get info on an ongoing tournament
+      description: Retrieve details about a specific ongoing tournament using its ID.
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          description: Unique identifier of the tournament to retrieve information for.
+          schema:
+            $ref: "#/components/schemas/tournament_id"
+      responses:
+        "200":
+          description: Returns match information.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tournament"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Tournament"
+        "404":
+          description: Tournament not found.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+    delete:
+      summary: Abandon the specified tournament
+      description: Exit and resign from the ongoing tournament.
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          description: Unique identifier of the tournament to abandon.
+          schema:
+            $ref: "#/components/schemas/tournament_id"
+      security:
+        - jwtAuth: []
+      responses:
+        "204":
+          description: Tournament abandoned successfully.
+        "404":
+          description: Tournament not found.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
 
 components:
   schemas:
 
     user_id:
-      type: string
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
+      type: string
     user_psw:
+      description: User's password (plain-text) for authentication.
       type: string
-      description: The user's password (plain-text) for authentication.
     user_email:
+      description: User's email address, used for login and notifications.
       type: string
-      description: The user's email address, used for login and notifications.
     user_display_name:
+      description: Display name of the user, visible to other players during gameplay.
       type: string
-      description: The display name of the user, visible to other players during gameplay.
     user_status:
+      description: Current status of the user (online or offline).
       type: string
       enum: [online, offline]
       example: online
-      description: The current status of the user (online or offline).
     jwt_token:
-      type: string
       description: JWT token for session management.
+      type: string
     websocket_url:
+      description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
       type: string
-      description: The WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
     match_id:
-      type: string
       description: Unique identifier for the match (UUID format or similar).
+      type: string
     match_status:
+      description: Current status of the match.
       type: string
       enum: [ongoing, completed, interrupted]
-      description: Current status of the match.
     match_ball_speed:
+      description: Defines the speed of the ball in the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
-      description: Defines the speed of the ball in the match.
     match_max_duration:
+      description: Maximum allowable duration (seconds) for the match.
       type: integer
       format: int32
       minimum: 60
       maximum: 3600
-      description: Maximum allowable duration (seconds) for the match.
     match_starting_health_points:
+      description: Initial health or lives given to each player at the start of the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
-      description: Initial health or lives given to each player at the start of the match.
     player_health_points:
+      description: Current health points of the player.
       type: integer
       format: int32
       minimum: 0
       maximum: 100
-      description: The current health points of the player.
+    tournament_id:
+      description: Unique identifier for the tournament (UUID format or similar).
+      type: string
+    tournament_mode:
+      description: Format of the tournament.
+      type: string
+      enum: [knockout, king_of_the_hill, ladder, round_robin]
+    tournament_status:
+      description: Current status of the tournament.
+      type: string
+      enum: [ongoing, completed, interrupted]
 
     UserCredentials:
       type: object
@@ -484,7 +672,7 @@ components:
           $ref: "#/components/schemas/websocket_url"
         players:
           type: array
-          description: An array of the players in the match.
+          description: Array of the players in the match.
           items:
             $ref: "#/components/schemas/User"
         healths:
@@ -500,6 +688,26 @@ components:
         - match_id
       xml:
         name: Match
+
+    Tournament:
+      type: object
+      description: Represents a Pong tournament, including matches information and mode.
+      properties:
+        tournament_id:
+          $ref: "#/components/schemas/tournament_id"
+        tournament_mode:
+          $ref: "#/components/schemas/tournament_mode"
+        matches:
+          type: array
+          description: Array of all the tournament matches.
+          items:
+            $ref: "#/components/schemas/Match"
+        status:
+          $ref: "#/components/schemas/tournament_status"
+      required:
+        - tournament_id
+      xml:
+        name: Tournament
 
   securitySchemes:
     jwtAuth:
