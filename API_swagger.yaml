@@ -17,9 +17,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UserCredentials"
-          application/xml:
-            schema:
-              $ref: "#/components/schemas/UserCredentials"
       responses:
         "200":
           description: Returns the user ID upon successful registration.
@@ -27,11 +24,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/user_id"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/user_id"
         "400":
-          description: Bad request due to invalid input data.
+          description: Bad request due to invalid credentials.
         "409":
           description: Conflict, e.g., user with this email already exists.
     get:
@@ -52,6 +46,16 @@ paths:
             type: integer
             format: int32
             minimum: 1
+        - name: sorting_options
+          in: query
+          description: Sort the users list by display name, email, date registered, last active.
+          schema:
+            $ref: "#/components/schemas/user_sorting_options"
+        - name: filter_options
+          in: query
+          description: Filter the users list by status.
+          schema:
+            $ref: "#/components/schemas/user_filter_options"
       security:
         - jwtAuth: []
       responses:
@@ -63,11 +67,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/User"
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
+        "400": 
+          description: Bad request due to invalid query parameters.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
   /users/{user_id}:
@@ -90,13 +91,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/User"
-        "404":
-          description: User not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
     put:
       summary: Update user credentials
       description: Update the email, password, or display name of a user using their user_id.
@@ -115,18 +113,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UserCredentials"
-          application/xml:
-            schema:
-              $ref: "#/components/schemas/UserCredentials"
       responses:
         "200":
           description: User data updated successfully.
         "400":
-          description: Bad request due to invalid input data.
-        "404":
-          description: User not found.
+          description: Bad request due to invalid credentials.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
     delete:
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
@@ -142,10 +137,10 @@ paths:
       responses:
         "204":
           description: User account deleted successfully.
-        "404":
-          description: User not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
   /user/{user_id}/matches:
     get:
       summary: Get list of user matches.
@@ -171,6 +166,16 @@ paths:
             type: integer
             format: int32
             minimum: 1
+        - name: sorting_options
+          in: query
+          description: Sort the matches list by age or duration.
+          schema:
+            $ref: "#/components/schemas/match_sorting_options"
+        - name: filter_options
+          in: query
+          description: Filter the matches list by status or outcome.
+          schema:
+            $ref: "#/components/schemas/match_filter_options"
       security:
         - jwtAuth: []
       responses:
@@ -183,21 +188,199 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Match"
-            application/xml:
-              schema:
-                description: Array of matches the user played in.
-                type: array
-                items:
-                  $ref: "#/components/schemas/Match"
-        "404":
-          description: User not found.
+        "400": 
+          description: Bad request due to invalid query parameters.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
-  
+        "404":
+          description: User not found.
+  /user/{user_id}/tournaments:
+    get: #get the list of all tournaments the user partecipated in
+      summary: Get list of user tournaments.
+      description: Returns the list of tournaments a user has ever participated in.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Unique identifier of the user to retrieve data from.
+          schema:
+            $ref: "#/components/schemas/user_id"
+        - name: page
+          in: query
+          description: Page number of the results to retrieve.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: results_per_page
+          in: query
+          description: Number of tournaments to retrieve per page.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: sorting_options
+          in: query
+          description: Sort the tournaments list by age, duration, or number of players.
+          schema:
+            $ref: "#/components/schemas/tournament_sorting_options"
+        - name: filter_options
+          in: query
+          description: Filter the tournaments list by status or mode.
+          schema:
+            $ref: "#/components/schemas/tournament_filter_options"
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Returns an array of tournaments.
+          content:
+            application/json:
+              schema:
+                description: Array of tournaments the user participated in.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tournament"
+        "400": 
+          description: Bad request due to invalid query parameters.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
+  /user/{user_id}/friends:
+    post:
+      summary: Add a friend
+      description: Add a user to the friend list.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Unique identifier of the user adding a friend.
+          schema:
+            $ref: "#/components/schemas/user_id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              description: Unique identifier of the friend to add.
+              $ref: "#/components/schemas/user_id"
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Friend added successfully.
+        "400":
+          description: Bad request due to invalid friend_id.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
+    get:
+      summary: Get list of friends
+      description: Retrieve the list of friends of a specific user.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Unique identifier of the user to retrieve friends from.
+          schema:
+            $ref: "#/components/schemas/user_id"
+        - name: page
+          in: query
+          description: Page number of the results to retrieve.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: results_per_page
+          in: query
+          description: Number of friends to retrieve per page.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: sorting_options
+          in: query
+          description: Sort the users list by display name, date registered, last active.
+          schema:
+            $ref: "#/components/schemas/friends_sorting_options"
+        - name: filter_options
+          in: query
+          description: Filter the users list by status.
+          schema:
+            $ref: "#/components/schemas/friends_filter_options"
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Returns an array of User objects representing the friends.
+          content:
+            application/json:
+              schema:
+                description: Array of friends of the user.
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "400":
+          description: Bad request due to invalid query parameters.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
+  /user/{user_id}/friends/{friend_id}:
+    delete:
+      summary: Remove a friend
+      description: Remove a user from the friend list.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Unique identifier of the user removing a friend.
+          schema:
+            $ref: "#/components/schemas/user_id"
+        - name: friend_id
+          in: path
+          required: true
+          description: Unique identifier of the friend to remove.
+          schema:
+            $ref: "#/components/schemas/user_id"
+      security:
+        - jwtAuth: []
+      responses:
+        "204":
+          description: Friend removed successfully.
+        "400":
+          description: Bad request due to invalid friend_id.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User or friend not found.
+
   /sessions:
     get:
       summary: Get login status of all users
       description: Retrieve the login status of all users.
+      parameters:
+        - name: page
+          in: query
+          description: Page number of the results to retrieve.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: results_per_page
+          in: query
+          description: Number of users to retrieve per page.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: sorting_options
+          in: query
+          description: Sort the users list by display name, email, date registered, last active.
+          schema:
+            $ref: "#/components/schemas/user_sorting_options"
       security:
         - jwtAuth: []
       responses:
@@ -210,12 +393,8 @@ paths:
                 type: object
                 additionalProperties:
                   $ref: "#/components/schemas/user_status"
-            application/xml:
-              schema:
-                description: a map of user IDs and their respective status.
-                type: object
-                additionalProperties:
-                  $ref: "#/components/schemas/user_status"
+        "400":
+          description: Bad request due to invalid query parameters.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
     delete:
@@ -245,17 +424,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/user_psw"
-          application/xml:
-            schema:
-              $ref: "#/components/schemas/user_psw"
       responses:
         "200":
           description: Returns a JWT token upon successful authentication.
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/jwt_token"
-            application/xml:
               schema:
                 $ref: "#/components/schemas/jwt_token"
         "400":
@@ -281,13 +454,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/user_status"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/user_status"
-        "404":
-          description: User not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
     delete:
       summary: User logout
       description: Logs out a specific user from the system.
@@ -303,10 +473,10 @@ paths:
       responses:
         "204":
           description: User successfully logged out.
-        "404":
-          description: User not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: User not found.
 
   /matches:
     post:
@@ -320,17 +490,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/MatchSettings"
-          application/xml:
-            schema:
-              $ref: "#/components/schemas/MatchSettings"
       responses:
         "200":
           description: Returns a Match object, including the WebSocket URL for real-time communication during the game.
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/Match"
-            application/xml:
               schema:
                 $ref: "#/components/schemas/Match"
         "400":
@@ -369,13 +533,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Match"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/Match"
-        "404":
-          description: Match not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: Match not found.
     get:
       summary: Get info on an ongoing match
       description: Retrieve details about a specific ongoing match using its ID.
@@ -393,13 +554,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Match"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/Match"
-        "404":
-          description: Match not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: Match not found.
     delete:
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
@@ -415,11 +573,11 @@ paths:
       responses:
         "204":
           description: Match abandoned successfully.
-        "404":
-          description: Match not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
-  
+        "404":
+          description: Match not found.
+
   /tournaments:
     post:
       summary: Start a new tournament
@@ -441,26 +599,11 @@ paths:
                     $ref: "#/components/schemas/User"
                 tournament_mode:
                   $ref: "#/components/schemas/tournament_mode"
-          application/xml:
-            schema:
-              description: Array of users to invite and mode of the new tournament.
-              type: object
-              properties:
-                players:
-                  description: Array of users to invite.
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/User"
-                tournament_mode:
-                  $ref: "#/components/schemas/tournament_mode"
       responses:
         "200":
           description: Returns a Tournament object, including details of each match.
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/Tournament"
-            application/xml:
               schema:
                 $ref: "#/components/schemas/Tournament"
         "400":
@@ -499,13 +642,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tournament"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/Tournament"
-        "404":
-          description: Tournament not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: Tournament not found.
     get:
       summary: Get info on an ongoing tournament
       description: Retrieve details about a specific ongoing tournament using its ID.
@@ -523,13 +663,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tournament"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/Tournament"
-        "404":
-          description: Tournament not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: Tournament not found.
+    put:
+      summary: Force start a tournament
+      description: Force start the tournament (even if not all players have accepted the invitation).
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          description: Unique identifier of the tournament to start.
+          schema:
+            $ref: "#/components/schemas/tournament_id"
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Tournament started successfully.
+        "401":
+          description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: Tournament not found.
+        "409":
+          description: Conflict, e.g., tournament already started.
     delete:
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
@@ -545,10 +703,10 @@ paths:
       responses:
         "204":
           description: Tournament abandoned successfully.
-        "404":
-          description: Tournament not found.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
+        "404":
+          description: Tournament not found.
 
 components:
   schemas:
@@ -601,6 +759,10 @@ components:
       format: int32
       minimum: 1
       maximum: 100
+    match_outcome:
+      description: Outcome of the match (win, loss, draw).
+      type: string
+      enum: [win, loss, draw]
     player_health_points:
       description: Current health points of the player.
       type: integer
@@ -629,8 +791,6 @@ components:
           $ref: "#/components/schemas/user_psw"
         display_name:
           $ref: "#/components/schemas/user_display_name"
-      xml:
-        name: UserCredentials
 
     User:
       type: object
@@ -646,9 +806,7 @@ components:
           $ref: "#/components/schemas/user_status"
       required:
         - user_id
-      xml:
-        name: User
-    
+
     MatchSettings:
       type: object
       description: Settings and configurations for the match, such as ball speed, match duration, and player health.
@@ -659,8 +817,6 @@ components:
           $ref: "#/components/schemas/match_max_duration"
         starting_health:
           $ref: "#/components/schemas/match_starting_health"
-      xml:
-        name: MatchSettings
 
     Match:
       type: object
@@ -686,8 +842,6 @@ components:
           $ref: "#/components/schemas/MatchSettings"
       required:
         - match_id
-      xml:
-        name: Match
 
     Tournament:
       type: object
@@ -706,8 +860,62 @@ components:
           $ref: "#/components/schemas/tournament_status"
       required:
         - tournament_id
-      xml:
-        name: Tournament
+
+    user_sorting_options:
+      description: Options to sort the users list.
+      type: string
+      enum: [display_name, email, date_registered, last_active]
+      example: display_name
+
+    user_filter_options:
+      description: Options to filter the users list.
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/user_status"
+
+    friends_sorting_options:
+      description: Options to sort the friends list.
+      type: string
+      enum: [display_name, date_registered, last_active]
+      example: display_name
+
+    friends_filter_options:
+      description: Options to filter the friends list.
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/user_status"
+
+    match_sorting_options:
+      description: Options to sort the matches list.
+      type: string
+      enum: [age, duration]
+      example: age
+
+    match_filter_options:
+      description: Options to filter the matches list.
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/match_status"
+        outcome:
+          $ref: "#/components/schemas/match_outcome"
+
+    tournament_sorting_options:
+      description: Options to sort the tournaments list.
+      type: string
+      enum: [age, duration, number_of_players]
+      example: start_date
+    
+    tournament_filter_options:
+      description: Options to filter the tournaments list.
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/tournament_status"
+        mode:
+          $ref: "#/components/schemas/tournament_mode"
 
   securitySchemes:
     jwtAuth:
