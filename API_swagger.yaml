@@ -56,17 +56,43 @@ paths:
           description: Filter the users list by status.
           schema:
             $ref: "#/components/schemas/user_filter_options"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence request caching behavior.
+          schema:
+            type: string
+          example: max-age=900, private
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns an array of User objects.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: "private, max-age=900, must-revalidate"
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/User"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "400": 
           description: Bad request due to invalid query parameters.
         "401":
@@ -82,15 +108,41 @@ paths:
           description: Unique identifier of the user to retrieve.
           schema:
             $ref: "#/components/schemas/user_id"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence request caching behavior.
+          schema:
+            type: string
+          example: no-store
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the User object of the specified user.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: no-store
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
         "404":
@@ -176,11 +228,35 @@ paths:
           description: Filter the matches list by status or outcome.
           schema:
             $ref: "#/components/schemas/match_filter_options"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence caching behavior.
+          schema:
+            type: string
+          example: max-age=300, public, must-revalidate
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns an array of matches.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: max-age=3600, public, no-cache
           content:
             application/json:
               schema:
@@ -188,6 +264,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Match"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "400": 
           description: Bad request due to invalid query parameters.
         "401":
@@ -195,7 +273,7 @@ paths:
         "404":
           description: User not found.
   /user/{user_id}/tournaments:
-    get: #get the list of all tournaments the user partecipated in
+    get:
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
@@ -229,11 +307,35 @@ paths:
           description: Filter the tournaments list by status or mode.
           schema:
             $ref: "#/components/schemas/tournament_filter_options"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence caching behavior.
+          schema:
+            type: string
+          example: max-age=300, public, must-revalidate
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns an array of tournaments.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: max-age=3600, public, no-cache
           content:
             application/json:
               schema:
@@ -241,6 +343,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Tournament"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "400": 
           description: Bad request due to invalid query parameters.
         "401":
@@ -310,11 +414,35 @@ paths:
           description: Filter the users list by status.
           schema:
             $ref: "#/components/schemas/friends_filter_options"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence caching behavior.
+          schema:
+            type: string
+          example: private, no-cache
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns an array of User objects representing the friends.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: private, max-age=3600, no-cache
           content:
             application/json:
               schema:
@@ -322,6 +450,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/User"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "400":
           description: Bad request due to invalid query parameters.
         "401":
@@ -381,11 +511,35 @@ paths:
           description: Sort the users list by display name, email, date registered, last active.
           schema:
             $ref: "#/components/schemas/user_sorting_options"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence caching behavior.
+          schema:
+            type: string
+          example: no-cache
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns a map of user_ids and their respective statuses.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: private, no-cache
           content:
             application/json:
               schema:
@@ -393,6 +547,8 @@ paths:
                 type: object
                 additionalProperties:
                   $ref: "#/components/schemas/user_status"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "400":
           description: Bad request due to invalid query parameters.
         "401":
@@ -445,15 +601,41 @@ paths:
           description: Unique identifier of the user to check.
           schema:
             $ref: "#/components/schemas/user_id"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence caching behavior.
+          schema:
+            type: string
+          example: private, max-age=60, must-revalidate
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the login status of the user.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: private, max-age=3600, no-cache
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/user_status"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
         "404":
@@ -538,8 +720,8 @@ paths:
         "404":
           description: Match not found.
     get:
-      summary: Get info on an ongoing match
-      description: Retrieve details about a specific ongoing match using its ID.
+      summary: Get match info
+      description: Retrieve details about a specific match using its ID.
       parameters:
         - name: match_id
           in: path
@@ -547,13 +729,40 @@ paths:
           description: Unique identifier of the match to retrieve information for.
           schema:
             $ref: "#/components/schemas/match_id"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence caching behavior.
+          schema:
+            type: string
+          example: no-cache
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       responses:
         "200":
           description: Returns match information.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              #response cache-control depends if the match is ongoing or completed (ongoing: no-cache, public. completed: max-age=31536000, public)
+              example: max-age=31536000, public
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Match"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
         "401":
           description: Unauthorized access, JWT token is missing or invalid.
         "404":
@@ -647,8 +856,8 @@ paths:
         "404":
           description: Tournament not found.
     get:
-      summary: Get info on an ongoing tournament
-      description: Retrieve details about a specific ongoing tournament using its ID.
+      summary: Get tournament info
+      description: Retrieve details about a specific tournament using its ID.
       parameters:
         - name: tournament_id
           in: path
@@ -656,9 +865,34 @@ paths:
           description: Unique identifier of the tournament to retrieve information for.
           schema:
             $ref: "#/components/schemas/tournament_id"
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence caching behavior.
+          schema:
+            type: string
+          example: no-cache
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       responses:
         "200":
           description: Returns match information.
+          headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              #response cache-control depends if the tournament is ongoing or completed (ongoing: no-cache, public. completed: max-age=31536000, public)
+              example: max-age=31536000, no-cache, public
           content:
             application/json:
               schema:
