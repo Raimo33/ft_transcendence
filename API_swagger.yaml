@@ -1014,6 +1014,10 @@ components:
       description: Current status of the tournament.
       type: string
       enum: [ongoing, completed, interrupted]
+    date:
+      description: Date and time in unix timestamp format.
+      type: integer
+      format: int64
 
     UserCredentials:
       type: object
@@ -1072,6 +1076,10 @@ components:
             $ref: "#/components/schemas/player_health_points"
         status:
           $ref: "#/components/schemas/match_status"
+        date_started:
+          $ref: "#/components/schemas/date"
+        date_finished:
+          $ref: "#/components/schemas/date"
         match_settings:
           $ref: "#/components/schemas/MatchSettings"
       required:
@@ -1092,6 +1100,10 @@ components:
             $ref: "#/components/schemas/Match"
         status:
           $ref: "#/components/schemas/tournament_status"
+        date_started:
+          $ref: "#/components/schemas/date"
+        date_finished:
+          $ref: "#/components/schemas/date"
       required:
         - tournament_id
 
