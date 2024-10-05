@@ -2108,6 +2108,13 @@ components:
     user_display_name:
       description: Display name of the user, visible to other players during gameplay.
       type: string
+    user_avatar:
+      description: User's avatar image, used for profile picture, defaults to a generic avatar if not provided.
+      oneOf:
+        - type: string
+          description: URL to the user's avatar image.
+        - type: string
+          description: Base64-encoded image data for the user's avatar.
     user_status:
       description: Current status of the user (online or offline).
       type: string
@@ -2197,6 +2204,8 @@ components:
           $ref: "#/components/schemas/user_email"      
         display_name:
           $ref: "#/components/schemas/user_display_name"
+        avatar:
+          $ref: "#/components/schemas/user_avatar"
         status:
           $ref: "#/components/schemas/user_status"
       required:
