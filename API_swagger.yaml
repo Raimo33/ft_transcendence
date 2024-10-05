@@ -284,6 +284,12 @@ paths:
           description: Unique identifier of the user to update.
           schema:
             $ref: "#/components/schemas/user_id"
+        - name: If-Match
+          in: header
+          description: ETag header for optimistic concurrency control. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       requestBody:
@@ -329,6 +335,17 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "412":
+          description: Precondition failed, e.g., ETag mismatch.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
