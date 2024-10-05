@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    API_swagger.yaml                                   :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
+#    Updated: 2024/10/05 19:23:59 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 openapi: 3.0.0
 info:
   title: Pongfumasters API
@@ -16,7 +28,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserCredentials"
+              $ref: "#/components/schemas/User"
       responses:
         #3 per hour
         "200":
@@ -58,13 +70,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     get:
       summary: Get a list of users
       description: Retrieve a paginated list of users.
@@ -161,24 +166,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /users/{user_id}:
     get:
       summary: Get user data by user_id
@@ -245,15 +234,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -267,13 +247,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     put:
       summary: Update user credentials
       description: Update the email, password, or display name of a user using their user_id.
@@ -297,7 +270,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserCredentials"
+              $ref: "#/components/schemas/User"
       responses:
           #2 ogni giorno
         "200":
@@ -324,15 +297,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -357,13 +321,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     delete:
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
@@ -391,15 +348,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -413,13 +361,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /user/{user_id}/matches:
     get:
       summary: Get list of user matches.
@@ -524,15 +465,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -546,13 +478,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /user/{user_id}/tournaments:
     get:
       summary: Get list of user tournaments.
@@ -657,15 +582,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -679,13 +595,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /user/{user_id}/friends:
     post:
       summary: Add a friend
@@ -700,9 +609,9 @@ paths:
       requestBody:
         required: true
         content:
+          
           application/json:
             schema:
-              description: Unique identifier of the friend to add.
               $ref: "#/components/schemas/user_id"
       security:
         - jwtAuth: []
@@ -732,15 +641,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -765,13 +665,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     get:
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
@@ -875,15 +768,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -897,13 +781,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /user/{user_id}/friends/{friend_id}:
     delete:
       summary: Remove a friend
@@ -949,15 +826,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User or friend not found.
           headers:
@@ -971,13 +839,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
 
   /sessions:
     get:
@@ -1072,24 +933,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     delete:
       summary: Disconnect all users
       description: Logs out all users from the system.
@@ -1110,24 +955,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /sessions/{user_id}:
     post:
       summary: User login
@@ -1186,13 +1015,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     get:
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
@@ -1258,15 +1080,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -1280,13 +1093,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     delete:
       summary: User logout
       description: Logs out a specific user from the system.
@@ -1314,15 +1120,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: User not found.
           headers:
@@ -1336,13 +1133,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
 
   /matches:
     post:
@@ -1386,15 +1176,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "409":
           description: Conflict, e.g., match already in progress.
           headers:
@@ -1408,13 +1189,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     delete:
       summary: Interrupt all ongoing matches
       description: Terminate all currently active matches and clear session data.
@@ -1435,24 +1209,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /matches/{match_id}:
     post:
       summary: Join an ongoing match
@@ -1485,15 +1243,6 @@ paths:
                 $ref: "#/components/schemas/Match"
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: Match not found.
           headers:
@@ -1518,13 +1267,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     get:
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
@@ -1589,15 +1331,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: Match not found.
           headers:
@@ -1611,13 +1344,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     delete:
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
@@ -1645,15 +1371,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: Match not found.
           headers:
@@ -1678,13 +1395,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
 
   /tournaments:
     post:
@@ -1737,15 +1447,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "409":
           description: Conflict, e.g., too many tournaments in progress.
           headers:
@@ -1759,13 +1460,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     delete:
       summary: Interrupt all ongoing tournaments
       description: Terminate all currently active tournaments and clear session data.
@@ -1786,24 +1480,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
   /tournaments/{tournament_id}:
     post:
       summary: Join an ongoing tournament
@@ -1836,15 +1514,6 @@ paths:
                 $ref: "#/components/schemas/Tournament"
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: Tournament not found.
           headers:
@@ -1869,13 +1538,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     get:
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
@@ -1929,15 +1591,6 @@ paths:
                 $ref: "#/components/schemas/Tournament"
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: Tournament not found.
           headers:
@@ -1951,13 +1604,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     put:
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
@@ -1985,15 +1631,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: Tournament not found.
           headers:
@@ -2018,13 +1655,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
     delete:
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
@@ -2052,15 +1682,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "404":
           description: Tournament not found.
           headers:
@@ -2085,13 +1706,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
 
 components:
   schemas:
@@ -2183,17 +1797,6 @@ components:
       type: integer
       format: int64
 
-    UserCredentials:
-      type: object
-      description: Represents the credentials used for user registration or login.
-      properties:
-        email:
-          $ref: "#/components/schemas/user_email"
-        psw:
-          $ref: "#/components/schemas/user_psw"
-        display_name:
-          $ref: "#/components/schemas/user_display_name"
-
     User:
       type: object
       description: Represents a user (or an AI bot) in the Pongmasters system.
@@ -2220,7 +1823,7 @@ components:
         max_duration:
           $ref: "#/components/schemas/match_max_duration"
         starting_health:
-          $ref: "#/components/schemas/match_starting_health"
+          $ref: "#/components/schemas/match_starting_health_points"
 
     Match:
       type: object
@@ -2365,10 +1968,26 @@ components:
   responses:
 
     TooManyRequests:
-      $ref: '#/components/responses/TooManyRequests'
+      description: Rate limit exceeded. Too many requests in a given time window.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
 
     Unauthorized:
-      $ref: '#/components/responses/Unauthorized'
+      description: Unauthorized. JWT token is missing or invalid.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
 
   securitySchemes:
     jwtAuth:
