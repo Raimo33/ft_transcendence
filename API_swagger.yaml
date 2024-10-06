@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/06 11:25:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/06 15:39:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   title: Pongfumasters API
   description: REST-ful API to interact with the Pongfumasters gateway.
@@ -42,28 +42,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400":
-          description: Bad request due to invalid credentials.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "409":
-          description: Conflict, e.g., user with this email already exists.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
@@ -77,14 +55,15 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          OneOf:
-                            - $ref: "#/components/schemas/user_id"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/user_id"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the registration result.
@@ -200,16 +179,17 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          OneOf:
-                            - type: array
-                              items:
-                                $ref: "#/components/schemas/User"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/User"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the users list.
@@ -329,30 +309,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400":
-          description: Bad request due to invalid credentials.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "412":
           description: Precondition failed, e.g., ETag mismatch.
           headers:
@@ -377,12 +335,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        error_message:
-                          $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the user update result.
@@ -413,17 +368,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
@@ -436,12 +380,10 @@ paths:
                 required: true
                 content:
                   application/json:
-                    result:
-                      AnyOf:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        error_message:
-                          $ref: "#/components/schemas/error_message"
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the user deletion result.
@@ -536,17 +478,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
@@ -575,16 +506,17 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          OneOf:
-                            - type: array
-                              items:
-                                $ref: "#/components/schemas/Match"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Match"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the matches list.
@@ -680,17 +612,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
@@ -719,16 +640,17 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          OneOf:
-                            - type: array
-                              items:
-                                $ref: "#/components/schemas/Tournament"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Tournament"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the tournaments list.
@@ -764,30 +686,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400":
-          description: Bad request due to invalid friend_id.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
@@ -801,12 +701,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        error_message:
-                          $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the friend addition result.
@@ -900,17 +797,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
@@ -939,16 +825,17 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          OneOf:
-                            - type: array
-                              items:
-                                $ref: "#/components/schemas/User"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/User"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the friends list.
@@ -984,17 +871,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400":
-          description: Bad request due to invalid friend_id.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
         "429":
@@ -1010,11 +886,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      AnyOf:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        error_message:
-                          $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the friend removal result.
@@ -1139,13 +1013,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        AnyOf:
-                          status:
-                            $ref: "#/components/schemas/async_call_outcome"
-                          error_message:
-                            $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the all users logged out result.
@@ -1179,17 +1049,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400":
-          description: Bad request due to invalid credentials.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
@@ -1203,16 +1062,15 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          AnyOf:
-                            error_message:
-                              $ref: "#/components/schemas/error_message"
-                            jwt_token:
-                              $ref: "#/components/schemas/jwt_token"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/jwt_token"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the user login result.
@@ -1334,13 +1192,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        AnyOf:
-                          status:
-                            $ref: "#/components/schemas/async_call_outcome"
-                          error_message:
-                            $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the user logout result.
@@ -1385,14 +1239,15 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          AnyOf:
-                            - $ref: "#/components/schemas/Match"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Match"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the match creation result.
@@ -1429,13 +1284,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        AnyOf:
-                          status:
-                            $ref: "#/components/schemas/async_call_outcome"
-                          error_message:
-                            $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the all matches interrupted result.
@@ -1480,14 +1331,15 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          AnyOf:
-                            - $ref: "#/components/schemas/Match"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Match"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the match joined result.
@@ -1608,13 +1460,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        AnyOf:
-                          status:
-                            $ref: "#/components/schemas/async_call_outcome"
-                          error_message:
-                            $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the match abandoned result.
@@ -1668,14 +1516,15 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          AnyOf:
-                            - $ref: "#/components/schemas/Tournament"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Tournament"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the tournament creation result.
@@ -1712,13 +1561,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        AnyOf:
-                          status:
-                            $ref: "#/components/schemas/async_call_outcome"
-                          error_message:
-                            $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the all tournaments interrupted result.
@@ -1763,14 +1608,15 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        status:
-                          $ref: "#/components/schemas/async_call_outcome"
-                        result:
-                          AnyOf:
-                            - $ref: "#/components/schemas/Tournament"
-                            - $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Tournament"
+                            additionalProperties: false
               responses:
                 "200":
                   description: Client successfully received the tournament joined result.
@@ -1880,13 +1726,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        AnyOf:
-                          status:
-                            $ref: "#/components/schemas/async_call_outcome"
-                          error_message:
-                            $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the tournament started result.
@@ -1919,13 +1761,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      type: object
-                      properties:
-                        AnyOf:
-                          status:
-                            $ref: "#/components/schemas/async_call_outcome"
-                          error_message:
-                            $ref: "#/components/schemas/error_message"
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the tournament abandoned result.
@@ -1936,15 +1774,24 @@ components:
     user_id:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
       type: string
+      examples:
+        # TODO
     user_psw:
       description: User's password (plain-text) for authentication.
       type: string
+      examples:
+        - value: "StrongPassword123!"
     user_email:
       description: User's email address, used for login and notifications.
       type: string
+      format: email
+      examples:
+        - value: "name.surname@example.com"
     user_display_name:
       description: Display name of the user, visible to other players during gameplay.
       type: string
+      examples:
+        - value: "PongMaster123"
     user_avatar:
       description: User's avatar image, used for profile picture, defaults to a generic avatar if not provided.
       oneOf:
@@ -1952,49 +1799,73 @@ components:
           description: URL to the user's avatar image.
         - type: string
           description: Base64-encoded image data for the user's avatar.
+      examples:
+        - value: "https://example.com/avatar.jpg"
     user_status:
       description: Current status of the user (online or offline).
       type: string
       enum: [online, offline]
-      example: online
-
+      examples:
+        - value: "online"
+        - value: "offline"
+  
     jwt_token:
       description: JWT token for session management.
       type: string
+      examples:
+        - value: #TODO
 
     websocket_url:
       description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
       type: string
+      examples:
+        - value: "wss://example.com/ws"
 
     match_id:
       description: Unique identifier for the match (UUID format or similar).
       type: string
+      examples:
+        - value: #TODO
     match_status:
       description: Current status of the match.
       type: string
       enum: [ongoing, completed, interrupted]
+      examples:
+        - value: "ongoing"
+        - value: "completed"
+        - value: "interrupted"
     match_ball_speed:
       description: Defines the speed of the ball in the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
+      examples:
+        - value: 50
     match_max_duration:
       description: Maximum allowable duration (seconds) for the match.
       type: integer
       format: int32
       minimum: 60
       maximum: 3600
+      examples:
+        - value: 300
     match_starting_health_points:
       description: Initial health or lives given to each player at the start of the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
+      examples:
+        - value: 3
     match_outcome:
       description: Outcome of the match (win, loss, draw).
       type: string
       enum: [win, loss, draw]
+      examples:
+        - value: "win"
+        - value: "loss"
+        - value: "draw"
 
     player_health_points:
       description: Current health points of the player.
@@ -2002,23 +1873,38 @@ components:
       format: int32
       minimum: 0
       maximum: 100
+      examples:
+        - value: 2
 
     tournament_id:
       description: Unique identifier for the tournament (UUID format or similar).
       type: string
+      examples:
+        - value: #TODO
     tournament_mode:
       description: Format of the tournament.
       type: string
       enum: [knockout, king_of_the_hill, ladder, round_robin]
+      examples:
+        - value: "knockout"
+        - value: "king_of_the_hill"
+        - value: "ladder"
+        - value: "round_robin"
     tournament_status:
       description: Current status of the tournament.
       type: string
       enum: [ongoing, completed, interrupted]
+      examples:
+        - value: "ongoing"
+        - value: "completed"
+        - value: "interrupted"
 
     date:
       description: Date and time in unix timestamp format.
       type: integer
       format: int64
+      examples:
+        - value: 1630000000
 
     User:
       type: object
@@ -2103,7 +1989,11 @@ components:
       description: Options to sort the users list.
       type: string
       enum: [display_name, email, date_registered, last_active]
-      example: display_name
+      examples:
+        - value: "display_name"
+        - value: "email"
+        - value: "date_registered"
+        - value: "last_active"
 
     user_filter_options:
       description: Options to filter the users list.
@@ -2111,12 +2001,17 @@ components:
       properties:
         status:
           $ref: "#/components/schemas/user_status"
+      examples:
+        - value: { "status": "online" }
 
     friends_sorting_options:
       description: Options to sort the friends list.
       type: string
       enum: [display_name, date_registered, last_active]
-      example: display_name
+      examples:
+        - value: "display_name"
+        - value: "date_registered"
+        - value: "last_active"
 
     friends_filter_options:
       description: Options to filter the friends list.
@@ -2124,12 +2019,16 @@ components:
       properties:
         status:
           $ref: "#/components/schemas/user_status"
+      examples:
+        - value: { "status": "online" }
 
     match_sorting_options:
       description: Options to sort the matches list.
       type: string
       enum: [age, duration]
-      example: age
+      examples:
+        - value: "age"
+        - value: "duration"
 
     match_filter_options:
       description: Options to filter the matches list.
@@ -2139,12 +2038,18 @@ components:
           $ref: "#/components/schemas/match_status"
         outcome:
           $ref: "#/components/schemas/match_outcome"
+      examples:
+        - value: { "status": "ongoing" }
+        - value: { "outcome": "win" }
 
     tournament_sorting_options:
       description: Options to sort the tournaments list.
       type: string
       enum: [age, duration, number_of_players]
-      example: start_date
+      examples:
+        - value: "age"
+        - value: "duration"
+        - value: "number_of_players"
     
     tournament_filter_options:
       description: Options to filter the tournaments list.
@@ -2154,16 +2059,41 @@ components:
           $ref: "#/components/schemas/tournament_status"
         mode:
           $ref: "#/components/schemas/tournament_mode"
+      examples:
+        - value: { "status": "ongoing" }
+        - value: { "mode": "knockout" }
     
     error_message:
       description: Error message returned by the API.
       type: string
+      examples:
+        - value: "User not found."
     
     async_call_outcome:
       description: Outcome of an asynchronous call.
       type: string
       enum: [success, failure]
-      example: success
+      examples:
+        - value: "success"
+        - value: "failure"
+    
+    async_call_success:
+      type: object
+      properties:
+        outcome:
+          $ref: "#/components/schemas/async_call_outcome"
+      required: [outcome]
+      additionalProperties: true
+    
+    async_call_failure:
+      type: object
+      properties:
+        outcome:
+          $ref: "#/components/schemas/async_call_outcome"
+        error_message:
+          $ref: "#/components/schemas/error_message"
+      required: [outcome, error_message]
+      additionalProperties: false
   
   headers:
     X-Rate-Limit-Limit:

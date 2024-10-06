@@ -16,5 +16,5 @@ rootDirectory = postman/collections
 files[] = {"path":"API_swagger.yaml","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
-type = openapi:3
+type = openapi:3_1
 rootFiles[] = API_swagger.yaml
