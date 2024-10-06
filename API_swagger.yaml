@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/06 18:31:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/06 18:38:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -1968,6 +1968,7 @@ components:
     user_id:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
       type: string
+      format: uuid
       examples:
         # TODO
     user_psw:
@@ -1990,6 +1991,7 @@ components:
       description: User's avatar image, used for profile picture, defaults to a generic avatar if not provided.
       oneOf:
         - type: string
+          format: uri
           description: URL to the user's avatar image.
         - type: string
           description: Base64-encoded image data for the user's avatar.
@@ -2012,6 +2014,7 @@ components:
     websocket_url:
       description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
       type: string
+      format: uri
       examples:
         - value: "wss://example.com/ws"
 
