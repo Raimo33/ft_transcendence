@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/06 15:39:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/06 18:31:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -114,7 +114,7 @@ paths:
             type: string
           required: false
       security:
-        - jwtAuth: []
+        - jwtAuth: [admin]
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -194,7 +194,8 @@ paths:
                 "200":
                   description: Client successfully received the users list.
   /users/{user_id}:
-    get:
+    #10 ogni minuto
+    get: #se la chiama admin ottiene tutto, se la chiama un utente allora alcune cose saranno oscurate
       summary: Get user data by user_id
       description: Retrieve detailed information of a specific user using their unique user_id.
       parameters:
@@ -387,6 +388,199 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the user deletion result.
+  /user/{user_id}/2fa:
+    post:
+      #3 ogni ora
+      summary: Setup two-factor authentication
+      description: Enable two-factor authentication for a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to enable 2fa.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        2faSetupCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: 2fa setup completion callback
+              description: Server calls this endpoint when the 2fa setup is complete or failed.
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - allOf:
+                          - $ref: "#/components/schemas/async_call_success"
+                          - $ref: "#/components/schemas/totp_key"
+                            additionalProperties: false
+              responses:
+                "200":
+                  description: Client successfully received the 2fa key.
+    get:
+      #5 ogni minuto
+      summary: Get two-factor authentication status
+      description: Retrieve the two-factor authentication status of a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to retrieve 2fa status from.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Returns the 2fa status of the specified user.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/2fa_status"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          description: 2fa not enabled for the user.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      #2 ogni ora
+      summary: Disable two-factor authentication
+      description: Disable two-factor authentication for a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to disable 2fa.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        2faDisableCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: 2fa disable completion callback
+              description: Server calls this endpoint when the 2fa disable is complete or failed.
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+              responses:
+                "200":
+                  description: Client successfully received the 2fa disable result.
+  /user/{user_id}/2fa/verify:
+    post:
+    #verrà chiamata subito dopo il post di /user/{user_id}/2fa per verificare il codice otp
+      summary: Verify two-factor authentication code
+      description: Verify the two-factor authentication code provided by the user.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to verify 2fa code for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/totp_code"
+      security:
+        - jwtAuth: []
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        2faVerifyCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: 2fa verification completion callback
+              description: Server calls this endpoint when the 2fa verification is complete or failed.
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+              responses:
+                "200":
+                  description: Client successfully received the 2fa verification result.
   /user/{user_id}/matches:
     get:
       #10 ogni minuto
@@ -934,7 +1128,7 @@ paths:
             type: string
           required: false
       security:
-        - jwtAuth: []
+        - jwtAuth: [admin]
       responses:
         "200":
           description: Returns the login status of all users.
@@ -985,7 +1179,7 @@ paths:
       summary: Disconnect all users
       description: Logs out all users from the system.
       security:
-        - jwtAuth: []
+        - jwtAuth: [admin]
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1256,7 +1450,7 @@ paths:
       summary: Interrupt all ongoing matches
       description: Terminate all currently active matches and clear session data.
       security:
-        - jwtAuth: []
+        - jwtAuth: [admin]
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1533,7 +1727,7 @@ paths:
       summary: Interrupt all ongoing tournaments
       description: Terminate all currently active tournaments and clear session data.
       security:
-        - jwtAuth: []
+        - jwtAuth: [admin]
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1905,6 +2099,42 @@ components:
       format: int64
       examples:
         - value: 1630000000
+    
+    2fa_status:
+      description: Status of the 2FA authentication for the user.
+      type: string
+      enum: [enabled, disabled]
+      examples:
+        - value: "enabled"
+        - value: "disabled"
+    
+    qr_code:
+      description: URL to the QR code image.
+      type: string
+      format: uri
+      examples:
+        - value: "https://example.com/qr_code.png"
+      
+    totp_code:
+      description: TOTP code generated by the user for 2FA authentication.
+      type: string #string because it can contain leading zeros
+      examples:
+        - value: "012345"
+    
+    totp_secret:
+      description: TOTP secret key for generating 2FA codes.
+      type: string
+      examples:
+        - value: otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}
+    
+    totp_key:
+      description: Represents a 2FA private key for a user.
+      type: object
+      properties:
+        qr_code:
+          $ref: "#/components/schemas/qr_code"
+        secret:
+          $ref: "#/components/schemas/totp_secret"
 
     User:
       type: object
