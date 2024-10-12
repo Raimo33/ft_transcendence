@@ -2086,7 +2086,7 @@ components:
       type: string
       format: uuid
       examples:
-        - value: 550e8400-e29b-41d4-a716-446655440000
+        - value: "550e8400-e29b-41d4-a716-446655440000"
     tournament_mode:
       description: Format of the tournament.
       type: string
@@ -2114,11 +2114,9 @@ components:
     
     two_factor_auth_status:
       description: Status of the 2FA authentication for the user.
-      type: string
-      enum: [enabled, disabled]
+      type: boolean
       examples:
-        - value: "enabled"
-        - value: "disabled"
+        - value: True
     
     qr_code:
       description: URL to the QR code image.
