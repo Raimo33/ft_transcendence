@@ -1,10 +1,22 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    API_swagger.yaml                                   :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
+#    Updated: 2024/10/12 20:48:08 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 openapi: 3.1.0
 info:
   title: Pongfumasters API
   description: REST-ful API to interact with the Pongfumasters gateway.
   version: 1.0.0-oas3.1
 servers:
-  - url: /api/v1
+  - url: /api
     description: Main API server
 paths:
   /users:
@@ -195,7 +207,8 @@ paths:
                 '200':
                   description: Client successfully received the users list.
   /users/{user_id}:
-    get:
+    #10 ogni minuto
+    get: #se la chiama admin ottiene tutto, se la chiama un utente allora alcune cose saranno oscurate
       summary: Get user data by user_id
       description: >-
         Retrieve detailed information of a specific user using their unique
@@ -735,6 +748,7 @@ paths:
               responses:
                 '200':
                   description: Client successfully received the matches list.
+
   /user/{user_id}/tournaments:
     get:
       summary: Get list of user tournaments.
@@ -1065,6 +1079,7 @@ paths:
                 '200':
                   description: Client successfully received the friends list.
   /user/{user_id}/friends/{friend_id}:
+    #100 ogni ora
     delete:
       summary: Remove a friend
       description: Remove a user from the friend list.
@@ -1249,10 +1264,8 @@ paths:
                         - $ref: '#/components/schemas/async_call_failure'
                         - $ref: '#/components/schemas/async_call_success'
               responses:
-                '200':
-                  description: >-
-                    Client successfully received the all users logged out
-                    result.
+                "200":
+                  description: Client successfully received the all users logged out result.
   /sessions/{user_id}:
     post:
       summary: User login
@@ -1437,6 +1450,7 @@ paths:
               responses:
                 '200':
                   description: Client successfully received the user logout result.
+
   /matches:
     post:
       summary: Start a new match
@@ -1534,10 +1548,8 @@ paths:
                         - $ref: '#/components/schemas/async_call_failure'
                         - $ref: '#/components/schemas/async_call_success'
               responses:
-                '200':
-                  description: >-
-                    Client successfully received the all matches interrupted
-                    result.
+                "200":
+                  description: Client successfully received the all matches interrupted result.
   /matches/{match_id}:
     post:
       summary: Join an ongoing match
@@ -1718,6 +1730,7 @@ paths:
               responses:
                 '200':
                   description: Client successfully received the match abandoned result.
+
   /tournaments:
     post:
       summary: Start a new tournament
@@ -1821,10 +1834,8 @@ paths:
                         - $ref: '#/components/schemas/async_call_failure'
                         - $ref: '#/components/schemas/async_call_success'
               responses:
-                '200':
-                  description: >-
-                    Client successfully received the all tournaments interrupted
-                    result.
+                "200":
+                  description: Client successfully received the all tournaments interrupted result.
   /tournaments/{tournament_id}:
     post:
       summary: Join an ongoing tournament
