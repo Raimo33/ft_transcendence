@@ -9,6 +9,11 @@ services:
     container_name: nginx
     environment:
     volumes:
+    secrets:
+      - source: nginx-cert
+        target: /etc/ssl/certs/nginx.crt
+      - source: nginx-key
+        target: /etc/ssl/private/nginx.key
     
     ports:
       - "80:80"
@@ -37,13 +42,13 @@ services:
     depends_on:
     init: true
   
-  user-service:
+  user:
     build:
-      context: ./services/user-service
+      context: ./services/user
       dockerfile: Dockerfile
       args:
     
-    container_name: user-service
+    container_name: user
     environment:
     volumes:
     
@@ -55,13 +60,13 @@ services:
     depends_on:
     init: true
   
-  match-service:
+  match:
     build:
-      context: ./services/match-service
+      context: ./services/match
       dockerfile: Dockerfile
       args:
     
-    container_name: match-service
+    container_name: match
     environment:
     volumes:
     
@@ -73,13 +78,13 @@ services:
     depends_on:
     init: true
   
-  tournament-service:
+  tournament:
     build:
-      context: ./services/tournament-service
+      context: ./services/tournament
       dockerfile: Dockerfile
       args:
     
-    container_name: tournament-service
+    container_name: tournament
     environment:
     volumes:
     
@@ -109,13 +114,13 @@ services:
     depends_on:
     init: true
 
-  matchmaking-service:
+  matchmaking:
     build:
-      context: ./services/matchmaking-service
+      context: ./services/matchmaking
       dockerfile: Dockerfile
       args:
     
-    container_name: matchmaking-service
+    container_name: matchmaking
     environment:
     volumes:
     
@@ -127,13 +132,13 @@ services:
     depends_on:
     init: true
   
-  game-state-service:
+  game-state:
     build:
-      context: ./services/game-state-service
+      context: ./services/game-state
       dockerfile: Dockerfile
       args:
     
-    container_name: game-state-service
+    container_name: game-state
     environment:
     volumes:
     
@@ -145,13 +150,13 @@ services:
     depends_on:
     init: true
   
-  ai-service:
+  ai:
     build:
-      context: ./services/ai-service
+      context: ./services/ai
       dockerfile: Dockerfile
       args:
     
-    container_name: ai-service
+    container_name: ai
     environment:
     volumes:
     
@@ -163,13 +168,13 @@ services:
     depends_on:
     init: true
   
-  query-service:
+  query:
     build:
-      context: ./services/query-service
+      context: ./services/query
       dockerfile: Dockerfile
       args:
     
-    container_name: query-service
+    container_name: query
     environment:
     volumes:
     
@@ -199,13 +204,13 @@ services:
     depends_on:
     init: true
   
-  blockchain-service:
+  blockchain:
     build:
-      context: ./services/blockchain-service
+      context: ./services/blockchain
       dockerfile: Dockerfile
       args:
     
-    container_name: blockchain-service
+    container_name: blockchain
     environment:
     volumes:
     
@@ -346,6 +351,8 @@ services:
 volumes:
 
 secrets:
+  nginx-cert:
+  nginx-key:
 
 networks:
   edgenet:
