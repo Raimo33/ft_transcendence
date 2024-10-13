@@ -18,8 +18,170 @@ services:
     restart: always
     depends_on:
     init: true
+  
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: api-gateway
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - edgenet
+    restart: always
+    depends_on:
+    init: true
+  
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: user-service
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - corenet
+    restart: always
+    depends_on:
+    init: true
+  
+  match-service:
+    build:
+      context: ./services/match-service
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: match-service
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - corenet
+    restart: always
+    depends_on:
+    init: true
+  
+  tournament-service:
+    build:
+      context: ./services/tournament-service
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: tournament-service
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - corenet
+    restart: always
+    depends_on:
+    init: true
+  
+  keycloak:
+    build:
+      context: ./services/keycloak
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: keycloak
+    environment:
+    volumes:
+    
+    ports:
+      -
+    networks:
+      - corenet
+    restart: always
+    depends_on:
+    init: true
 
-  postgresql: #database for the backend (Web-3)
+  matchmaking-service:
+    build:
+      context: ./services/matchmaking-service
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: matchmaking-service
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - corenet
+    restart: always
+    depends_on:
+    init: true
+  
+  game-state-service:
+    build:
+      context: ./services/game-state-service
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: game-state-service
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - corenet
+    restart: always
+    depends_on:
+    init: true
+  
+  ai-service:
+    build:
+      context: ./services/ai-service
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: ai-service
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - corenet
+    restart: always
+    depends_on:
+    init: true
+  
+  query-service:
+    build:
+      context: ./services/query-service
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: query-service
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - datanet
+    restart: always
+    depends_on:
+    init: true
+
+  postgresql:
     build:
       context: ./services/postgresql
       dockerfile: Dockerfile
@@ -32,61 +194,171 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - backend
+      - datanet
     restart: always
     depends_on:
     init: true
   
-  keycloak: #2fa with JWT (Cybersecurity-3)
+  blockchain-service:
     build:
-      context: ./services/keycloak
+      context: ./services/blockchain-service
       dockerfile: Dockerfile
       args:
     
-    container_name: keycloak
+    container_name: blockchain-service
     environment:
     volumes:
     
     ports:
-      - "8080:8080"
+      - 
     networks:
-      - backend
+      - datanet
     restart: always
     depends_on:
     init: true
   
-  ethereum-node: #node to interact and store data on the blockchain (Web-4)
+  redis:
     build:
-      context: ./services/ethereum-node
+      context: ./services/redis
       dockerfile: Dockerfile
       args:
     
-    container_name: ethereum-node
+    container_name: redis
     environment:
     volumes:
-      #some volume to keep blockchain state locally to prevent re-syncing each downtime
+    
     ports:
-      - "8545:8545"
-      - "8546:8546"
+      - "6379:6379"
     networks:
-      - backend
+      - corenet
+    restart: always
+    depends_on:
+    init: true
+  
+  geth:
+    build:
+      context: ./services/geth
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: geth
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - datanet
     restart: always
     depends_on:
     init: true
 
-#TODO ADD elk
+  prometheus:
+    build:
+      context: ./services/prometheus
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: prometheus
+    environment:
+    volumes:
+    
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoringnet
+    restart: always
+    depends_on:
+    init: true
+  
+  grafana:
+    build:
+      context: ./services/grafana
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: grafana
+    environment:
+    volumes:
+    
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoringnet
+    restart: always
+    depends_on:
+    init: true
+  
+  logstash:
+    build:
+      context: ./services/logstash
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: logstash
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - monitoringnet
+    restart: always
+    depends_on:
+    init: true
+  
+  elasticsearch:
+    build:
+      context: ./services/elasticsearch
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: elasticsearch
+    environment:
+    volumes:
+    
+    ports:
+      - 
+    networks:
+      - monitoringnet
+    restart: always
+    depends_on:
+    init: true
+  
+  kibana:
+    build:
+      context: ./services/kibana
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: kibana
+    environment:
+    volumes:
+    
+    ports:
+      - "5601:5601"
+    networks:
+      - monitoringnet
+    restart: always
+    depends_on:
+    init: true
 
 volumes:
 
 secrets:
 
 networks:
-  backend:
-    name: backend
+  edgenet:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.1.0/28
+        - subnet: 192.168.1.0/30
+  corenet:
+    internal: true
+  datanet:
+    internal: true
+  monitoringnet:
+    internal: true
 
   
 
