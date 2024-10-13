@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    API_swagger.yaml                                   :+:      :+:    :+:    #
+#    API_swagger2.yaml                                  :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/12 20:48:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/13 22:47:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,17 +14,16 @@ openapi: 3.1.0
 info:
   title: Pongfumasters API
   description: REST-ful API to interact with the Pongfumasters gateway.
-  version: 1.0.0-oas3.1
+  version: 1.0.0
 servers:
-  - url: /api
+  - url: /api/v1
     description: Main API server
 paths:
   /users:
     post:
+      #3 per hour
       summary: User registration
-      description: >-
-        Register a new user in the system by providing email, password, display
-        name, and other optional fields.
+      description: Register a new user in the system by providing email, password, display name, and other optional fields.
       requestBody:
         required: true
         content:
@@ -32,10 +31,8 @@ paths:
             schema:
               $ref: '#/components/schemas/RegisterUser'
       responses:
-        '202':
-          description: >-
-            The registration request has been accepted and is being processed
-            asynchronously.
+        "202":
+          description: The registration request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -45,34 +42,33 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         registrationCompleted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Registration completion callback
-              description: >-
-                Server calls this endpoint when the user registration is
-                complete or failed.
+              description: Server calls this endpoint when the user registration is complete or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  $ref: '#/components/schemas/user_id'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/user_id"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the registration result.
     get:
+      #150 ogni 10 minuti
       summary: Get a list of users
       description: Retrieve a paginated list of users.
       parameters:
@@ -94,17 +90,15 @@ paths:
           required: true
         - name: sorting_options
           in: query
-          description: >-
-            Sort the users list by display name, email, registered_timestamp, last
-            active.
+          description: Sort the users list by display name, email, date registered, last active.
           schema:
-            $ref: '#/components/schemas/user_sorting_options'
+            $ref: "#/components/schemas/user_sorting_options"
           required: false
         - name: filter_options
           in: query
           description: Filter the users list by status.
           schema:
-            $ref: '#/components/schemas/user_filter_options'
+            $ref: "#/components/schemas/user_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -115,17 +109,14 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       security:
-        - jwtAuth:
-            - admin
+        - jwtAuth: [admin]
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -136,10 +127,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -149,7 +138,7 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '400':
+        "400": 
           description: Bad request due to invalid query parameters.
           headers:
             X-Rate-Limit-Limit:
@@ -160,18 +149,16 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         usersListReady:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Users list ready callback
-              description: >-
-                Server calls this endpoint when the users list is ready to be
-                retrieved.
+              description: Server calls this endpoint when the users list is ready to be retrieved.
               parameters:
                 - name: ETag
                   in: header
@@ -193,32 +180,30 @@ paths:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  type: array
-                                  items:
-                                    $ref: '#/components/schemas/User'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/User"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the users list.
   /users/{user_id}:
     #10 ogni minuto
     get: #se la chiama admin ottiene tutto, se la chiama un utente allora alcune cose saranno oscurate
       summary: Get user data by user_id
-      description: >-
-        Retrieve detailed information of a specific user using their unique
-        user_id.
+      description: Retrieve detailed information of a specific user using their unique user_id.
       parameters:
         - name: user_id
           in: path
           description: Unique identifier of the user to retrieve.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
         - name: Cache-Control
           in: header
@@ -229,16 +214,15 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       security:
         - jwtAuth: []
       responses:
-        '200':
+        #1 ogni 60 secondi
+        "200":
           description: Returns the User object of the specified user.
           headers:
             ETag:
@@ -262,11 +246,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+                $ref: "#/components/schemas/User"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -276,9 +258,9 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '404':
+        "404":
           description: User not found.
           headers:
             X-Rate-Limit-Limit:
@@ -289,26 +271,22 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
     put:
+      #2 ogni giorno
       summary: Update user credentials
-      description: >-
-        Update the email, password, or display name of a user using their
-        user_id.
+      description: Update the email, password, or display name of a user using their user_id.
       parameters:
         - name: user_id
           in: path
           description: Unique identifier of the user to update.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
         - name: If-Match
           in: header
-          description: >-
-            ETag header for optimistic concurrency control. The client can
-            provide the ETag value from a previous request to check if the
-            resource has changed.
+          description: ETag header for optimistic concurrency control. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
@@ -319,9 +297,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUser'
+              $ref: "#/components/schemas/UpdateUser"
       responses:
-        '202':
+        "202": 
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -332,9 +310,9 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '412':
+        "412":
           description: Precondition failed, e.g., ETag mismatch.
           headers:
             X-Rate-Limit-Limit:
@@ -345,28 +323,27 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         userUpdateCompleted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: User update completion callback
-              description: >-
-                Server calls this endpoint when the user update is complete or
-                failed.
+              description: Server calls this endpoint when the user update is complete or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the user update result.
     delete:
+      #1 al giorno
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
       parameters:
@@ -374,15 +351,13 @@ paths:
           in: path
           description: Unique identifier of the user to delete.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
-          description: >-
-            The deletion request has been accepted and is being processed
-            asynchronously.
+        "202":
+          description: The deletion request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -392,31 +367,30 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         userDeletionCompleted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: User deletion completion callback
-              description: >-
-                Server calls this endpoint when the user deletion is complete or
-                failed.
+              description: Server calls this endpoint when the user deletion is complete or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the user deletion result.
   /user/{user_id}/2fa:
     post:
+      #3 ogni ora
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
       parameters:
@@ -424,12 +398,12 @@ paths:
           in: path
           description: Unique identifier of the user to enable 2fa.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -440,33 +414,32 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         2faSetupCompleted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: 2fa setup completion callback
-              description: >-
-                Server calls this endpoint when the 2fa setup is complete or
-                failed.
+              description: Server calls this endpoint when the 2fa setup is complete or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - $ref: '#/components/schemas/totp_key'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - $ref: "#/components/schemas/totp_key"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the 2fa key.
     get:
+      #5 ogni minuto
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
@@ -474,12 +447,12 @@ paths:
           in: path
           description: Unique identifier of the user to retrieve 2fa status from.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '200':
+        "200":
           description: Returns the 2fa status of the specified user.
           headers:
             X-Rate-Limit-Limit:
@@ -493,10 +466,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/two_factor_auth_status'
-        '401':
+                $ref: "#/components/schemas/two_factor_auth_status"
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '404':
+        "404":
           description: 2fa not enabled for the user.
           headers:
             X-Rate-Limit-Limit:
@@ -507,9 +480,10 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
+      #2 ogni ora
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
       parameters:
@@ -517,12 +491,12 @@ paths:
           in: path
           description: Unique identifier of the user to disable 2fa.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -533,31 +507,30 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         2faDisableCompleted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: 2fa disable completion callback
-              description: >-
-                Server calls this endpoint when the 2fa disable is complete or
-                failed.
+              description: Server calls this endpoint when the 2fa disable is complete or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the 2fa disable result.
   /user/{user_id}/2fa/verify:
     post:
+    #verrà chiamata subito dopo il post di /user/{user_id}/2fa per verificare il codice otp
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
       parameters:
@@ -565,18 +538,18 @@ paths:
           in: path
           description: Unique identifier of the user to verify 2fa code for.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/totp_code'
+              $ref: "#/components/schemas/totp_code"
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -587,31 +560,30 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         2faVerifyCompleted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: 2fa verification completion callback
-              description: >-
-                Server calls this endpoint when the 2fa verification is complete
-                or failed.
+              description: Server calls this endpoint when the 2fa verification is complete or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the 2fa verification result.
   /user/{user_id}/matches:
     get:
+      #10 ogni minuto
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
       parameters:
@@ -619,7 +591,7 @@ paths:
           in: path
           description: Unique identifier of the user to retrieve data from.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
         - name: page
           in: query
@@ -641,13 +613,13 @@ paths:
           in: query
           description: Sort the matches list by age or duration.
           schema:
-            $ref: '#/components/schemas/match_sorting_options'
+            $ref: "#/components/schemas/match_sorting_options"
           required: false
         - name: filter_options
           in: query
           description: Filter the matches list by status or outcome.
           schema:
-            $ref: '#/components/schemas/match_filter_options'
+            $ref: "#/components/schemas/match_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -658,16 +630,14 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -678,10 +648,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -691,7 +659,7 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '400':
+        "400": 
           description: Bad request due to invalid query parameters.
           headers:
             X-Rate-Limit-Limit:
@@ -702,18 +670,16 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         matchesListReady:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Matches list ready callback
-              description: >-
-                Server calls this endpoint when the matches list is ready to be
-                retrieved.
+              description: Server calls this endpoint when the matches list is ready to be retrieved.
               parameters:
                 - name: ETag
                   in: header
@@ -735,22 +701,23 @@ paths:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  type: array
-                                  items:
-                                    $ref: '#/components/schemas/Match'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Match"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the matches list.
 
   /user/{user_id}/tournaments:
     get:
+      #10 ogni minuto
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
@@ -758,7 +725,7 @@ paths:
           in: path
           description: Unique identifier of the user to retrieve data from.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
         - name: page
           in: query
@@ -780,13 +747,13 @@ paths:
           in: query
           description: Sort the tournaments list by age, duration, or number of players.
           schema:
-            $ref: '#/components/schemas/tournament_sorting_options'
+            $ref: "#/components/schemas/tournament_sorting_options"
           required: false
         - name: filter_options
           in: query
           description: Filter the tournaments list by status or mode.
           schema:
-            $ref: '#/components/schemas/tournament_filter_options'
+            $ref: "#/components/schemas/tournament_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -797,16 +764,14 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -817,10 +782,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -830,7 +793,7 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '400':
+        "400": 
           description: Bad request due to invalid query parameters.
           headers:
             X-Rate-Limit-Limit:
@@ -841,18 +804,16 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         tournamentsListReady:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Tournaments list ready callback
-              description: >-
-                Server calls this endpoint when the tournaments list is ready to
-                be retrieved.
+              description: Server calls this endpoint when the tournaments list is ready to be retrieved.
               parameters:
                 - name: ETag
                   in: header
@@ -874,21 +835,22 @@ paths:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  type: array
-                                  items:
-                                    $ref: '#/components/schemas/Tournament'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/Tournament"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the tournaments list.
   /user/{user_id}/friends:
     post:
+      #100 al giorno
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:
@@ -896,18 +858,18 @@ paths:
           in: path
           description: Unique identifier of the user adding a friend.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/user_id'
+              $ref: "#/components/schemas/user_id"
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -918,30 +880,29 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         friendAdded:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Friend added callback
-              description: >-
-                Server calls this endpoint when the friend has been added
-                successfully or failed.
+              description: Server calls this endpoint when the friend has been added successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the friend addition result.
     get:
+      #15 ogni minuto
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
       parameters:
@@ -949,7 +910,7 @@ paths:
           in: path
           description: Unique identifier of the user to retrieve friends from.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
         - name: page
           in: query
@@ -971,13 +932,13 @@ paths:
           in: query
           description: Sort the users list by display name, registered_timestamp, last active.
           schema:
-            $ref: '#/components/schemas/friends_sorting_options'
+            $ref: "#/components/schemas/friends_sorting_options"
           required: false
         - name: filter_options
           in: query
           description: Filter the users list by status.
           schema:
-            $ref: '#/components/schemas/friends_filter_options'
+            $ref: "#/components/schemas/friends_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -988,16 +949,14 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1008,10 +967,8 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1021,7 +978,7 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '400':
+        "400":
           description: Bad request due to invalid query parameters.
           headers:
             X-Rate-Limit-Limit:
@@ -1032,18 +989,16 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         friendsListReady:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Friends list ready callback
-              description: >-
-                Server calls this endpoint when the friends list is ready to be
-                retrieved.
+              description: Server calls this endpoint when the friends list is ready to be retrieved.
               parameters:
                 - name: ETag
                   in: header
@@ -1065,18 +1020,18 @@ paths:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  type: array
-                                  items:
-                                    $ref: '#/components/schemas/User'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/User"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the friends list.
   /user/{user_id}/friends/{friend_id}:
     #100 ogni ora
@@ -1088,18 +1043,18 @@ paths:
           in: path
           description: Unique identifier of the user removing a friend.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
         - name: friend_id
           in: path
           description: Unique identifier of the friend to remove.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1110,31 +1065,30 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         friendRemoved:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Friend removed callback
-              description: >-
-                Server calls this endpoint when the friend has been removed
-                successfully or failed.
+              description: Server calls this endpoint when the friend has been removed successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the friend removal result.
   /sessions:
     get:
+      #10 ogni minuto
       summary: Get login status of all users
       description: Retrieve the login status of all users.
       parameters:
@@ -1158,7 +1112,7 @@ paths:
           in: query
           description: Filter the users list by status.
           schema:
-            $ref: '#/components/schemas/user_status'
+            $ref: "#/components/schemas/user_status"
           required: false
         - name: Cache-Control
           in: header
@@ -1169,17 +1123,14 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       security:
-        - jwtAuth:
-            - admin
+        - jwtAuth: [admin]
       responses:
-        '200':
+        "200":
           description: Returns the login status of all users.
           headers:
             X-Rate-Limit-Limit:
@@ -1196,11 +1147,9 @@ paths:
                 description: map of user_id to user_status.
                 type: object
                 additionalProperties:
-                  $ref: '#/components/schemas/user_status'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+                  $ref: "#/components/schemas/user_status"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1210,7 +1159,7 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '400':
+        "400":
           description: Bad request due to invalid query parameters.
           headers:
             X-Rate-Limit-Limit:
@@ -1221,18 +1170,18 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
+      #2 al giorno
       summary: Disconnect all users
       description: Logs out all users from the system.
       security:
-        - jwtAuth:
-            - admin
+        - jwtAuth: [admin]
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1243,31 +1192,30 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         allUsersLoggedOut:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: All users logged out callback
-              description: >-
-                Server calls this endpoint when all users have been logged out
-                successfully or failed.
+              description: Server calls this endpoint when all users have been logged out successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the all users logged out result.
   /sessions/{user_id}:
     post:
+      #30 ogni ora 
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
@@ -1275,16 +1223,16 @@ paths:
           in: path
           description: Unique identifier of the user attempting to log in.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/user_psw'
+              $ref: "#/components/schemas/user_psw"
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1295,34 +1243,33 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         userLoggedIn:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: User logged in callback
-              description: >-
-                Server calls this endpoint when the user has been logged in
-                successfully or failed.
+              description: Server calls this endpoint when the user has been logged in successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  $ref: '#/components/schemas/jwt_token'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/jwt_token"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the user login result.
     get:
+      #10 ogni 60 secondi
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
       parameters:
@@ -1330,7 +1277,7 @@ paths:
           in: path
           description: Unique identifier of the user to check.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
         - name: Cache-Control
           in: header
@@ -1341,16 +1288,14 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       security:
         - jwtAuth: []
       responses:
-        '200':
+        "200":
           description: Returns the login status of the user.
           headers:
             ETag:
@@ -1374,11 +1319,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_status'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+                $ref: "#/components/schemas/user_status"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1388,9 +1331,9 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '404':
+        "404":
           description: User not found.
           headers:
             X-Rate-Limit-Limit:
@@ -1401,9 +1344,10 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
+      #30 ogni ora
       summary: User logout
       description: Logs out a specific user from the system.
       parameters:
@@ -1411,12 +1355,12 @@ paths:
           in: path
           description: Unique identifier of the user to log out.
           schema:
-            $ref: '#/components/schemas/user_id'
+            $ref: "#/components/schemas/user_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1427,36 +1371,33 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         userLoggedOut:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: User logged out callback
-              description: >-
-                Server calls this endpoint when the user has been logged out
-                successfully or failed.
+              description: Server calls this endpoint when the user has been logged out successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the user logout result.
 
   /matches:
     post:
+      #2 ogni minuto
       summary: Start a new match
-      description: >-
-        Initialize a new Pong match by providing the match settings and the
-        opponent user ID.
+      description: Initialize a new Pong match by providing the match settings and the opponent user ID.
       security:
         - jwtAuth: []
       requestBody:
@@ -1465,11 +1406,11 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/MatchSettings'
-                - $ref: '#/components/schemas/user_id'
+                - $ref: "#/components/schemas/MatchSettings"
+                - $ref: "#/components/schemas/user_id"
                   additionalProperties: false
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1480,43 +1421,41 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         matchReady:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Match creation callback
-              description: >-
-                Server calls this endpoint when the match was created
-                successfully or failed.
+              description: Server calls this endpoint when the match was created successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  $ref: '#/components/schemas/Match'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Match"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the match creation result.
     delete:
+      #2 al giorno
       summary: Interrupt all ongoing matches
       description: Terminate all currently active matches and clear session data.
       security:
-        - jwtAuth:
-            - admin
+        - jwtAuth: [admin]
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1527,31 +1466,30 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         allMatchesInterrupted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: All matches interrupted callback
-              description: >-
-                Server calls this endpoint when all matches have been
-                interrupted successfully or failed.
+              description: Server calls this endpoint when all matches have been interrupted successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the all matches interrupted result.
   /matches/{match_id}:
     post:
+      #3 al minuto
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
       parameters:
@@ -1559,12 +1497,12 @@ paths:
           in: path
           description: Unique identifier of the match to join.
           schema:
-            $ref: '#/components/schemas/match_id'
+            $ref: "#/components/schemas/match_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1575,34 +1513,32 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         matchJoined:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Match joined callback
-              description: >-
-                Server calls this endpoint when the user has joined the match
-                successfully or failed.
+              description: Server calls this endpoint when the user has joined the match successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  $ref: '#/components/schemas/Match'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Match"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the match joined result.
     get:
       summary: Get match info
@@ -1612,7 +1548,7 @@ paths:
           in: path
           description: Unique identifier of the match to retrieve information for.
           schema:
-            $ref: '#/components/schemas/match_id'
+            $ref: "#/components/schemas/match_id"
           required: true
         - name: Cache-Control
           in: header
@@ -1623,14 +1559,13 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       responses:
-        '200':
+        #5 ogni minuto
+        "200":
           description: Returns match information.
           headers:
             ETag:
@@ -1642,6 +1577,7 @@ paths:
               description: Cache control directives for the response.
               schema:
                 type: string
+              #response cache-control depends if the match is ongoing or completed (ongoing: no-cache, public. completed: max-age=31536000, public)
               example: max-age=31536000, public
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1654,11 +1590,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Match'
-        '304':
-          description: >-
-            Not modified. The resource has not changed since the last request
-            with the given `If-None-Match` value.
+                $ref: "#/components/schemas/Match"
+        "304":
+          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1668,9 +1602,9 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '404':
+        "404":
           description: Match not found.
           headers:
             X-Rate-Limit-Limit:
@@ -1681,9 +1615,10 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
+      #3 al minuto
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
       parameters:
@@ -1691,12 +1626,12 @@ paths:
           in: path
           description: Unique identifier of the match to abandon.
           schema:
-            $ref: '#/components/schemas/match_id'
+            $ref: "#/components/schemas/match_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1707,36 +1642,33 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         matchAbandoned:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Match abandoned callback
-              description: >-
-                Server calls this endpoint when the match has been abandoned
-                successfully or failed.
+              description: Server calls this endpoint when the match has been abandoned successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the match abandoned result.
 
   /tournaments:
     post:
+      #3 ogni minuto
       summary: Start a new tournament
-      description: >-
-        Initialize a new Pong tournament by providing a list of users to invite
-        and tournament mode.
+      description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       security:
         - jwtAuth: []
       requestBody:
@@ -1745,17 +1677,17 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/tournament_mode'
+                - $ref: "#/components/schemas/tournament_mode"
                 - type: object
                   properties:
                     invited_users:
                       type: array
                       items:
-                        $ref: '#/components/schemas/user_id'
+                        $ref: "#/components/schemas/user_id"
                     required: true
                   additionalProperties: false
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1766,43 +1698,41 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         tournamentReady:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Tournament creation callback
-              description: >-
-                Server calls this endpoint when the tournament was created
-                successfully or failed.
+              description: Server calls this endpoint when the tournament was created successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  $ref: '#/components/schemas/Tournament'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Tournament"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the tournament creation result.
     delete:
+      #2 al giorno
       summary: Interrupt all ongoing tournaments
       description: Terminate all currently active tournaments and clear session data.
       security:
-        - jwtAuth:
-            - admin
+        - jwtAuth: [admin]
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1813,46 +1743,43 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         allTournamentsInterrupted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: All tournaments interrupted callback
-              description: >-
-                Server calls this endpoint when all tournaments have been
-                interrupted successfully or failed.
+              description: Server calls this endpoint when all tournaments have been interrupted successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
                 "200":
                   description: Client successfully received the all tournaments interrupted result.
   /tournaments/{tournament_id}:
     post:
+      #3 al minuto
       summary: Join an ongoing tournament
-      description: >-
-        Allows an invited user to join an ongoing tournament by providing the
-        tournament ID.
+      description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       parameters:
         - name: tournament_id
           in: path
           description: Unique identifier of the tournament to join.
           schema:
-            $ref: '#/components/schemas/tournament_id'
+            $ref: "#/components/schemas/tournament_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1863,34 +1790,32 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         tournamentJoined:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Tournament joined callback
-              description: >-
-                Server calls this endpoint when the user has joined the
-                tournament successfully or failed.
+              description: Server calls this endpoint when the user has joined the tournament successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
+                        - $ref: "#/components/schemas/async_call_failure"
                         - allOf:
-                            - $ref: '#/components/schemas/async_call_success'
-                            - type: object
-                              properties:
-                                additional_property:
-                                  $ref: '#/components/schemas/Tournament'
-                              additionalProperties: false
+                          - $ref: "#/components/schemas/async_call_success"
+                          - type: object
+                            properties:
+                              additional_property:
+                                $ref: "#/components/schemas/Tournament"
+                            additionalProperties: false
               responses:
-                '200':
+                "200":
                   description: Client successfully received the tournament joined result.
     get:
       summary: Get tournament info
@@ -1900,7 +1825,7 @@ paths:
           in: path
           description: Unique identifier of the tournament to retrieve information for.
           schema:
-            $ref: '#/components/schemas/tournament_id'
+            $ref: "#/components/schemas/tournament_id"
           required: true
         - name: Cache-Control
           in: header
@@ -1911,14 +1836,13 @@ paths:
           required: false
         - name: If-None-Match
           in: header
-          description: >-
-            ETag header for cache validation. The client can provide the ETag
-            value from a previous request to check if the resource has changed.
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
           schema:
             type: string
           required: false
       responses:
-        '200':
+        #5 ogni minuto
+        "200":
           description: Returns match information.
           headers:
             ETag:
@@ -1930,6 +1854,7 @@ paths:
               description: Cache control directives for the response.
               schema:
                 type: string
+              #response cache-control depends if the tournament is ongoing or completed (ongoing: no-cache, public. completed: max-age=31536000, public)
               example: max-age=31536000, no-cache, public
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1942,10 +1867,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tournament'
-        '401':
+                $ref: "#/components/schemas/Tournament"
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '404':
+        "404":
           description: Tournament not found.
           headers:
             X-Rate-Limit-Limit:
@@ -1956,24 +1881,23 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
     patch:
+      #3 al minuto
       summary: Force start a tournament
-      description: >-
-        Force start the tournament (even if not all players have accepted the
-        invitation).
+      description: Force start the tournament (even if not all players have accepted the invitation).
       parameters:
         - name: tournament_id
           in: path
           description: Unique identifier of the tournament to start.
           schema:
-            $ref: '#/components/schemas/tournament_id'
+            $ref: "#/components/schemas/tournament_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '202':
+        "202":
           description: The request has been accepted and is being processed asynchronously.
           headers:
             X-Rate-Limit-Limit:
@@ -1984,30 +1908,29 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         tournamentStarted:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Tournament started callback
-              description: >-
-                Server calls this endpoint when the tournament has been started
-                successfully or failed.
+              description: Server calls this endpoint when the tournament has been started successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
+                "200":
                   description: Client successfully received the tournament started result.
     delete:
+      #3 al minuto
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:
@@ -2015,38 +1938,40 @@ paths:
           in: path
           description: Unique identifier of the tournament to abandon.
           schema:
-            $ref: '#/components/schemas/tournament_id'
+            $ref: "#/components/schemas/tournament_id"
           required: true
       security:
         - jwtAuth: []
       responses:
-        '401':
+        "401":
           $ref: '#/components/responses/Unauthorized'
-        '429':
+        "429":
           $ref: '#/components/responses/TooManyRequests'
       callbacks:
         tournamentAbandoned:
-          '{$request.body.callbackUrl}':
+          "{$request.body.callbackUrl}":
             post:
               summary: Tournament abandoned callback
-              description: >-
-                Server calls this endpoint when the tournament has been
-                abandoned successfully or failed.
+              description: Server calls this endpoint when the tournament has been abandoned successfully or failed.
               requestBody:
                 required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: '#/components/schemas/async_call_failure'
-                        - $ref: '#/components/schemas/async_call_success'
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
               responses:
-                '200':
-                  description: >-
-                    Client successfully received the tournament abandoned
-                    result.
+                "200":
+                  description: Client successfully received the tournament abandoned result.
+
 components:
   schemas:
+
+    # ===================
+    # = General Objects =
+    # ===================
+
     user_id:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
       type: string
@@ -2057,22 +1982,20 @@ components:
       description: User's password (plain-text) for authentication.
       type: string
       examples:
-        - value: StrongPassword123!
+        - value: "StrongPassword123!"
     user_email:
       description: User's email address, used for login and notifications.
       type: string
       format: email
       examples:
-        - value: example@example.com
+        - value: "example@example.com"
     user_display_name:
       description: Display name of the user, visible to other players during gameplay.
       type: string
       examples:
-        - value: PongMaster123
+        - value: "PongMaster123"
     user_avatar:
-      description: >-
-        User's avatar image, used for profile picture, defaults to a generic
-        avatar if not provided.
+      description: User's avatar image, used for profile picture, defaults to a generic avatar if not provided.
       oneOf:
         - type: string
           format: uri
@@ -2080,30 +2003,28 @@ components:
         - type: string
           description: Base64-encoded image data for the user's avatar.
       examples:
-        - value: https://example.com/avatar.jpg
+        - value: "https://example.com/avatar.jpg"
     user_status:
       description: Current status of the user (online or offline).
       type: string
-      enum:
-        - online
-        - offline
+      enum: [online, offline]
       examples:
-        - value: online
-        - value: offline
+        - value: "online"
+        - value: "offline"
+  
     jwt_token:
       description: JWT token for session management.
       type: string
       examples:
         - value: <Header>.<Payload>.<Signature>
+
     websocket_url:
-      description: >-
-        WebSocket URL for real-time interaction during the match. Used by
-        clients to establish connections and interact with the game in
-        real-time.
+      description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
       type: string
       format: uri
       examples:
-        - value: wss://example.com/ws
+        - value: "wss://example.com/ws"
+
     match_id:
       description: Unique identifier for the match (UUID format or similar).
       type: string
@@ -2113,14 +2034,11 @@ components:
     match_status:
       description: Current status of the match.
       type: string
-      enum:
-        - ongoing
-        - completed
-        - interrupted
+      enum: [ongoing, completed, interrupted]
       examples:
-        - value: ongoing
-        - value: completed
-        - value: interrupted
+        - value: "ongoing"
+        - value: "completed"
+        - value: "interrupted"
     match_ball_speed:
       description: Defines the speed of the ball in the match.
       type: integer
@@ -2148,14 +2066,12 @@ components:
     match_outcome:
       description: Outcome of the match (win, loss, draw).
       type: string
-      enum:
-        - win
-        - loss
-        - draw
+      enum: [win, loss, draw]
       examples:
-        - value: win
-        - value: loss
-        - value: draw
+        - value: "win"
+        - value: "loss"
+        - value: "draw"
+
     player_health_points:
       description: Current health points of the player.
       type: integer
@@ -2164,328 +2080,299 @@ components:
       maximum: 100
       examples:
         - value: 2
+
     tournament_id:
       description: Unique identifier for the tournament (UUID format or similar).
       type: string
       format: uuid
       examples:
-        - value: 550e8400-e29b-41d4-a716-446655440000
+        - value: "550e8400-e29b-41d4-a716-446655440000"
     tournament_mode:
       description: Format of the tournament.
       type: string
-      enum:
-        - single-elimination
-        - knockout
-        - king_of_the_hill
-        - ladder
-        - round_robin
+      enum: [knockout, king_of_the_hill, ladder, round_robin]
       examples:
-        - value: single-elimination
-        - value: knockout
-        - value: king_of_the_hill
-        - value: ladder
-        - value: round_robin
+        - value: "knockout"
+        - value: "king_of_the_hill"
+        - value: "ladder"
+        - value: "round_robin"
     tournament_status:
       description: Current status of the tournament.
       type: string
-      enum:
-        - ongoing
-        - completed
-        - interrupted
+      enum: [ongoing, completed, interrupted]
       examples:
-        - value: ongoing
-        - value: completed
-        - value: interrupted
+        - value: "ongoing"
+        - value: "completed"
+        - value: "interrupted"
     timestamp:
       description: Timestamp in unix timestamp format.
       type: integer
       format: int64
       examples:
         - value: 1630000000
+    
     two_factor_auth_status:
       description: Status of the 2FA authentication for the user.
       type: boolean
       examples:
         - value: true
+    
     qr_code:
       description: URL to the QR code image.
       type: string
       format: uri
       examples:
-        - value: https://example.com/qr_code.png
+        - value: "https://example.com/qr_code.png"
+      
     totp_code:
       description: TOTP code generated by the user for 2FA authentication.
-      type: string
+      type: string #string because it can contain leading zeros
       examples:
-        - value: '012345'
+        - value: "012345"
+    
     totp_secret:
       description: TOTP secret key for generating 2FA codes.
       type: string
       examples:
         - value: otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}
+    
     totp_key:
       description: Represents a 2FA private key for a user.
       type: object
       properties:
         qr_code:
-          $ref: '#/components/schemas/qr_code'
+          $ref: "#/components/schemas/qr_code"
         secret:
-          $ref: '#/components/schemas/totp_secret'
+          $ref: "#/components/schemas/totp_secret"
+    
     PublicUser:
       description: Represents a public user profile with limited information.
       type: object
-      properties:
+      properties: 
         user_id:
-          $ref: '#/components/schemas/user_id'
+          $ref: "#/components/schemas/user_id"
         display_name:
-          $ref: '#/components/schemas/user_display_name'
+          $ref: "#/components/schemas/user_display_name"
         avatar:
-          $ref: '#/components/schemas/user_avatar'
+          $ref: "#/components/schemas/user_avatar"
         status:
-          $ref: '#/components/schemas/user_status'
+          $ref: "#/components/schemas/user_status"
         last_active:
-          $ref: '#/components/schemas/timestamp'
-        registered_timestamp:
-          $ref: '#/components/schemas/timestamp'
-      required:
-        - user_id
-        - display_name
-        - avatar
-        - status
-        - last_active
-        - registered_timestamp
+          $ref: "#/components/schemas/date"
+        date_registered:
+          $ref: "#/components/schemas/date"
+      required: [user_id, display_name, avatar, status, last_active, date_registered]
+
     PrivateUser:
       description: Represents a private user profile with additional information.
       type: object
       allOf:
-        - $ref: '#/components/schemas/PublicUser'
+        - $ref: "#/components/schemas/PublicUser"
         - properties:
             email:
-              $ref: '#/components/schemas/user_email'
+              $ref: "#/components/schemas/user_email"
             two_factor_auth:
-              $ref: '#/components/schemas/two_factor_auth_status'
+              $ref: "#/components/schemas/two_factor_auth_status"
           additionalProperties: false
-      required:
-        - user_id
-        - display_name
-        - avatar
-        - status
-        - last_active
-        - email
-        - two_factor_auth
+      required: [user_id, display_name, avatar, status, last_active, email, two_factor_auth]
+    
     User:
       oneOf:
-        - $ref: '#/components/schemas/PublicUser'
-        - $ref: '#/components/schemas/PrivateUser'
+        - $ref: "#/components/schemas/PublicUser"
+        - $ref: "#/components/schemas/PrivateUser"
+
     MatchSettings:
       type: object
-      description: >-
-        Settings and configurations for the match, such as ball speed, match
-        duration, and player health.
+      description: Settings and configurations for the match, such as ball speed, match duration, and player health.
       properties:
         ball_speed:
-          $ref: '#/components/schemas/match_ball_speed'
+          $ref: "#/components/schemas/match_ball_speed"
         max_duration:
-          $ref: '#/components/schemas/match_max_duration'
+          $ref: "#/components/schemas/match_max_duration"
         starting_health:
-          $ref: '#/components/schemas/match_starting_health_points'
+          $ref: "#/components/schemas/match_starting_health_points"
+    
     Match:
       type: object
       description: Represents a match of Pong between two players.
       properties:
         id:
-          $ref: '#/components/schemas/match_id'
+          $ref: "#/components/schemas/match_id"
         websocket_url:
-          $ref: '#/components/schemas/websocket_url'
+          $ref: "#/components/schemas/websocket_url"
         players:
           type: array
           description: Array of the players in the match.
           items:
-            $ref: '#/components/schemas/PublicUser'
+            $ref: "#/components/schemas/PublicUser"
         status:
-          $ref: '#/components/schemas/match_status'
+          $ref: "#/components/schemas/match_status"
         started_timestamp:
-          $ref: '#/components/schemas/timestamp'
+          $ref: "#/components/schemas/timestamp"
         finished_timestamp:
-          $ref: '#/components/schemas/timestamp'
+          $ref: "#/components/schemas/timestamp"
         settings:
-          $ref: '#/components/schemas/MatchSettings'
+          $ref: "#/components/schemas/MatchSettings"
         outcome:
-          $ref: '#/components/schemas/match_outcome'
-      required:
-        - match_id
-        - players
-        - status
-        - started_timestamp
-        - match_settings
+          $ref: "#/components/schemas/match_outcome"
+      required: [match_id, players, status, started_timestamp, match_settings]
+
     Tournament:
       type: object
       description: Represents a Pong tournament, containing multiple matches and players.
       properties:
         tournament_id:
-          $ref: '#/components/schemas/tournament_id'
+          $ref: "#/components/schemas/tournament_id"
         tournament_mode:
-          $ref: '#/components/schemas/tournament_mode'
+          $ref: "#/components/schemas/tournament_mode"
         matches:
           type: array
           description: Array of all the tournament matches.
           items:
-            $ref: '#/components/schemas/Match'
+            $ref: "#/components/schemas/Match"
         status:
-          $ref: '#/components/schemas/tournament_status'
+          $ref: "#/components/schemas/tournament_status"
         started_timestamp:
-          $ref: '#/components/schemas/timestamp'
+          $ref: "#/components/schemas/timestamp"
         finished_timestamp:
-          $ref: '#/components/schemas/timestamp'
-      required:
-        - tournament_id
-        - tournament_mode
-        - matches
-        - status
-        - started_timestamp
+          $ref: "#/components/schemas/timestamp"
+      required: [tournament_id, tournament_mode, matches, status, started_timestamp]
+
     user_sorting_options:
       description: Options to sort the users list.
       type: string
-      enum:
-        - display_name
-        - email
-        - registered_timestamp
-        - last_active
+      enum: [display_name, email, date_registered, last_active]
       examples:
-        - value: display_name
-        - value: email
-        - value: registered_timestamp
-        - value: last_active
+        - value: "display_name"
+        - value: "email"
+        - value: "registered_timestamp"
+        - value: "last_active"
+
     user_filter_options:
       description: Options to filter the users list.
       type: object
       properties:
         status:
-          $ref: '#/components/schemas/user_status'
+          $ref: "#/components/schemas/user_status"
       examples:
-        - value:
-            status: online
+        - value: "online"
+
     friends_sorting_options:
       description: Options to sort the friends list.
       type: string
-      enum:
-        - display_name
-        - registered_timestamp
-        - last_active
+      enum: [display_name, date_registered, last_active]
       examples:
-        - value: display_name
-        - value: registered_timestamp
-        - value: last_active
+        - value: "display_name"
+        - value: "date_registered"
+        - value: "last_active"
+
     friends_filter_options:
       description: Options to filter the friends list.
       type: object
       properties:
         status:
-          $ref: '#/components/schemas/user_status'
+          $ref: "#/components/schemas/user_status"
       examples:
-        - value:
-            status: online
+        - value: "online"
+
     match_sorting_options:
       description: Options to sort the matches list.
       type: string
-      enum:
-        - age
-        - duration
+      enum: [age, duration]
       examples:
-        - value: age
-        - value: duration
+        - value: "age"
+        - value: "duration"
+
     match_filter_options:
       description: Options to filter the matches list.
       type: object
       properties:
         status:
-          $ref: '#/components/schemas/match_status'
+          $ref: "#/components/schemas/match_status"
         outcome:
-          $ref: '#/components/schemas/match_outcome'
+          $ref: "#/components/schemas/match_outcome"
       examples:
-        - value:
-            status: ongoing
-        - value:
-            outcome: win
+        - value: "ongoing"
+        - value: "win"
+
     tournament_sorting_options:
       description: Options to sort the tournaments list.
       type: string
-      enum:
-        - age
-        - duration
-        - number_of_players
+      enum: [age, duration, number_of_players]
       examples:
-        - value: age
-        - value: duration
-        - value: number_of_players
+        - value: "age"
+        - value: "duration"
+        - value: "number_of_players"
+    
     tournament_filter_options:
       description: Options to filter the tournaments list.
       type: object
       properties:
         status:
-          $ref: '#/components/schemas/tournament_status'
+          $ref: "#/components/schemas/tournament_status"
         mode:
-          $ref: '#/components/schemas/tournament_mode'
+          $ref: "#/components/schemas/tournament_mode"
       examples:
-        - value:
-            status: ongoing
-        - value:
-            mode: knockout
+        - value: "ongoing"
+        - value: "knockout"
+    
     error_message:
       description: Error message returned by the API.
       type: string
       examples:
-        - value: User not found.
+        - value: "User not found."
+    
     async_call_outcome:
       description: Outcome of an asynchronous call.
       type: string
-      enum:
-        - success
-        - failure
+      enum: [success, failure]
       examples:
-        - value: success
-        - value: failure
+        - value: "success"
+        - value: "failure"
+    
     async_call_success:
       type: object
       properties:
         outcome:
-          $ref: '#/components/schemas/async_call_outcome'
-      required:
-        - outcome
+          $ref: "#/components/schemas/async_call_outcome"
+      required: [outcome]
       additionalProperties: true
+    
     async_call_failure:
       type: object
       properties:
         outcome:
-          $ref: '#/components/schemas/async_call_outcome'
+          $ref: "#/components/schemas/async_call_outcome"
         error_message:
-          $ref: '#/components/schemas/error_message'
-      required:
-        - outcome
-        - error_message
+          $ref: "#/components/schemas/error_message"
+      required: [outcome, error_message]
       additionalProperties: false
+    
+    # =========================
+    # = Call-Specific Objects =
+    # =========================
+  
     UpdateUser:
       type: object
       properties:
         email:
-          $ref: '#/components/schemas/user_email'
+          $ref: "#/components/schemas/user_email"
         password:
-          $ref: '#/components/schemas/user_psw'
+          $ref: "#/components/schemas/user_psw"
         display_name:
-          $ref: '#/components/schemas/user_display_name'
+          $ref: "#/components/schemas/user_display_name"
         avatar:
-          $ref: '#/components/schemas/user_avatar'
+          $ref: "#/components/schemas/user_avatar"
       required: []
+
     RegisterUser:
       type: object
       description: Data for registering a new user.
       allOf:
-        - $ref: '#/components/schemas/UpdateUser'
+        - $ref: "#/components/schemas/UpdateUser"
           additionalProperties: false
-      required:
-        - email
-        - password
-        - display_name
+      required: [email, password, display_name]
+  
   headers:
     X-Rate-Limit-Limit:
       description: Maximum number of requests allowed in the current window.
@@ -2494,6 +2381,7 @@ components:
         format: int32
         minimum: 1
       example: 100
+
     X-Rate-Limit-Remaining:
       description: Remaining number of requests allowed in the current window.
       schema:
@@ -2501,6 +2389,7 @@ components:
         format: int32
         minimum: 0
       example: 99
+
     X-Rate-Limit-Reset:
       description: Time in seconds until the rate limit resets.
       schema:
@@ -2508,6 +2397,7 @@ components:
         format: int32
         minimum: 0
       example: 60
+
     X-Rate-Limit-Interval:
       description: Time interval in seconds for the rate limit window.
       schema:
@@ -2515,6 +2405,7 @@ components:
         format: int32
         minimum: 1
       example: 60
+  
     Retry-After:
       description: Time in seconds until the client can retry the request.
       schema:
@@ -2522,7 +2413,9 @@ components:
         format: int32
         minimum: 0
       example: 60
+  
   responses:
+
     TooManyRequests:
       description: Rate limit exceeded. Too many requests in a given time window.
       headers:
@@ -2534,6 +2427,7 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
         Retry-After:
           $ref: '#/components/headers/Retry-After'
+
     Unauthorized:
       description: Unauthorized. JWT token is missing or invalid.
       headers:
@@ -2545,13 +2439,13 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Reset'
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
+
   securitySchemes:
     jwtAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: >-
-        JWT used for authorization. Send the token in the `Authorization` header
-        with the format `Bearer {token}`.
+      description: JWT used for authorization. Send the token in the `Authorization` header with the format `Bearer {token}`.
+
 security:
   - jwtAuth: []
