@@ -1,2 +1,2 @@
 ## Back-end 
-![Pongfumasters_backend](https://github.com/user-attachments/assets/e9b5e9a4-a362-4fd5-a2fe-cc5141abb36b)
+![Pongfumasters_system_design](https://github.com/user-attachments/assets/f9d6132b-6041-4592-ba70-b0d247d11ddf)
