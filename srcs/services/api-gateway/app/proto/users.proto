@@ -1,0 +1,196 @@
+syntax = "proto3";
+
+package users;
+
+service UserService
+{
+    rpc RegisterUser (RegisterUserRequest) returns (RegisterUserResponse);
+    rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
+    rpc GetUser (GetUserRequest) returns (GetUserResponse);
+    rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
+    rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+    rpc EnableTwoFactorAuth (EnableTwoFactorAuthRequest) returns (EnableTwoFactorAuthResponse);
+    rpc GetTwoFactorAuthStatus (GetTwoFactorAuthStatusRequest) returns (GetTwoFactorAuthStatusResponse);
+    rpc DisableTwoFactorAuth (DisableTwoFactorAuthRequest) returns (DisableTwoFactorAuthResponse);
+    rpc VerifyTwoFactorAuth (VerifyTwoFactorAuthRequest) returns (VerifyTwoFactorAuthResponse);
+    // rpc RecoverTwoFactorAuth (RecoverTwoFactorAuthRequest) returns (RecoverTwoFactorAuthResponse);
+}
+
+enum UserStatus
+{
+    ONLINE = 0;
+    OFFLINE = 1;
+}
+
+message PrivateUser
+{
+    string      user_id = 1;
+    string      display_name = 2;
+    string      avatar = 3;
+    UserStatus  status = 4;
+    uint64      last_active = 5;
+    uint64      date_registered = 6;
+    string      email = 7;
+    bool        two_factor_auth = 8;
+}
+
+message PublicUser
+{
+    string      user_id = 1;
+    string      display_name = 2;
+    string      avatar = 3;
+    UserStatus  status = 4;
+    uint64      last_active = 5;
+    uint64      date_registered = 6;
+}
+
+enum SortingOptions
+{
+    UNSORTED = 0;
+    DISPLAY_NAME = 1;
+    EMAIL = 2;
+    REGISTERED_TIMESTAMP = 3;
+    LAST_ACTIVE_TIMESTAMP = 4;
+}
+
+message FilterOptions
+{
+    optional UserStatus status = 1;
+    // Add more filter options here
+}
+
+// v1/users POST
+message RegisterUserRequest
+{
+    string          email = 1;
+    string          password = 2;
+    string          display_name = 3;
+    optional string avatar = 4;
+}
+message RegisterUserResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        string  user_id = 2;
+        string  error_message = 3;
+    }
+}
+
+// v1/users GET
+message GetUsersRequest
+{
+    optional uint32          page = 1;
+    optional uint32          results_per_page = 2;
+    optional SortingOptions  sort = 3;
+    optional FilterOptions   filter = 4;
+}
+message GetUsersResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        oneof users
+        {
+            repeated PrivateUser  private_users = 2;
+            repeated PublicUser   public_users = 3;
+        }
+        string error_message = 4;
+    }
+}
+
+// v1/users/{user_id} GET
+message GetUserRequest
+{
+    string user_id = 1;
+}
+message GetUserResponse
+{
+    uint16 outcome = 1;
+    oneof  content
+    {
+        oneof user
+        {
+            PrivateUser  private_user = 2;
+            PublicUser   public_user = 3;
+        }
+        string error_message = 4;
+    }
+}
+
+// v1/users/{user_id} PUT
+message UpdateUserRequest
+{
+    string           user_id = 1;
+    optional string  email = 2;
+    optional string  password = 3;
+    optional string  display_name = 4;
+    optional string  avatar = 5;
+}
+message UpdateUserResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id} DELETE
+message DeleteUserRequest
+{
+    string user_id = 1;
+}
+message DeleteUserResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/2fa POST
+message EnableTwoFactorAuthRequest
+{
+    string  user_id = 1;
+}
+message EnableTwoFactorAuthResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/2fa GET
+message GetTwoFactorAuthStatusRequest
+{
+    string user_id = 1;
+}
+message GetTwoFactorAuthStatusResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        bool    two_factor_auth_status = 2;
+        string  error_message = 3;
+    }
+}
+
+// v1/users/{user_id}/2fa DELETE
+message DisableTwoFactorAuthRequest
+{
+    string user_id = 1;
+}
+message DisableTwoFactorAuthResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/2fa/verify POST
+message VerifyTwoFactorAuthRequest
+{
+    string  user_id = 1;
+    string  totp_code = 2;
+}
+message VerifyTwoFactorAuthResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/2fa/recovery POST
