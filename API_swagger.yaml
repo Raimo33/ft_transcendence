@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    API_swagger2.yaml                                  :+:      :+:    :+:    #
+#    API_swagger.yaml                                   :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/13 22:47:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/14 16:03:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,6 @@ servers:
 paths:
   /users:
     post:
-      #3 per hour
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       requestBody:
@@ -68,7 +67,6 @@ paths:
                 "200":
                   description: Client successfully received the registration result.
     get:
-      #150 ogni 10 minuti
       summary: Get a list of users
       description: Retrieve a paginated list of users.
       parameters:
@@ -194,7 +192,6 @@ paths:
                 "200":
                   description: Client successfully received the users list.
   /users/{user_id}:
-    #10 ogni minuto
     get: #se la chiama admin ottiene tutto, se la chiama un utente allora alcune cose saranno oscurate
       summary: Get user data by user_id
       description: Retrieve detailed information of a specific user using their unique user_id.
@@ -274,7 +271,6 @@ paths:
         "429":
           $ref: '#/components/responses/TooManyRequests'
     put:
-      #2 ogni giorno
       summary: Update user credentials
       description: Update the email, password, or display name of a user using their user_id.
       parameters:
@@ -343,7 +339,6 @@ paths:
                 "200":
                   description: Client successfully received the user update result.
     delete:
-      #1 al giorno
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
       parameters:
@@ -390,7 +385,6 @@ paths:
                   description: Client successfully received the user deletion result.
   /user/{user_id}/2fa:
     post:
-      #3 ogni ora
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
       parameters:
@@ -439,7 +433,6 @@ paths:
                 "200":
                   description: Client successfully received the 2fa key.
     get:
-      #5 ogni minuto
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
@@ -483,7 +476,6 @@ paths:
         "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
-      #2 ogni ora
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
       parameters:
@@ -583,7 +575,6 @@ paths:
                   description: Client successfully received the 2fa verification result.
   /user/{user_id}/matches:
     get:
-      #10 ogni minuto
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
       parameters:
@@ -717,7 +708,6 @@ paths:
 
   /user/{user_id}/tournaments:
     get:
-      #10 ogni minuto
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
@@ -850,7 +840,6 @@ paths:
                   description: Client successfully received the tournaments list.
   /user/{user_id}/friends:
     post:
-      #100 al giorno
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:
@@ -902,7 +891,6 @@ paths:
                 "200":
                   description: Client successfully received the friend addition result.
     get:
-      #15 ogni minuto
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
       parameters:
@@ -1034,7 +1022,6 @@ paths:
                 "200":
                   description: Client successfully received the friends list.
   /user/{user_id}/friends/{friend_id}:
-    #100 ogni ora
     delete:
       summary: Remove a friend
       description: Remove a user from the friend list.
@@ -1088,7 +1075,6 @@ paths:
                   description: Client successfully received the friend removal result.
   /sessions:
     get:
-      #10 ogni minuto
       summary: Get login status of all users
       description: Retrieve the login status of all users.
       parameters:
@@ -1175,7 +1161,6 @@ paths:
         "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
-      #2 al giorno
       summary: Disconnect all users
       description: Logs out all users from the system.
       security:
@@ -1215,7 +1200,6 @@ paths:
                   description: Client successfully received the all users logged out result.
   /sessions/{user_id}:
     post:
-      #30 ogni ora 
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
@@ -1269,7 +1253,6 @@ paths:
                 "200":
                   description: Client successfully received the user login result.
     get:
-      #10 ogni 60 secondi
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
       parameters:
@@ -1347,7 +1330,6 @@ paths:
         "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
-      #30 ogni ora
       summary: User logout
       description: Logs out a specific user from the system.
       parameters:
@@ -1395,7 +1377,6 @@ paths:
 
   /matches:
     post:
-      #2 ogni minuto
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user ID.
       security:
@@ -1449,7 +1430,6 @@ paths:
                 "200":
                   description: Client successfully received the match creation result.
     delete:
-      #2 al giorno
       summary: Interrupt all ongoing matches
       description: Terminate all currently active matches and clear session data.
       security:
@@ -1489,7 +1469,6 @@ paths:
                   description: Client successfully received the all matches interrupted result.
   /matches/{match_id}:
     post:
-      #3 al minuto
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
       parameters:
@@ -1564,7 +1543,6 @@ paths:
             type: string
           required: false
       responses:
-        #5 ogni minuto
         "200":
           description: Returns match information.
           headers:
@@ -1618,7 +1596,6 @@ paths:
         "429":
           $ref: '#/components/responses/TooManyRequests'
     delete:
-      #3 al minuto
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
       parameters:
@@ -1666,7 +1643,6 @@ paths:
 
   /tournaments:
     post:
-      #3 ogni minuto
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       security:
@@ -1766,7 +1742,6 @@ paths:
                   description: Client successfully received the all tournaments interrupted result.
   /tournaments/{tournament_id}:
     post:
-      #3 al minuto
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       parameters:
@@ -1841,7 +1816,6 @@ paths:
             type: string
           required: false
       responses:
-        #5 ogni minuto
         "200":
           description: Returns match information.
           headers:
@@ -1884,7 +1858,6 @@ paths:
         "429":
           $ref: '#/components/responses/TooManyRequests'
     patch:
-      #3 al minuto
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
       parameters:
@@ -1930,7 +1903,6 @@ paths:
                 "200":
                   description: Client successfully received the tournament started result.
     delete:
-      #3 al minuto
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:

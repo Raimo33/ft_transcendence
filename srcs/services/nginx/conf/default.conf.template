@@ -8,7 +8,7 @@ http
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
 
-    limit_req_zone $binary_remote_addr zone=api_v1_users_post:10m rate=2r/m;
+    limit_req_zone $binary_remote_addr zone=global_limit:10m rate=10r/s;
 
     server
     {
@@ -21,16 +21,11 @@ http
 
         server_name         ${DOMAIN_NAME};
 
-        location /api/v1/resource1
-        {
-            limit_req   zone=api_v1_users_post burst=2 nodelay;
-            error_page  429 = @toomanyrequests;
-            proxy_pass https://api-gateway:${API_GATEWAY_PORT};
-        }
+        limit_req zone=global_limit burst=20 nodelay;
 
-        location @429
+        location /api
         {
-            return 429;
+            proxy_pass https://api-gateway:${API_GATEWAY_PORT};
         }
     }
 
