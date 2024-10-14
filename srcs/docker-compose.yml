@@ -19,11 +19,11 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - backend
+      - edgenet
     restart: always
     depends_on:
     init: true
-  
+
   api-gateway:
     build:
       context: ./services/api-gateway
@@ -36,6 +36,24 @@ services:
     
     ports:
       - 
+    networks:
+      - edgenet
+    restart: always
+    depends_on:
+    init: true
+
+  redis-edge:
+    build:
+      context: ./services/redis-edge
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: redis-edge
+    environment:
+    volumes:
+    
+    ports:
+      - "6379:6379"
     networks:
       - edgenet
     restart: always
@@ -222,9 +240,9 @@ services:
     depends_on:
     init: true
   
-  redis:
+  redis-core:
     build:
-      context: ./services/redis
+      context: ./services/redis-core
       dockerfile: Dockerfile
       args:
     

@@ -21,7 +21,7 @@ http
 
         server_name         ${DOMAIN_NAME};
 
-        limit_req zone=global_limit burst=20 nodelay;
+        limit_req           zone=global_limit burst=20 nodelay;
 
         location /api
         {

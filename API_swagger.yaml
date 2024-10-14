@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/14 16:03:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/14 16:26:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -218,7 +218,6 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        #1 ogni 60 secondi
         "200":
           description: Returns the User object of the specified user.
           headers:

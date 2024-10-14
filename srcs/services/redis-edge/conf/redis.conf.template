@@ -1,0 +1,14 @@
+daemonize           yes
+pidfile             /var/run/redis/redis-server.pid
+port                ${REDIS-EDGE_PORT}
+bind                redis-edge.edgnenet
+protected-mode      yes
+
+maxmemory           ${REDIS-EDGE_MAXMEMORY}
+maxmemory-policy    allkeys-lru
+save                ""
+appendonly          yes
+appendfsync         everysec
+
+loglevel            notice
+logfile             /dev/stdout

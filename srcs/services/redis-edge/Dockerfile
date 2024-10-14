@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/10/14 18:28:15 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/14 17:45:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,15 +14,16 @@ FROM alpine:3.19
 
 SHELL ["/bin/ash", "-c"]
 
-RUN apk add --no-cache nginx
+RUN apk add --no-cache redis
 
-COPY ./conf/default.conf /etc/nginx/http.d/default.conf
+COPY ./conf/redis.conf /etc/redis.conf
 
-WORKDIR /etc/nginx/http.d
-USER nginx
-EXPOSE 80 443
+WORKDIR /data
+USER redis
+EXPOSE 6379
 # VOLUME []
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["redis-server", "/etc/redis/redis.conf"]
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-fks", "nginx.edgenet:443"]
+# HEALTHCHECK 
+
