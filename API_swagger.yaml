@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/14 16:26:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/14 20:31:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -88,7 +88,7 @@ paths:
           required: true
         - name: sorting_options
           in: query
-          description: Sort the users list by display name, email, date registered, last active.
+          description: Sort the users list by display name, email, registered_timestamp, last active.
           schema:
             $ref: "#/components/schemas/user_sorting_options"
           required: false
@@ -382,7 +382,7 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the user deletion result.
-  /user/{user_id}/2fa:
+  /users/{user_id}/2fa:
     post:
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
@@ -519,9 +519,9 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the 2fa disable result.
-  /user/{user_id}/2fa/verify:
+  /users/{user_id}/2fa/verify:
     post:
-    #verrà chiamata subito dopo il post di /user/{user_id}/2fa per verificare il codice otp
+    #verrà chiamata subito dopo il post di /users/{user_id}/2fa per verificare il codice otp
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
       parameters:
@@ -572,7 +572,7 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the 2fa verification result.
-  /user/{user_id}/matches:
+  /users/{user_id}/matches:
     get:
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
@@ -705,7 +705,7 @@ paths:
                 "200":
                   description: Client successfully received the matches list.
 
-  /user/{user_id}/tournaments:
+  /users/{user_id}/tournaments:
     get:
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
@@ -837,7 +837,7 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the tournaments list.
-  /user/{user_id}/friends:
+  /users/{user_id}/friends:
     post:
       summary: Add a friend
       description: Add a user to the friend list.
@@ -1020,7 +1020,7 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the friends list.
-  /user/{user_id}/friends/{friend_id}:
+  /users/{user_id}/friends/{friend_id}:
     delete:
       summary: Remove a friend
       description: Remove a user from the friend list.
@@ -2129,10 +2129,10 @@ components:
         status:
           $ref: "#/components/schemas/user_status"
         last_active:
-          $ref: "#/components/schemas/date"
-        date_registered:
-          $ref: "#/components/schemas/date"
-      required: [user_id, display_name, avatar, status, last_active, date_registered]
+          $ref: "#/components/schemas/timestamp"
+        registered_timestamp:
+          $ref: "#/components/schemas/timestamp"
+      required: [user_id, display_name, avatar, status, last_active, registered_timestamp]
 
     PrivateUser:
       description: Represents a private user profile with additional information.
@@ -2212,7 +2212,7 @@ components:
     user_sorting_options:
       description: Options to sort the users list.
       type: string
-      enum: [display_name, email, date_registered, last_active]
+      enum: [display_name, email, registered_timestamp, last_active]
       examples:
         - value: "display_name"
         - value: "email"
@@ -2231,10 +2231,10 @@ components:
     friends_sorting_options:
       description: Options to sort the friends list.
       type: string
-      enum: [display_name, date_registered, last_active]
+      enum: [display_name, registered_timestamp, last_active]
       examples:
         - value: "display_name"
-        - value: "date_registered"
+        - value: "registered_timestamp"
         - value: "last_active"
 
     friends_filter_options:
