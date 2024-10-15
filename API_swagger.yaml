@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/15 11:58:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/15 15:14:02 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,11 +24,11 @@ paths:
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RegisterUser'
+        required: true
       responses:
         "202":
           description: The registration request has been accepted and is being processed asynchronously.
@@ -50,7 +50,6 @@ paths:
               summary: Registration completion callback
               description: Server calls this endpoint when the user registration is complete or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -63,6 +62,7 @@ paths:
                               additional_property:
                                 $ref: "#/components/schemas/user_id"
                             additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the registration result.
@@ -173,7 +173,6 @@ paths:
                   example: private, max-age=900, must-revalidate
                   required: true
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -188,6 +187,7 @@ paths:
                                 items:
                                   $ref: "#/components/schemas/PrivateUser"
                             additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the users list.
@@ -304,25 +304,450 @@ paths:
               summary: User deletion completion callback
               description: Server calls this endpoint when the user deletion is complete or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the user deletion result.
-  #/users/{user_id}/profile:
-    #get: TODO get user profile (public user data)
-    #patch: TODO update user profile (update avatar, display name, etc.)
-  #/users/{user_id}/password:
-    #put: TODO change password
-  #/users/{user_id}/password/recovery:
-  #/users/{user_id}/email:
-    #get: TODO get email
-    #put: TODO change email
+  /users/{user_id}/profile:
+    get:
+      summary: Get user profile
+      description: Retrieve the public profile of a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to retrieve profile from.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Returns the Public User object of the specified user.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicUser"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          description: User not found.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      summary: Update user profile
+      description: Update the public profile of a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to update profile for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserProfile"
+        required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        userProfileUpdateCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: User profile update completion callback
+              description: Server calls this endpoint when the user profile update is complete or failed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the user profile update result.
+  /users/{user_id}/password:
+    put: #update password
+      summary: Update user password
+      description: Update the password of a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to update password for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserPassword"
+        required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        passwordUpdateCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: Password update completion callback
+              description: Server calls this endpoint when the password update is complete or failed.
+              requestBody:
+                content:
+                    application/json:
+                        schema:
+                            oneOf:
+                                - $ref: "#/components/schemas/async_call_failure"
+                                - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the password update result.
+  /users/{user_id}/password/recovery:
+    post:
+      summary: Generate password recovery token
+      description: Generate and send a password recovery token to the user via email.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to recover password for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/user_email"
+        required: true
+      responses:
+          "202":
+            description: The request has been accepted and is being processed asynchronously.
+            headers:
+              X-Rate-Limit-Limit:
+                $ref: '#/components/headers/X-Rate-Limit-Limit'
+              X-Rate-Limit-Remaining:
+                $ref: '#/components/headers/X-Rate-Limit-Remaining'
+              X-Rate-Limit-Reset:
+                $ref: '#/components/headers/X-Rate-Limit-Reset'
+              X-Rate-Limit-Interval:
+                $ref: '#/components/headers/X-Rate-Limit-Interval'
+          "429":
+            $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        passwordRecoveryCompleted:
+         "{$request.body.callbackUrl}":
+            post:
+              summary: Password recovery token generation completion callback
+              description: Server calls this endpoint when the password recovery token generation is complete or failed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the password recovery token via email.
+  /users/{user_id}/password/recovery/{token}:
+    post:
+      summary: Verify password recovery token
+      description: Verify the password recovery token provided by the user.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to verify password recovery token for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+        - name: token
+          in: path
+          description: Password recovery token provided by the user.
+          schema:
+            type: string
+          required: true
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        passwordRecoveryCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: Password recovery completion callback
+              description: Server calls this endpoint when the password recovery is complete or failed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the password recovery result.
+  /users/{user_id}/email:
+    get:
+      summary: Get user email
+      description: Retrieve the email address of a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to retrieve email from.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Returns the email address of the specified user.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user_email"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          description: User not found.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      summary: Update user email
+      description: Update the email address of a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to update email for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/user_email"
+        required: true
+      security:
+        - jwtAuth: []
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        emailUpdateCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: Email update completion callback
+              description: Server calls this endpoint when the email update is complete or failed.
+              requestBody:
+                content:
+                    application/json:
+                        schema:
+                            oneOf:
+                                - $ref: "#/components/schemas/async_call_failure"
+                                - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the email update result.
+  /users/{user_id}/email/verification:
+    post:
+      summary: Verify email address
+      description: Verify the email address of a user account.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to verify email for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        emailVerificationCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: Email verification request completion callback
+              description: Server calls this endpoint when the confirmation email is sent or failed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the email verification request result.
+  /users/{user_id}/email/verify/{token}:
+    post:
+      summary: Verify email verification token
+      description: Verify the email verification token provided by the user.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to verify email verification token for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+        - name: token
+          in: path
+          description: Email verification token provided by the user.
+          schema:
+            type: string
+          required: true
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        emailVerificationCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: Email verification completion callback
+              description: Server calls this endpoint when the email verification is complete or failed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the email verification result.
   /users/{user_id}/2fa:
     post:
       summary: Setup two-factor authentication
@@ -359,7 +784,6 @@ paths:
               summary: 2fa setup completion callback
               description: Server calls this endpoint when the 2fa setup is complete or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -368,7 +792,8 @@ paths:
                         - allOf:
                           - $ref: "#/components/schemas/async_call_success"
                           - $ref: "#/components/schemas/totp_key"
-                            additionalProperties: false
+                          additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the 2fa key.
@@ -450,13 +875,13 @@ paths:
               summary: 2fa disable completion callback
               description: Server calls this endpoint when the 2fa disable is complete or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the 2fa disable result.
@@ -725,7 +1150,6 @@ paths:
                   example: public, max-age=3600, no-cache
                   required: true
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -734,12 +1158,13 @@ paths:
                         - allOf:
                           - $ref: "#/components/schemas/async_call_success"
                           - type: object
-                            properties:
-                              additional_property:
-                                type: array
-                                items:
-                                  $ref: "#/components/schemas/Match"
-                            additionalProperties: false
+                          properties:
+                            additional_property:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/Match"
+                                additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the matches list.
@@ -858,7 +1283,6 @@ paths:
                   example: public, max-age=3600, no-cache
                   required: true
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -867,12 +1291,13 @@ paths:
                         - allOf:
                           - $ref: "#/components/schemas/async_call_success"
                           - type: object
-                            properties:
-                              additional_property:
-                                type: array
-                                items:
-                                  $ref: "#/components/schemas/Tournament"
-                            additionalProperties: false
+                          properties:
+                            additional_property:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/Tournament"
+                                additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the tournaments list.
@@ -918,13 +1343,13 @@ paths:
               summary: Friend added callback
               description: Server calls this endpoint when the friend has been added successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the friend addition result.
@@ -1041,7 +1466,6 @@ paths:
                   example: private, max-age=3600, no-cache
                   required: true
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -1050,12 +1474,13 @@ paths:
                         - allOf:
                           - $ref: "#/components/schemas/async_call_success"
                           - type: object
-                            properties:
-                              additional_property:
-                                type: array
-                                items:
-                                  $ref: "#/components/schemas/PublicUser"
-                            additionalProperties: false
+                          properties:
+                            additional_property:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/PublicUser"
+                                additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the friends list.
@@ -1101,13 +1526,13 @@ paths:
               summary: Friend removed callback
               description: Server calls this endpoint when the friend has been removed successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the friend removal result.
@@ -1226,13 +1651,13 @@ paths:
               summary: All users logged out callback
               description: Server calls this endpoint when all users have been logged out successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the all users logged out result.
@@ -1248,11 +1673,11 @@ paths:
             $ref: "#/components/schemas/user_id"
           required: true
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/user_psw"
+        required: true
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1274,7 +1699,6 @@ paths:
               summary: User logged in callback
               description: Server calls this endpoint when the user has been logged in successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -1283,10 +1707,11 @@ paths:
                         - allOf:
                           - $ref: "#/components/schemas/async_call_success"
                           - type: object
-                            properties:
-                              additional_property:
-                                $ref: "#/components/schemas/jwt_token"
-                            additionalProperties: false
+                          properties:
+                            additional_property:
+                              $ref: "#/components/schemas/jwt_token"
+                              additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the user login result.
@@ -1402,13 +1827,13 @@ paths:
               summary: User logged out callback
               description: Server calls this endpoint when the user has been logged out successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the user logout result.
@@ -1420,7 +1845,6 @@ paths:
       security:
         - jwtAuth: []
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -1428,6 +1852,7 @@ paths:
                 - $ref: "#/components/schemas/MatchSettings"
                 - $ref: "#/components/schemas/user_id"
                   additionalProperties: false
+        required: true
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1451,7 +1876,6 @@ paths:
               summary: Match creation callback
               description: Server calls this endpoint when the match was created successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -1463,7 +1887,8 @@ paths:
                             properties:
                               additional_property:
                                 $ref: "#/components/schemas/Match"
-                            additionalProperties: false
+                                additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the match creation result.
@@ -1495,13 +1920,13 @@ paths:
               summary: All matches interrupted callback
               description: Server calls this endpoint when all matches have been interrupted successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the all matches interrupted result.
@@ -1541,7 +1966,6 @@ paths:
               summary: Match joined callback
               description: Server calls this endpoint when the user has joined the match successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -1553,7 +1977,8 @@ paths:
                             properties:
                               additional_property:
                                 $ref: "#/components/schemas/Match"
-                            additionalProperties: false
+                                additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the match joined result.
@@ -1668,13 +2093,13 @@ paths:
               summary: Match abandoned callback
               description: Server calls this endpoint when the match has been abandoned successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the match abandoned result.
@@ -1686,7 +2111,6 @@ paths:
       security:
         - jwtAuth: []
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -1699,7 +2123,8 @@ paths:
                       items:
                         $ref: "#/components/schemas/user_id"
                     required: true
-                  additionalProperties: false
+                    additionalProperties: false
+        required: true
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1723,7 +2148,6 @@ paths:
               summary: Tournament creation callback
               description: Server calls this endpoint when the tournament was created successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -1735,7 +2159,8 @@ paths:
                             properties:
                               additional_property:
                                 $ref: "#/components/schemas/Tournament"
-                            additionalProperties: false
+                                additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the tournament creation result.
@@ -1768,13 +2193,13 @@ paths:
               summary: All tournaments interrupted callback
               description: Server calls this endpoint when all tournaments have been interrupted successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the all tournaments interrupted result.
@@ -1814,7 +2239,6 @@ paths:
               summary: Tournament joined callback
               description: Server calls this endpoint when the user has joined the tournament successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
@@ -1826,7 +2250,8 @@ paths:
                             properties:
                               additional_property:
                                 $ref: "#/components/schemas/Tournament"
-                            additionalProperties: false
+                                additionalProperties: false
+                required: true
               responses:
                 "200":
                   description: Client successfully received the tournament joined result.
@@ -1930,13 +2355,13 @@ paths:
               summary: Tournament started callback
               description: Server calls this endpoint when the tournament has been started successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the tournament started result.
@@ -1964,13 +2389,13 @@ paths:
               summary: Tournament abandoned callback
               description: Server calls this endpoint when the tournament has been abandoned successfully or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the tournament abandoned result.
@@ -2357,8 +2782,27 @@ components:
     # = Call-Specific Objects =
     # =========================
   
-    UpdateUser:
+    UpdateUserProfile:
       type: object
+      properties:
+        display_name:
+          $ref: "#/components/schemas/user_display_name"
+        avatar:
+          $ref: "#/components/schemas/user_avatar"
+      required: []
+
+    UpdateUserPassword:
+      type: object
+      properties:
+        current_password:
+          $ref: "#/components/schemas/user_psw"
+        new_password:
+          $ref: "#/components/schemas/user_psw"
+      required: [current_password, new_password]
+
+    RegisterUser:
+      type: object
+      description: Data for registering a new user.
       properties:
         email:
           $ref: "#/components/schemas/user_email"
@@ -2366,16 +2810,6 @@ components:
           $ref: "#/components/schemas/user_psw"
         display_name:
           $ref: "#/components/schemas/user_display_name"
-        avatar:
-          $ref: "#/components/schemas/user_avatar"
-      required: []
-
-    RegisterUser:
-      type: object
-      description: Data for registering a new user.
-      allOf:
-        - $ref: "#/components/schemas/UpdateUser"
-          additionalProperties: false
       required: [email, password, display_name]
   
   headers:
