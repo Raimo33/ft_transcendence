@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/14 20:31:29 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/15 11:52:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -192,8 +192,8 @@ paths:
                 "200":
                   description: Client successfully received the users list.
   /users/{user_id}:
-    get: #se la chiama admin ottiene tutto, se la chiama un utente allora alcune cose saranno oscurate
-      summary: Get user data by user_id
+    get:
+      summary: Get public and private user data by user_id
       description: Retrieve detailed information of a specific user using their unique user_id.
       parameters:
         - name: user_id
@@ -219,7 +219,7 @@ paths:
         - jwtAuth: []
       responses:
         "200":
-          description: Returns the User object of the specified user.
+          description: Returns the Private User object of the specified user.
           headers:
             ETag:
               description: The ETag header value representing the version of the data.
@@ -242,7 +242,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/PrivateUser"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -269,74 +269,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-    put:
-      summary: Update user credentials
-      description: Update the email, password, or display name of a user using their user_id.
-      parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to update.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: If-Match
-          in: header
-          description: ETag header for optimistic concurrency control. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
-      security:
-        - jwtAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateUser"
-      responses:
-        "202": 
-          description: The request has been accepted and is being processed asynchronously.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "412":
-          description: Precondition failed, e.g., ETag mismatch.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        userUpdateCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: User update completion callback
-              description: Server calls this endpoint when the user update is complete or failed.
-              requestBody:
-                required: true
-                content:
-                  application/json:
-                    schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
-              responses:
-                "200":
-                  description: Client successfully received the user update result.
     delete:
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
@@ -382,6 +314,15 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the user deletion result.
+  #/users/{user_id}/profile:
+    #get: TODO get user profile (public user data)
+    #patch: TODO update user profile (update avatar, display name, etc.)
+  #/users/{user_id}/password:
+    #put: TODO change password
+  #/users/{user_id}/password/recovery:
+  #/users/{user_id}/email:
+    #get: TODO get email
+    #put: TODO change email
   /users/{user_id}/2fa:
     post:
       summary: Setup two-factor authentication
@@ -532,11 +473,11 @@ paths:
             $ref: "#/components/schemas/user_id"
           required: true
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/totp_code"
+        required: true
       security:
         - jwtAuth: []
       responses:
@@ -562,16 +503,114 @@ paths:
               summary: 2fa verification completion callback
               description: Server calls this endpoint when the 2fa verification is complete or failed.
               requestBody:
-                required: true
                 content:
                   application/json:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_failure"
                         - $ref: "#/components/schemas/async_call_success"
+                required: true
               responses:
                 "200":
                   description: Client successfully received the 2fa verification result.
+  /users/{user_id}/2fa/recovery:
+    post:
+      summary: Generate 2fa recovery token
+      description: Generate and send 2fa recovery token to the user via email.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to recover 2fa for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/user_email"
+        required: true
+      responses:
+          "202":
+            description: The request has been accepted and is being processed asynchronously.
+            headers:
+              X-Rate-Limit-Limit:
+                $ref: '#/components/headers/X-Rate-Limit-Limit'
+              X-Rate-Limit-Remaining:
+                $ref: '#/components/headers/X-Rate-Limit-Remaining'
+              X-Rate-Limit-Reset:
+                $ref: '#/components/headers/X-Rate-Limit-Reset'
+              X-Rate-Limit-Interval:
+                $ref: '#/components/headers/X-Rate-Limit-Interval'
+          "429":
+            $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        2faVerifyCompleted:
+        "{$request.body.callbackUrl}":
+          post:
+            summary: 2fa recovery token generation completion callback
+            description: Server calls this endpoint when the 2fa recovery token generation is complete or failed.
+            requestBody:
+              required: true
+              content:
+              application/json:
+                schema:
+                oneOf:
+                  - $ref: "#/components/schemas/async_call_failure"
+                  - $ref: "#/components/schemas/async_call_success"
+            responses:
+              "200":
+                description: Client successfully received the 2fa recovery token via email.
+  /users/{user_id}/2fa/recovery/{token}:
+    post:
+      summary: Verify 2fa recovery token
+      description: Verify the 2fa recovery token provided by the user.
+      parameters:
+        - name: user_id
+          in: path
+          description: Unique identifier of the user to verify 2fa recovery token for.
+          schema:
+            $ref: "#/components/schemas/user_id"
+          required: true
+        - name: token
+          in: path
+          description: 2fa recovery token provided by the user.
+          schema:
+            type: string
+          required: true
+      responses:
+        "202":
+          description: The request has been accepted and is being processed asynchronously.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "429":
+          $ref: '#/components/responses/TooManyRequests'
+      callbacks:
+        2faRecoveryCompleted:
+          "{$request.body.callbackUrl}":
+            post:
+              summary: 2fa recovery completion callback
+              description: Server calls this endpoint when the 2fa recovery is complete or failed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the 2fa recovery result.
   /users/{user_id}/matches:
     get:
       summary: Get list of user matches.
@@ -2146,11 +2185,6 @@ components:
               $ref: "#/components/schemas/two_factor_auth_status"
           additionalProperties: false
       required: [user_id, display_name, avatar, status, last_active, email, two_factor_auth]
-    
-    User:
-      oneOf:
-        - $ref: "#/components/schemas/PublicUser"
-        - $ref: "#/components/schemas/PrivateUser"
 
     MatchSettings:
       type: object
