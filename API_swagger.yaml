@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/15 15:14:02 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/15 16:37:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -170,7 +170,7 @@ paths:
                   description: Cache control directives for the response.
                   schema:
                     type: string
-                  example: private, max-age=900, must-revalidate
+                  example: private, max-age=900
                   required: true
               requestBody:
                 content:
@@ -325,12 +325,35 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence request caching behavior.
+          schema:
+            type: string
+          example: max-age=3600, public
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the Public User object of the specified user.
           headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: max-age=3600, public
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -398,7 +421,22 @@ paths:
             post:
               summary: User profile update completion callback
               description: Server calls this endpoint when the user profile update is complete or failed.
-              requestBody:
+              parameters:
+                - name: ETag
+                  in: header
+                  description: ETag header value representing the version of the data.
+                  schema:
+                    type: string
+                  example: W/"123456789"
+                  required: true
+                - name: Cache-Control
+                  in: header
+                  description: Cache control directives for the response.
+                  schema:
+                    type: string
+                  example: private, max-age=900, must-revalidate
+                  required: true
+              requestBody:                
                 content:
                   application/json:
                     schema:
@@ -410,7 +448,7 @@ paths:
                 "200":
                   description: Client successfully received the user profile update result.
   /users/{user_id}/password:
-    put: #update password
+    put:
       summary: Update user password
       description: Update the password of a user account.
       parameters:
@@ -526,6 +564,12 @@ paths:
           schema:
             type: string
           required: true
+        - name: new_password
+          in: query
+          description: New password to set for the user account.
+          schema:
+            $ref: "#/components/schemas/user_psw"
+          required: true
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -570,12 +614,35 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Cache-Control
+          in: header
+          description: Cache control directives to influence request caching behavior.
+          schema:
+            type: string
+          example: max-age=3600, private
+          required: false
+        - name: If-None-Match
+          in: header
+          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+          schema:
+            type: string
+          required: false
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the email address of the specified user.
           headers:
+            ETag:
+              description: The ETag header value representing the version of the data.
+              schema:
+                type: string
+              example: W/"123456789"
+            Cache-Control:
+              description: Cache control directives for the response.
+              schema:
+                type: string
+              example: max-age=3600, private
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -645,11 +712,11 @@ paths:
               description: Server calls this endpoint when the email update is complete or failed.
               requestBody:
                 content:
-                    application/json:
-                        schema:
-                            oneOf:
-                                - $ref: "#/components/schemas/async_call_failure"
-                                - $ref: "#/components/schemas/async_call_success"
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
                 required: true
               responses:
                 "200":

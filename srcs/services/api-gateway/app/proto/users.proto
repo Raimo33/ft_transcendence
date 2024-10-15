@@ -4,16 +4,28 @@ package users;
 
 service UserService
 {
-    rpc RegisterUser (RegisterUserRequest) returns (RegisterUserResponse);
-    rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
-    rpc GetUser (GetUserRequest) returns (GetUserResponse);
-    rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
-    rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
-    rpc EnableTwoFactorAuth (EnableTwoFactorAuthRequest) returns (EnableTwoFactorAuthResponse);
-    rpc GetTwoFactorAuthStatus (GetTwoFactorAuthStatusRequest) returns (GetTwoFactorAuthStatusResponse);
-    rpc DisableTwoFactorAuth (DisableTwoFactorAuthRequest) returns (DisableTwoFactorAuthResponse);
-    rpc VerifyTwoFactorAuth (VerifyTwoFactorAuthRequest) returns (VerifyTwoFactorAuthResponse);
-    // rpc RecoverTwoFactorAuth (RecoverTwoFactorAuthRequest) returns (RecoverTwoFactorAuthResponse);
+    rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+    rpc GetUsers(GetUsersRequest) returns (GetUsersResponse) {}
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+    rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse) {}
+    rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {}
+    rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UpdateUserPasswordResponse) {}
+    rpc RecoverUserPassword(RecoverUserPasswordRequest) returns (RecoverUserPasswordResponse) {}
+    rpc RecoverUserPasswordWithToken(RecoverUserPasswordWithTokenRequest) returns (RecoverUserPasswordWithTokenResponse) {}
+    rpc GetUserEmail(GetUserEmailRequest) returns (GetUserEmailResponse) {}
+    rpc UpdateUserEmail(UpdateUserEmailRequest) returns (UpdateUserEmailResponse) {}
+    rpc VerifyUserEmail(VerifyUserEmailRequest) returns (VerifyUserEmailResponse) {}
+    rpc VerifyUserEmailWithToken(VerifyUserEmailWithTokenRequest) returns (VerifyUserEmailWithTokenResponse) {}
+    rpc EnableTwoFactorAuth(EnableTwoFactorAuthRequest) returns (EnableTwoFactorAuthResponse) {}
+    rpc GetTwoFactorAuthStatus(GetTwoFactorAuthStatusRequest) returns (GetTwoFactorAuthStatusResponse) {}
+    rpc DisableTwoFactorAuth(DisableTwoFactorAuthRequest) returns (DisableTwoFactorAuthResponse) {}
+    rpc VerifyTwoFactorAuth(VerifyTwoFactorAuthRequest) returns (VerifyTwoFactorAuthResponse) {}
+    rpc RecoverTwoFactorAuth(RecoverTwoFactorAuthRequest) returns (RecoverTwoFactorAuthResponse) {}
+    rpc RecoverTwoFactorAuthWithToken(RecoverTwoFactorAuthWithTokenRequest) returns (RecoverTwoFactorAuthWithTokenResponse) {}
+    rpc AddFriend(AddFriendRequest) returns (AddFriendResponse) {}
+    rpc GetFriends(GetFriendsRequest) returns (GetFriendsResponse) {}
+    rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
 }
 
 enum UserStatus
@@ -90,11 +102,8 @@ message GetUsersResponse
     uint16  outcome = 1;
     oneof   content
     {
-        oneof users
-        {
-            repeated PrivateUser  private_users = 2;
-            repeated PublicUser   public_users = 3;
-        }
+        repeated PrivateUser  private_users = 2;
+        repeated PublicUser   public_users = 3;
         string error_message = 4;
     }
 }
@@ -106,31 +115,12 @@ message GetUserRequest
 }
 message GetUserResponse
 {
-    uint16 outcome = 1;
-    oneof  content
+    uint16  outcome = 1;
+    oneof   content
     {
-        oneof user
-        {
-            PrivateUser  private_user = 2;
-            PublicUser   public_user = 3;
-        }
-        string error_message = 4;
+        PrivateUser private_user = 2;
+        string      error_message = 4;
     }
-}
-
-// v1/users/{user_id} PUT
-message UpdateUserRequest
-{
-    string           user_id = 1;
-    optional string  email = 2;
-    optional string  password = 3;
-    optional string  display_name = 4;
-    optional string  avatar = 5;
-}
-message UpdateUserResponse
-{
-    uint16           outcome = 1;
-    optional string  error_message = 2;
 }
 
 // v1/users/{user_id} DELETE
@@ -139,6 +129,122 @@ message DeleteUserRequest
     string user_id = 1;
 }
 message DeleteUserResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/profile GET
+message GetUserProfileRequest
+{
+    string user_id = 1;
+}
+message GetUserProfileResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        PrivateUser PublicUser = 2;
+        string      error_message = 3;
+    }
+}
+
+// v1/users/{user_id}/profile PATCH
+message UpdateUserProfileRequest
+{
+    string          user_id = 1;
+    optional string display_name = 2;
+    optional string avatar = 3;
+}
+message UpdateUserProfileResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/password PUT
+message UpdateUserPasswordRequest
+{
+    string  user_id = 1;
+    string  old_password = 2;
+    string  new_password = 3;
+}
+message UpdateUserPasswordResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/password/recovery POST
+message RecoverUserPasswordRequest
+{
+    string  user_id = 1;
+    string  email = 2;
+}
+message RecoverUserPasswordResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/password/recovery/{token} POST
+message RecoverUserPasswordWithTokenRequest
+{
+    string  user_id = 1;
+    string  recovery_token = 2;
+    string  new_password = 3;
+}
+message RecoverUserPasswordWithTokenResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/email GET
+message GetUserEmailRequest
+{
+    string user_id = 1;
+}
+message GetUserEmailResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        string  email = 2;
+        string  error_message = 3;
+    }
+}
+
+// v1/users/{user_id}/email PUT
+message UpdateUserEmailRequest
+{
+    string  user_id = 1;
+    string  new_email = 2;
+}
+message UpdateUserEmailResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/email/verify POST
+message VerifyUserEmailRequest
+{
+    string  user_id = 1;
+}
+message VerifyUserEmailResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/email/verify/{token} POST
+message VerifyUserEmailWithTokenRequest
+{
+    string  user_id = 1;
+    string  verification_token = 2;
+}
+message VerifyUserEmailWithTokenResponse
 {
     uint16           outcome = 1;
     optional string  error_message = 2;
@@ -194,3 +300,68 @@ message VerifyTwoFactorAuthResponse
 }
 
 // v1/users/{user_id}/2fa/recovery POST
+message RecoverTwoFactorAuthRequest
+{
+    string  user_id = 1;
+}
+message RecoverTwoFactorAuthResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/2fa/recovery/{token} POST
+message RecoverTwoFactorAuthWithTokenRequest
+{
+    string  user_id = 1;
+    string  recovery_token = 2;
+}
+message RecoverTwoFactorAuthWithTokenResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/friends POST
+message AddFriendRequest
+{
+    string  user_id = 1;
+    string  friend_id = 2;
+}
+message AddFriendResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
+
+// v1/users/{user_id}/friends/ GET
+message GetFriendsRequest
+{
+    string                  user_id = 1;
+    optional uint32         page = 2;
+    optional uint32         results_per_page = 3;
+    optional SortingOptions sort = 4;
+    optional FilterOptions  filter = 5;
+}
+message GetFriendsResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        repeated PrivateUser  private_users = 2;
+        repeated PublicUser   public_users = 3;
+        string  error_message = 4;
+    }
+}
+
+// v1/users/{user_id}/friends/{friend_id} DELETE
+message RemoveFriendRequest
+{
+    string  user_id = 1;
+    string  friend_id = 2;
+}
+message RemoveFriendResponse
+{
+    uint16           outcome = 1;
+    optional string  error_message = 2;
+}
