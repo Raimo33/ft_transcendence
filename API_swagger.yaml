@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/15 11:52:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/15 11:58:51 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -186,7 +186,7 @@ paths:
                               additional_property:
                                 type: array
                                 items:
-                                  $ref: "#/components/schemas/User"
+                                  $ref: "#/components/schemas/PrivateUser"
                             additionalProperties: false
               responses:
                 "200":
@@ -546,21 +546,21 @@ paths:
             $ref: '#/components/responses/TooManyRequests'
       callbacks:
         2faVerifyCompleted:
-        "{$request.body.callbackUrl}":
-          post:
-            summary: 2fa recovery token generation completion callback
-            description: Server calls this endpoint when the 2fa recovery token generation is complete or failed.
-            requestBody:
-              required: true
-              content:
-              application/json:
-                schema:
-                oneOf:
-                  - $ref: "#/components/schemas/async_call_failure"
-                  - $ref: "#/components/schemas/async_call_success"
-            responses:
-              "200":
-                description: Client successfully received the 2fa recovery token via email.
+         "{$request.body.callbackUrl}":
+            post:
+              summary: 2fa recovery token generation completion callback
+              description: Server calls this endpoint when the 2fa recovery token generation is complete or failed.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      oneOf:
+                        - $ref: "#/components/schemas/async_call_failure"
+                        - $ref: "#/components/schemas/async_call_success"
+                required: true
+              responses:
+                "200":
+                  description: Client successfully received the 2fa recovery token via email.
   /users/{user_id}/2fa/recovery/{token}:
     post:
       summary: Verify 2fa recovery token
@@ -1054,7 +1054,7 @@ paths:
                               additional_property:
                                 type: array
                                 items:
-                                  $ref: "#/components/schemas/User"
+                                  $ref: "#/components/schemas/PublicUser"
                             additionalProperties: false
               responses:
                 "200":
