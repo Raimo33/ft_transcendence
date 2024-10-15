@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-package users;
+package user;
+
+import "common.proto";
 
 service UserService
 {
@@ -28,35 +30,7 @@ service UserService
     rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
 }
 
-enum UserStatus
-{
-    ONLINE = 0;
-    OFFLINE = 1;
-}
-
-message PrivateUser
-{
-    string      user_id = 1;
-    string      display_name = 2;
-    string      avatar = 3;
-    UserStatus  status = 4;
-    uint64      last_active = 5;
-    uint64      date_registered = 6;
-    string      email = 7;
-    bool        two_factor_auth = 8;
-}
-
-message PublicUser
-{
-    string      user_id = 1;
-    string      display_name = 2;
-    string      avatar = 3;
-    UserStatus  status = 4;
-    uint64      last_active = 5;
-    uint64      date_registered = 6;
-}
-
-enum SortingOptions
+enum sort_options
 {
     UNSORTED = 0;
     DISPLAY_NAME = 1;
@@ -65,9 +39,9 @@ enum SortingOptions
     LAST_ACTIVE_TIMESTAMP = 4;
 }
 
-message FilterOptions
+message filter_options
 {
-    optional UserStatus status = 1;
+    optional user_status status = 1;
     // Add more filter options here
 }
 
@@ -94,17 +68,17 @@ message GetUsersRequest
 {
     optional uint32          page = 1;
     optional uint32          results_per_page = 2;
-    optional SortingOptions  sort = 3;
-    optional FilterOptions   filter = 4;
+    optional sort_options    sort = 3;
+    optional filter_options  filter = 4;
 }
 message GetUsersResponse
 {
     uint16  outcome = 1;
     oneof   content
     {
-        repeated PrivateUser  private_users = 2;
-        repeated PublicUser   public_users = 3;
-        string error_message = 4;
+        repeated private_user  private_users = 2;
+        repeated public_user   public_users = 3;
+        string                 error_message = 4;
     }
 }
 
@@ -118,8 +92,8 @@ message GetUserResponse
     uint16  outcome = 1;
     oneof   content
     {
-        PrivateUser private_user = 2;
-        string      error_message = 4;
+        private_user  private_user = 2;
+        string       error_message = 4;
     }
 }
 
@@ -144,7 +118,7 @@ message GetUserProfileResponse
     uint16  outcome = 1;
     oneof   content
     {
-        PrivateUser PublicUser = 2;
+        private_user public_user = 2;
         string      error_message = 3;
     }
 }
@@ -340,17 +314,17 @@ message GetFriendsRequest
     string                  user_id = 1;
     optional uint32         page = 2;
     optional uint32         results_per_page = 3;
-    optional SortingOptions sort = 4;
-    optional FilterOptions  filter = 5;
+    optional sort_options sort = 4;
+    optional filter_options  filter = 5;
 }
 message GetFriendsResponse
 {
     uint16  outcome = 1;
     oneof   content
     {
-        repeated PrivateUser  private_users = 2;
-        repeated PublicUser   public_users = 3;
-        string  error_message = 4;
+        repeated private_user  private_users = 2;
+        repeated public_user   public_users = 3;
+        string                 error_message = 4;
     }
 }
 

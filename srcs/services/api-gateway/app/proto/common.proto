@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package common;
+
+//user
+enum user_status
+{
+    ONLINE = 0;
+    OFFLINE = 1;
+}
+message private_user
+{
+    string       user_id = 1;
+    string       avatar = 3;
+    string       display_name = 2;
+    user_status  status = 4;
+    uint64       last_active = 5;
+    uint64       date_registered = 6;
+    string       email = 7;
+    bool         two_factor_auth = 8;
+}
+message public_user
+{
+    string       user_id = 1;
+    string       display_name = 2;
+    string       avatar = 3;
+    user_status  status = 4;
+    uint64       last_active = 5;
+    uint64       date_registered = 6;
+}
+
+//match
+enum match_status
+{
+    ONGOING = 0;
+    COMPLETED = 1;
+    INTERRUPTED = 2;
+}
+message match_settings
+{
+    uint8  ball_speed = 1;
+    uint16 max_duration = 2;
+    uint8  starting_health = 3;
+}
+message match
+{
+    string                   id = 1;
+    optional string          websocket_url = 2;
+    repeated public_user     players = 3;
+    match_status             status = 4;
+    uint64                   started_timestamp = 5;
+    optional uint64          finished_timestamp = 6;
+    match_settings           settings = 7;
+    optional repeated string leaderboard = 8;
+}
+
+//tournament
+enum tournament_status
+{
+    ONGOING = 0;
+    COMPLETED = 1;
+    INTERRUPTED = 2;
+}
+enum tournament_mode
+{
+    SINGLE_ELIMINATION = 0;
+    KNOCKOUT = 1;
+    KING_OF_THE_HILL = 2;
+    LADDERS = 3;
+    ROUND_ROBIN = 4;
+}
+message tournament
+{
+    string                     id = 1;
+    tournament_mode            mode = 2;
+    optional repeated match    matches = 7;
+    tournament_status          status = 4;
+    uint64                     started_timestamp = 5;
+    optional uint64            finished_timestamp = 6;
+    optional repeated string   leaderboard = 8;
+}

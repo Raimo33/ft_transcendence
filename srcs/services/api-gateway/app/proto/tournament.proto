@@ -1,0 +1,57 @@
+asyntax = "proto3";
+
+package tournament;
+
+service TournamentService
+{
+    
+}
+
+enum sorting_options
+{
+    AGE = 0;
+    DURATION = 1;
+    NUMBER_OF_PLAYERS = 2;
+}
+
+message filter_options
+{
+    optional tournament_status  status = 1;
+    optional tournament_mode    mode = 2;
+    // Add more filter options here
+}
+
+// v1/users/{user_id}/tournaments GET
+message GetUserTournamentsRequest
+{
+    string                    user_id = 1;
+    optional uint32           page = 2;
+    optional uint32           results_per_page = 3;
+    optional sorting_options  sort = 4;
+    optional filter_options   filter = 5;
+}
+message GetUserTournamentsResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        repeated tournament  tournaments = 2;
+        string               error_message = 3;
+    }
+}
+
+// v1/tournaments POST
+message CreateTournamentRequest
+{
+    repeated string           player_ids = 1;
+    optional tournament_mode  mode = 2;
+}
+message CreateTournamentResponse
+{
+    uint16  outcome = 1;
+    oneof   content
+    {
+        tournament  tournament = 2;
+        string      error_message = 3;
+    }
+}

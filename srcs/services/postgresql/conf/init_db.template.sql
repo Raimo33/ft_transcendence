@@ -41,7 +41,6 @@ CREATE UNIQUE INDEX unq_idx_usr_status_email ON usr (status, email);
 
 
 CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
-CREATE TYPE match_outcome AS ENUM ('W', 'L', 'D'); -- W: win, L: loss, D: draw
 
 CREATE  TABLE game_match
 (
@@ -54,8 +53,8 @@ CREATE  TABLE game_match
     started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
     finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
     duration             time,
-    outcome              match_outcome,
     tournament_id        uuid,
+    leaderboard          uuid[] DEFAULT '{}' NOT NULL,
 
     CONSTRAINT           pk_game_match PRIMARY KEY (id),
     CONSTRAINT           unq_game_match_tournament_id UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
@@ -98,6 +97,7 @@ CREATE  TABLE game_tournament
     started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
     finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
     duration             time,
+    leaderboard          uuid[] DEFAULT '{}' NOT NULL,
 
     CONSTRAINT           pk_game_tournament PRIMARY KEY (id),
 

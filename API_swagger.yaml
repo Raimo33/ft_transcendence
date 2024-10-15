@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/15 16:37:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/15 18:07:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -1138,9 +1138,9 @@ paths:
           required: false
         - name: filter_options
           in: query
-          description: Filter the matches list by status or outcome.
+          description: Filter the matches list by status or leaderboard position.
           schema:
-            $ref: "#/components/schemas/match_filter_options"
+            $ref: "#/components/schemas/user_match_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -1273,7 +1273,7 @@ paths:
           in: query
           description: Filter the tournaments list by status or mode.
           schema:
-            $ref: "#/components/schemas/tournament_filter_options"
+            $ref: "#/components/schemas/user_tournament_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -2565,14 +2565,6 @@ components:
       maximum: 100
       examples:
         - value: 3
-    match_outcome:
-      description: Outcome of the match (win, loss, draw).
-      type: string
-      enum: [win, loss, draw]
-      examples:
-        - value: "win"
-        - value: "loss"
-        - value: "draw"
 
     player_health_points:
       description: Current health points of the player.
@@ -2592,8 +2584,9 @@ components:
     tournament_mode:
       description: Format of the tournament.
       type: string
-      enum: [knockout, king_of_the_hill, ladder, round_robin]
+      enum: [single_elimination, knockout, king_of_the_hill, ladder, round_robin]
       examples:
+        - value: "single_elimination"
         - value: "knockout"
         - value: "king_of_the_hill"
         - value: "ladder"
@@ -2710,8 +2703,11 @@ components:
           $ref: "#/components/schemas/timestamp"
         settings:
           $ref: "#/components/schemas/MatchSettings"
-        outcome:
-          $ref: "#/components/schemas/match_outcome"
+        leaderboard:
+          type: array
+          description: Array of user_ids in the order of their scores.
+          items:
+            $ref: "#/components/schemas/user_id"
       required: [match_id, players, status, started_timestamp, match_settings]
 
     Tournament:
@@ -2733,6 +2729,11 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_timestamp:
           $ref: "#/components/schemas/timestamp"
+        leaderboard:
+          type: array
+          description: Array of user_ids in the order of their scores.
+          items:
+            $ref: "#/components/schemas/user_id"
       required: [tournament_id, tournament_mode, matches, status, started_timestamp]
 
     user_sorting_options:
@@ -2751,8 +2752,6 @@ components:
       properties:
         status:
           $ref: "#/components/schemas/user_status"
-      examples:
-        - value: "online"
 
     friends_sorting_options:
       description: Options to sort the friends list.
@@ -2769,8 +2768,6 @@ components:
       properties:
         status:
           $ref: "#/components/schemas/user_status"
-      examples:
-        - value: "online"
 
     match_sorting_options:
       description: Options to sort the matches list.
@@ -2786,11 +2783,18 @@ components:
       properties:
         status:
           $ref: "#/components/schemas/match_status"
-        outcome:
-          $ref: "#/components/schemas/match_outcome"
-      examples:
-        - value: "ongoing"
-        - value: "win"
+    
+    user_match_filter_options:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/match_filter_options"
+        - type: object
+          properties:
+            leaderboard_position:
+              type: integer
+              format: int32
+              minimum: 1
+              description: "Position of the user in the leaderboard. (better than)"
 
     tournament_sorting_options:
       description: Options to sort the tournaments list.
@@ -2809,9 +2813,18 @@ components:
           $ref: "#/components/schemas/tournament_status"
         mode:
           $ref: "#/components/schemas/tournament_mode"
-      examples:
-        - value: "ongoing"
-        - value: "knockout"
+    
+    user_tournament_filter_options:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/tournament_filter_options"
+        - type: object
+          properties:
+            leaderboard_position:
+              type: integer
+              format: int32
+              minimum: 1
+              description: "Position of the user in the leaderboard. (better than)"
     
     error_message:
       description: Error message returned by the API.
