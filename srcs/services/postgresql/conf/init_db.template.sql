@@ -10,7 +10,7 @@ CONNECTION LIMIT = -1;
 
 CREATE TYPE user_status AS ENUM ('O', 'F'); -- O: online, F: offline
 
-CREATE  TABLE usr
+CREATE  TABLE User
 (
     id                   uuid  NOT NULL,
     email                text  NOT NULL,
@@ -42,7 +42,7 @@ CREATE UNIQUE INDEX unq_idx_usr_status_email ON usr (status, email);
 
 CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
-CREATE  TABLE game_match
+CREATE  TABLE GameMatch
 (
     id                   uuid NOT NULL,
     current_status       match_status DEFAULT 'O' NOT NULL,
@@ -89,7 +89,7 @@ CREATE INDEX idx_game_match_duration_outcome ON game_match USING btree (duration
 CREATE TYPE tournament_play_mode AS ENUM ('single-elimination', 'knockout', 'king_of_the_hill', 'ladder', 'round_robin');
 CREATE TYPE tournament_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
-CREATE  TABLE game_tournament
+CREATE  TABLE GameTournament
 (
     id                   uuid  NOT NULL,
     play_mode            tournament_play_mode DEFAULT 'single-elimination' NOT NULL,
@@ -113,22 +113,22 @@ EXECUTE FUNCTION calculate_duration();
 CREATE INDEX idx_game_tournament_mode_started_timestamp ON game_tournament (play_mode, started_timestamp);
 
 
-CREATE  TABLE match_user
+CREATE  TABLE UserMatches
 (
-    match_id             uuid  NOT NULL,
     user_id              uuid  NOT NULL,
+    match_id             uuid  NOT NULL,
 
-    CONSTRAINT           pk_match_user PRIMARY KEY (match_id, user_id),
-    CONSTRAINT           fk_match_user_match_id FOREIGN KEY (match_id) REFERENCES game_match(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
-    CONSTRAINT           fk_match_user_user_id FOREIGN KEY (user_id) REFERENCES usr(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED
+    CONSTRAINT           pk_usermatches PRIMARY KEY (match_id, user_id),
+    CONSTRAINT           fk_usermatches_match_id FOREIGN KEY (match_id) REFERENCES game_match(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
+    CONSTRAINT           fk_usermatches_user_id FOREIGN KEY (user_id) REFERENCES usr(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED
 );
 
-CREATE  TABLE tournament_users
+CREATE  TABLE UserTournaments
 (
-    tournament_id        uuid  NOT NULL,
     user_id              uuid  NOT NULL,
+    tournament_id        uuid  NOT NULL,
 
-    CONSTRAINT           pk_tournament_users PRIMARY KEY (tournament_id, user_id),
-    CONSTRAINT           fk_tournament_users_tournament_id FOREIGN KEY (tournament_id) REFERENCES game_tournament(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT           fk_tournament_users_user_id FOREIGN KEY (user_id) REFERENCES usr(id) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT           pk_usertournaments PRIMARY KEY (tournament_id, user_id),
+    CONSTRAINT           fk_usertournaments_tournament_id FOREIGN KEY (tournament_id) REFERENCES game_tournament(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT           fk_usertournaments_user_id FOREIGN KEY (user_id) REFERENCES usr(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
