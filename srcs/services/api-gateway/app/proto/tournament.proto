@@ -4,7 +4,13 @@ package tournament;
 
 service TournamentService
 {
-    
+    rpc GetUserTournaments(GetUserTournamentsRequest) returns (GetUserTournamentsResponse) {}
+    rpc CreateTournament(CreateTournamentRequest) returns (CreateTournamentResponse) {}
+    rpc InterruptTournaments(InterruptTournamentsRequest) returns (InterruptTournamentsResponse) {}
+    rpc JoinTournament(JoinTournamentRequest) returns (JoinTournamentResponse) {}
+    rpc GetTournament(GetTournamentRequest) returns (GetTournamentResponse) {}
+    rpc UpdateTournament(UpdateTournamentRequest) returns (UpdateTournamentResponse) {}
+    rpc AbandonTournament(AbandonTournamentRequest) returns (AbandonTournamentResponse) {}
 }
 
 enum sorting_options
@@ -32,12 +38,8 @@ message GetUserTournamentsRequest
 }
 message GetUserTournamentsResponse
 {
-    uint16  outcome = 1;
-    oneof   content
-    {
-        repeated tournament  tournaments = 2;
-        string               error_message = 3;
-    }
+    response_outcome              outcome = 1;
+    optional repeated tournament  tournaments = 2;
 }
 
 // v1/tournaments POST
@@ -48,10 +50,56 @@ message CreateTournamentRequest
 }
 message CreateTournamentResponse
 {
-    uint16  outcome = 1;
-    oneof   content
-    {
-        tournament  tournament = 2;
-        string      error_message = 3;
-    }
+    response_outcome  outcome = 1;
+    optional string   tournament_id = 2;
+}
+
+// v1/tournaments DELETE
+message InterruptTournamentsRequest
+{
+}
+message InterruptTournamentsResponse
+{
+    response_outcome  outcome = 1;
+}
+
+// v1/tournaments/{tournament_id} POST
+message JoinTournamentRequest
+{
+    string  tournament_id = 1;
+}
+message JoinTournamentResponse
+{
+    response_outcome    outcome = 1;
+}
+
+// v1/tournaments/{tournament_id} GET
+message GetTournamentRequest
+{
+    string  tournament_id = 1;
+}
+message GetTournamentResponse
+{
+    response_outcome     outcome = 1;
+    optional tournament  tournament = 2;
+}
+
+// v1/tournaments/{tournament_id} PATCH
+message UpdateTournamentRequest
+{
+    string tournament_id = 1;
+}
+message UpdateTournamentResponse
+{
+    response_outcome     outcome = 1;
+}
+
+// v1/tournaments/{tournament_id} DELETE
+message AbandonTournamentRequest
+{
+    string tournament_id = 1;
+}
+message AbandonTournamentResponse
+{
+    response_outcome  outcome = 1;
 }

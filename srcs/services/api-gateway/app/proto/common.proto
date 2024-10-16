@@ -44,14 +44,14 @@ message match_settings
 }
 message match
 {
-    string                   id = 1;
-    optional string          websocket_url = 2;
-    repeated public_user     players = 3;
-    match_status             status = 4;
-    uint64                   started_timestamp = 5;
-    optional uint64          finished_timestamp = 6;
-    match_settings           settings = 7;
-    optional repeated string leaderboard = 8;
+    string                    id = 1;
+    optional string           websocket_url = 2;
+    repeated public_user      players = 3;
+    match_status              status = 4;
+    uint64                    started_timestamp = 5;
+    optional uint64           finished_timestamp = 6;
+    match_settings            settings = 7;
+    optional repeated string  leaderboard = 8;
 }
 
 //tournament
@@ -71,11 +71,17 @@ enum tournament_mode
 }
 message tournament
 {
-    string                     id = 1;
-    tournament_mode            mode = 2;
-    optional repeated match    matches = 7;
-    tournament_status          status = 4;
-    uint64                     started_timestamp = 5;
-    optional uint64            finished_timestamp = 6;
-    optional repeated string   leaderboard = 8;
+    string                    id = 1;
+    tournament_mode           mode = 2;
+    optional repeated match   matches = 7;
+    tournament_status         status = 4;
+    uint64                    started_timestamp = 5;
+    optional uint64           finished_timestamp = 6;
+    optional repeated string  leaderboard = 8;
+}
+
+message response_outcome
+{
+    uint16  code = 1;
+    string  message = 2;
 }

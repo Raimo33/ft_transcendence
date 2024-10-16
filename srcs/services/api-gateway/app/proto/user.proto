@@ -55,12 +55,7 @@ message RegisterUserRequest
 }
 message RegisterUserResponse
 {
-    uint16  outcome = 1;
-    oneof   content
-    {
-        string  user_id = 2;
-        string  error_message = 3;
-    }
+    response_outcome  outcome = 1;
 }
 
 // v1/users GET
@@ -73,12 +68,11 @@ message GetUsersRequest
 }
 message GetUsersResponse
 {
-    uint16  outcome = 1;
-    oneof   content
+    response_outcome           outcome = 1;
+    optional oneof content
     {
-        repeated private_user  private_users = 2;
-        repeated public_user   public_users = 3;
-        string                 error_message = 4;
+        repeated public_user   users_public = 2;
+        repeated private_user  users_private = 3;
     }
 }
 
@@ -89,12 +83,8 @@ message GetUserRequest
 }
 message GetUserResponse
 {
-    uint16  outcome = 1;
-    oneof   content
-    {
-        private_user  private_user = 2;
-        string       error_message = 4;
-    }
+    response_outcome       outcome = 1;
+    optional private_user  user = 2;
 }
 
 // v1/users/{user_id} DELETE
@@ -104,8 +94,7 @@ message DeleteUserRequest
 }
 message DeleteUserResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/profile GET
@@ -115,25 +104,20 @@ message GetUserProfileRequest
 }
 message GetUserProfileResponse
 {
-    uint16  outcome = 1;
-    oneof   content
-    {
-        private_user public_user = 2;
-        string      error_message = 3;
-    }
+    response_outcome      outcome = 1;
+    optional public_user  user = 2;
 }
 
 // v1/users/{user_id}/profile PATCH
 message UpdateUserProfileRequest
 {
-    string          user_id = 1;
-    optional string display_name = 2;
-    optional string avatar = 3;
+    string           user_id = 1;
+    optional string  display_name = 2;
+    optional string  avatar = 3;
 }
 message UpdateUserProfileResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/password PUT
@@ -145,8 +129,7 @@ message UpdateUserPasswordRequest
 }
 message UpdateUserPasswordResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/password/recovery POST
@@ -157,8 +140,7 @@ message RecoverUserPasswordRequest
 }
 message RecoverUserPasswordResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/password/recovery/{token} POST
@@ -170,8 +152,7 @@ message RecoverUserPasswordWithTokenRequest
 }
 message RecoverUserPasswordWithTokenResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/email GET
@@ -181,12 +162,8 @@ message GetUserEmailRequest
 }
 message GetUserEmailResponse
 {
-    uint16  outcome = 1;
-    oneof   content
-    {
-        string  email = 2;
-        string  error_message = 3;
-    }
+    response_outcome  outcome = 1;
+    optional string   email = 2;
 }
 
 // v1/users/{user_id}/email PUT
@@ -197,8 +174,7 @@ message UpdateUserEmailRequest
 }
 message UpdateUserEmailResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/email/verify POST
@@ -208,8 +184,7 @@ message VerifyUserEmailRequest
 }
 message VerifyUserEmailResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/email/verify/{token} POST
@@ -220,8 +195,7 @@ message VerifyUserEmailWithTokenRequest
 }
 message VerifyUserEmailWithTokenResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/2fa POST
@@ -231,8 +205,7 @@ message EnableTwoFactorAuthRequest
 }
 message EnableTwoFactorAuthResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/2fa GET
@@ -242,12 +215,8 @@ message GetTwoFactorAuthStatusRequest
 }
 message GetTwoFactorAuthStatusResponse
 {
-    uint16  outcome = 1;
-    oneof   content
-    {
-        bool    two_factor_auth_status = 2;
-        string  error_message = 3;
-    }
+    response_outcome  outcome = 1;
+    optional bool     two_factor_auth = 2;
 }
 
 // v1/users/{user_id}/2fa DELETE
@@ -257,8 +226,7 @@ message DisableTwoFactorAuthRequest
 }
 message DisableTwoFactorAuthResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/2fa/verify POST
@@ -269,8 +237,7 @@ message VerifyTwoFactorAuthRequest
 }
 message VerifyTwoFactorAuthResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/2fa/recovery POST
@@ -280,8 +247,7 @@ message RecoverTwoFactorAuthRequest
 }
 message RecoverTwoFactorAuthResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/2fa/recovery/{token} POST
@@ -292,8 +258,7 @@ message RecoverTwoFactorAuthWithTokenRequest
 }
 message RecoverTwoFactorAuthWithTokenResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/friends POST
@@ -304,27 +269,25 @@ message AddFriendRequest
 }
 message AddFriendResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
 
 // v1/users/{user_id}/friends/ GET
 message GetFriendsRequest
 {
-    string                  user_id = 1;
-    optional uint32         page = 2;
-    optional uint32         results_per_page = 3;
-    optional sort_options sort = 4;
+    string                   user_id = 1;
+    optional uint32          page = 2;
+    optional uint32          results_per_page = 3;
+    optional sort_options    sort = 4;
     optional filter_options  filter = 5;
 }
 message GetFriendsResponse
 {
-    uint16  outcome = 1;
-    oneof   content
+    response_outcome           outcome = 1;
+    optional oneof content
     {
-        repeated private_user  private_users = 2;
-        repeated public_user   public_users = 3;
-        string                 error_message = 4;
+        repeated public_user   friends_public = 2;
+        repeated private_user  friends_private = 3;
     }
 }
 
@@ -336,6 +299,5 @@ message RemoveFriendRequest
 }
 message RemoveFriendResponse
 {
-    uint16           outcome = 1;
-    optional string  error_message = 2;
+    response_outcome  outcome = 1;
 }
