@@ -1,6 +1,8 @@
-asyntax = "proto3";
+syntax = "proto3";
 
 package tournament;
+
+import "common.proto";
 
 service TournamentService
 {
