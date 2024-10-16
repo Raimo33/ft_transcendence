@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/15 18:07:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/16 18:54:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,15 +53,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                            properties:
-                              additional_property:
-                                $ref: "#/components/schemas/user_id"
-                            additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - $ref: "#/components/schemas/user_id"
                 required: true
               responses:
                 "200":
@@ -176,17 +170,11 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                            properties:
-                              additional_property:
-                                type: array
-                                items:
-                                  $ref: "#/components/schemas/PrivateUser"
-                            additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - type: array
+                          items:
+                            $ref: "#/components/schemas/PrivateUser"
                 required: true
               responses:
                 "200":
@@ -307,9 +295,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -440,9 +426,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -490,11 +474,9 @@ paths:
               description: Server calls this endpoint when the password update is complete or failed.
               requestBody:
                 content:
-                    application/json:
-                        schema:
-                            oneOf:
-                                - $ref: "#/components/schemas/async_call_failure"
-                                - $ref: "#/components/schemas/async_call_success"
+                  application/json:
+                    schema:
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -540,9 +522,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -596,9 +576,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -714,9 +692,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -758,9 +734,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -808,9 +782,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -854,12 +826,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - $ref: "#/components/schemas/totp_key"
-                          additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - $ref: "#/components/schemas/totp_key"
                 required: true
               responses:
                 "200":
@@ -945,9 +914,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -998,9 +965,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -1046,9 +1011,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -1096,9 +1059,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -1220,17 +1181,11 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                          properties:
-                            additional_property:
-                              type: array
-                              items:
-                                $ref: "#/components/schemas/Match"
-                                additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - type: array
+                          items:
+                            $ref: "#/components/schemas/Match"
                 required: true
               responses:
                 "200":
@@ -1353,17 +1308,11 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                          properties:
-                            additional_property:
-                              type: array
-                              items:
-                                $ref: "#/components/schemas/Tournament"
-                                additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - type: array
+                          items:
+                            $ref: "#/components/schemas/Tournament"
                 required: true
               responses:
                 "200":
@@ -1413,9 +1362,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -1537,16 +1484,10 @@ paths:
                   application/json:
                     schema:
                       oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                          properties:
-                            additional_property:
-                              type: array
-                              items:
-                                $ref: "#/components/schemas/PublicUser"
-                                additionalProperties: false
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - type: array
+                          items:
+                            $ref: "#/components/schemas/PublicUser"
                 required: true
               responses:
                 "200":
@@ -1596,9 +1537,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -1721,9 +1660,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -1769,15 +1706,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                          properties:
-                            additional_property:
-                              $ref: "#/components/schemas/jwt_token"
-                              additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - $ref: "#/components/schemas/jwt_token"
                 required: true
               responses:
                 "200":
@@ -1897,9 +1828,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -1946,15 +1875,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                            properties:
-                              additional_property:
-                                $ref: "#/components/schemas/Match"
-                                additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - $ref: "#/components/schemas/match_id"
                 required: true
               responses:
                 "200":
@@ -1990,9 +1913,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -2036,15 +1957,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                            properties:
-                              additional_property:
-                                $ref: "#/components/schemas/Match"
-                                additionalProperties: false
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -2163,9 +2076,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -2218,15 +2129,9 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                            properties:
-                              additional_property:
-                                $ref: "#/components/schemas/Tournament"
-                                additionalProperties: false
+                      allOf:
+                        - $ref: "#/components/schemas/async_call_response_outcome"
+                        - $ref: "#/components/schemas/tournament_id"
                 required: true
               responses:
                 "200":
@@ -2263,9 +2168,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -2309,15 +2212,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - allOf:
-                          - $ref: "#/components/schemas/async_call_success"
-                          - type: object
-                            properties:
-                              additional_property:
-                                $ref: "#/components/schemas/Tournament"
-                                additionalProperties: false
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -2425,9 +2320,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -2459,9 +2352,7 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
-                        - $ref: "#/components/schemas/async_call_failure"
-                        - $ref: "#/components/schemas/async_call_success"
+                      $ref: "#/components/schemas/async_call_response_outcome"
                 required: true
               responses:
                 "200":
@@ -2826,37 +2717,30 @@ components:
               minimum: 1
               description: "Position of the user in the leaderboard. (better than)"
     
-    error_message:
-      description: Error message returned by the API.
-      type: string
-      examples:
-        - value: "User not found."
-    
     async_call_outcome:
       description: Outcome of an asynchronous call.
       type: string
       enum: [success, failure]
       examples:
         - value: "success"
-        - value: "failure"
+        - value: "failure"  
+
+    async_call_message:
+      description: Message returned from an asynchronous call.
+      type: string
+      examples:
+        - value: "Match created successfully."
+        - value: "Failed to create match."
     
-    async_call_success:
+    async_call_response_outcome:
       type: object
       properties:
         outcome:
           $ref: "#/components/schemas/async_call_outcome"
-      required: [outcome]
+        message:
+          $ref: "#/components/schemas/async_call_message"
+      required: [outcome, message]
       additionalProperties: true
-    
-    async_call_failure:
-      type: object
-      properties:
-        outcome:
-          $ref: "#/components/schemas/async_call_outcome"
-        error_message:
-          $ref: "#/components/schemas/error_message"
-      required: [outcome, error_message]
-      additionalProperties: false
     
     # =========================
     # = Call-Specific Objects =
