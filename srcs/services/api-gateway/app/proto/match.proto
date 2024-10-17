@@ -6,5 +6,91 @@ import "common.proto";
 
 service MatchService
 {
-    //TODO
+    rpc GetUserMatches(GetUserMatchesRequest) returns (GetUserMatchesResponse) {}
+    rpc CreateMatch(CreateMatchRequest) returns (CreateMatchResponse) {}
+    rpc InterruptMatches(InterruptMatchesRequest) returns (InterruptMatchesResponse) {}
+    rpc JoinMatch(JoinMatchRequest) returns (JoinMatchResponse) {}
+    rpc GetMatch(GetMatchRequest) returns (GetMatchResponse) {}
+    rpc AbandonMatch(AbandonMatchRequest) returns (AbandonMatchResponse) {}
+}
+
+enum sorting_options
+{
+    AGE = 0;
+    DURATION = 1;
+    NUMBER_OF_PLAYERS = 2;
+    // Add more sorting options here
+}
+
+message filter_options
+{
+    optional match_status  status = 1;
+    // Add more filter options here
+}
+
+// v1/users/{user_id}/matches GET
+message GetUserMatchesRequest
+{
+    string                    user_id = 1;
+    optional uint32           page = 2;
+    optional uint32           results_per_page = 3;
+    optional sorting_options  sort = 4;
+    optional filter_options   filter = 5;
+}
+message GetUserMatchesResponse
+{
+    response_outcome        outcome = 1;
+    optional repeated match matches = 2;
+}
+
+// v1/matches POST
+message CreateMatchRequest
+{
+    repeated string          invited_users_ids = 1;
+    optional match_settings  settings = 2;
+}
+message CreateMatchResponse
+{
+    response_outcome  outcome = 1;
+    optional string   match_id = 2;
+}
+
+// v1/matches DELETE
+message InterruptMatchesRequest
+{
+}
+message InterruptMatchesResponse
+{
+    response_outcome  outcome = 1;
+}
+
+// v1/matches/{match_id} POST
+message JoinMatchRequest
+{
+    string  match_id = 1;
+}
+message JoinMatchResponse
+{
+    response_outcome  outcome = 1;
+}
+
+// v1/matches/{match_id} GET
+message GetMatchRequest
+{
+    string  match_id = 1;
+}
+message GetMatchResponse
+{
+    response_outcome  outcome = 1;
+    optional match    match = 2;
+}
+
+// v1/matches/{match_id} DELETE
+message AbandonMatchRequest
+{
+    string  match_id = 1;
+}
+message AbandonMatchResponse
+{
+    response_outcome  outcome = 1;
 }

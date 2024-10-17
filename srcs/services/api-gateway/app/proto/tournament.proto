@@ -47,7 +47,7 @@ message GetUserTournamentsResponse
 // v1/tournaments POST
 message CreateTournamentRequest
 {
-    repeated string           player_ids = 1;
+    repeated string           invided_users_ids = 1;
     optional tournament_mode  mode = 2;
 }
 message CreateTournamentResponse

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/16 18:54:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/17 13:48:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -172,9 +172,12 @@ paths:
                     schema:
                       allOf:
                         - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: array
-                          items:
-                            $ref: "#/components/schemas/PrivateUser"
+                        - type: object
+                          properties:
+                            users:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/private_user"
                 required: true
               responses:
                 "200":
@@ -1093,7 +1096,7 @@ paths:
           required: true
         - name: sorting_options
           in: query
-          description: Sort the matches list by age or duration.
+          description: Sort the matches list by age, duration or number of players.
           schema:
             $ref: "#/components/schemas/match_sorting_options"
           required: false
@@ -1183,9 +1186,12 @@ paths:
                     schema:
                       allOf:
                         - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: array
-                          items:
-                            $ref: "#/components/schemas/Match"
+                        - type: object
+                          properties:
+                            matches:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/Match"
                 required: true
               responses:
                 "200":
@@ -1310,9 +1316,12 @@ paths:
                     schema:
                       allOf:
                         - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: array
-                          items:
-                            $ref: "#/components/schemas/Tournament"
+                        - type: object
+                          properties:
+                            tournaments:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/Tournament"
                 required: true
               responses:
                 "200":
@@ -1846,8 +1855,12 @@ paths:
             schema:
               allOf:
                 - $ref: "#/components/schemas/MatchSettings"
-                - $ref: "#/components/schemas/user_id"
-                  additionalProperties: false
+                - type: object
+                  properties:
+                    invited_users:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/user_id"
         required: true
       responses:
         "202":
@@ -2663,10 +2676,11 @@ components:
     match_sorting_options:
       description: Options to sort the matches list.
       type: string
-      enum: [age, duration]
+      enum: [age, duration, number_of_players]
       examples:
         - value: "age"
         - value: "duration"
+        - value: "number_of_players"
 
     match_filter_options:
       description: Options to filter the matches list.
@@ -2728,9 +2742,6 @@ components:
     async_call_message:
       description: Message returned from an asynchronous call.
       type: string
-      examples:
-        - value: "Match created successfully."
-        - value: "Failed to create match."
     
     async_call_response_outcome:
       type: object

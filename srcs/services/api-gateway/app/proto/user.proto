@@ -28,6 +28,10 @@ service UserService
     rpc AddFriend(AddFriendRequest) returns (AddFriendResponse) {}
     rpc GetFriends(GetFriendsRequest) returns (GetFriendsResponse) {}
     rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
+    rpc GetLoginStatus(GetLoginStatusRequest) returns (GetLoginStatusResponse) {}
+    rpc DisconnectAllUsers(DisconnectAllUsersRequest) returns (DisconnectAllUsersResponse) {}
+    rpc UserLogin(UserLoginRequest) returns (UserLoginResponse) {}
+    rpc UserLogout(UserLogoutRequest) returns (UserLogoutResponse) {}
 }
 
 enum sort_options
@@ -298,6 +302,61 @@ message RemoveFriendRequest
     string  friend_id = 2;
 }
 message RemoveFriendResponse
+{
+    response_outcome  outcome = 1;
+}
+
+// v1/sessions GET
+message GetLoginStatusRequest
+{
+    optional uint32       page = 1;
+    optional uint32       results_per_page = 2;
+    optional user_status  filter = 3;
+}
+message GetLoginStatusResponse
+{
+    response_outcome   outcome = 1;
+    optional repeated  login_status = 2;
+}
+
+// v1/sessions DELETE
+message DisconnectAllUsersRequest
+{
+}
+message DisconnectAllUsersResponse
+{
+    response_outcome  outcome = 1;
+}
+
+// v1/sessions/{user_id} POST
+message UserLoginRequest
+{
+    string  user_id = 1;
+    string  password = 2;
+}
+message UserLoginResponse
+{
+    response_outcome  outcome = 1;
+    optional string   jwt_token = 2;
+}
+
+// v1/sessions/{user_id} GET
+message GetLoginStatusRequest
+{
+    string  user_id = 1;
+}
+message GetLoginStatusResponse
+{
+    response_outcome      outcome = 1;
+    optional user_status  status = 2;
+}
+
+// v1/sessions/{user_id} DELETE
+message UserLogoutRequest
+{
+    string  user_id = 1;
+}
+message UserLogoutResponse
 {
     response_outcome  outcome = 1;
 }
