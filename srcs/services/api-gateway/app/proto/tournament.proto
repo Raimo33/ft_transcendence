@@ -40,7 +40,7 @@ message GetUserTournamentsRequest
 }
 message GetUserTournamentsResponse
 {
-    response_outcome              outcome = 1;
+    response_outcome                  outcome = 1;
     optional map<string, tournament>  tournaments = 2;
 }
 

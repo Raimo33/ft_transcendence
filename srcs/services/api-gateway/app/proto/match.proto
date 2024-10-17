@@ -39,7 +39,7 @@ message GetUserMatchesRequest
 }
 message GetUserMatchesResponse
 {
-    response_outcome        outcome = 1;
+    response_outcome            outcome = 1;
     optional map<string, match> matches = 2;
 }
 
