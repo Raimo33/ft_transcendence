@@ -47,7 +47,6 @@ CREATE  TABLE GameMatch
     starting_health      smallint DEFAULT 3 NOT NULL,
     started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
     finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
-    duration             time,
     tournament_id        uuid,
     leaderboard          uuid[] DEFAULT '{}' NOT NULL,
 
@@ -58,31 +57,16 @@ CREATE  TABLE GameMatch
 
     CONSTRAINT           chk_websocket_url CHECK (websocket_url ~ '^wss?://([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w-./?%&=]*)?$'),
     CONSTRAINT           chk_ball_speed CHECK (ball_speed <= 100 AND ball_speed > 0),
-    CONSTRAINT           chk_max_duration CHECK (max_duration <= 3600 AND max_duration >= 60),
     CONSTRAINT           chk_starting_health CHECK (starting_health >= 1 AND starting_health <= 100),
     CONSTRAINT           chk_started_timestamp CHECK (started_timestamp <= NOW()),
     CONSTRAINT           chk_finished_timestamp CHECK (finished_timestamp <= NOW()),
 );
 
-CREATE OR REPLACE FUNCTION calculate_duration()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.duration := NEW.finished_timestamp - NEW.started_timestamp;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_calculate_duration
-BEFORE INSERT OR UPDATE ON game_match
-FOR EACH ROW
-EXECUTE FUNCTION calculate_duration();
 
 CREATE INDEX idx_game_match_started_timestamp ON game_match USING btree (started_timestamp);
 CREATE INDEX idx_game_match_finished_timestamp ON game_match USING btree (finished_timestamp);
-CREATE INDEX idx_game_match_duration ON game_match USING btree (duration);
 CREATE INDEX idx_game_match_outcome_started_timestamp ON game_match USING btree (outcome, started_timestamp);
 CREATE INDEX idx_game_match_outcome_finished_timestamp ON game_match USING btree (outcome, finished_timestamp);
-CREATE INDEX idx_game_match_duration_outcome ON game_match USING btree (duration, outcome);
 
 
 CREATE TYPE tournament_play_mode AS ENUM ('single-elimination', 'knockout', 'king_of_the_hill', 'ladder', 'round_robin');
@@ -95,7 +79,6 @@ CREATE  TABLE GameTournament
     current_status       tournament_status DEFAULT 'O' NOT NULL,
     started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
     finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
-    duration             time,
     leaderboard          uuid[] DEFAULT '{}' NOT NULL,
 
     CONSTRAINT           pk_game_tournament PRIMARY KEY (id),
@@ -105,17 +88,10 @@ CREATE  TABLE GameTournament
     CONSTRAINT           chk_finished_timestamp CHECK (finished_timestamp <= NOW())
 );
 
-CREATE TRIGGER trg_calculate_duration
-BEFORE INSERT OR UPDATE ON game_tournament
-FOR EACH ROW
-EXECUTE FUNCTION calculate_duration();
-
 CREATE INDEX idx_game_tournament_started_timestamp ON game_tournament (started_timestamp);
 CREATE INDEX idx_game_tournament_finished_timestamp ON game_tournament (finished_timestamp);
-CREATE INDEX idx_game_tournament_duration ON game_tournament (duration);
 CREATE INDEX idx_game_tournament_mode_started_timestamp ON game_tournament (play_mode, started_timestamp);
 CREATE INDEX idx_game_tournament_mode_finished_timestamp ON game_tournament (play_mode, finished_timestamp);
-CREATE INDEX idx_game_tournament_mode_duration ON game_tournament (play_mode, duration);
 
 CREATE  TABLE UserMatches
 (
@@ -136,3 +112,52 @@ CREATE  TABLE UserTournaments
     CONSTRAINT           fk_usertournaments_tournament_id FOREIGN KEY (tournament_id) REFERENCES game_tournament(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT           fk_usertournaments_user_id FOREIGN KEY (user_id) REFERENCES usr(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE MATERIALIZED VIEW user_activity_summary AS
+SELECT
+    u.id AS user_id,
+    u.display_name,
+    COUNT(um.match_id) AS total_matches,
+    COUNT(ut.tournament_id) AS total_tournaments,
+    u.last_active AS last_active
+FROM
+    usr u
+LEFT JOIN
+    usermatches um ON u.id = um.user_id
+LEFT JOIN
+    usertournaments ut ON u.id = ut.user_id
+GROUP BY
+    u.id, u.display_name;
+
+CREATE MATERIALIZED VIEW match_summary AS
+SELECT
+    gm.id AS match_id,
+    gm.current_status,
+    gm.ball_speed,
+    gm.starting_health,
+    gm.started_timestamp,
+    gm.finished_timestamp,
+    COUNT(um.user_id) AS total_players,
+    EXTRACT(EPOCH FROM (gm.finished_timestamp - gm.started_timestamp)) AS duration
+FROM
+    gamematch gm
+LEFT JOIN
+    usermatches um ON gm.id = um.match_id
+GROUP BY
+    gm.id, gm.current_status, gm.ball_speed, gm.starting_health, gm.started_timestamp, gm.finished_timestamp;
+
+CREATE MATERIALIZED VIEW tournament_summary AS
+SELECT
+    gt.id AS tournament_id,
+    gt.play_mode,
+    gt.current_status,
+    gt.started_timestamp,
+    gt.finished_timestamp,
+    COUNT(ut.user_id) AS total_players,
+    EXTRACT(EPOCH FROM (gt.finished_timestamp - gt.started_timestamp)) AS duration
+FROM
+    gametournament gt
+LEFT JOIN
+    usertournaments ut ON gt.id = ut.tournament_id
+GROUP BY
+    gt.id, gt.play_mode, gt.current_status, gt.started_timestamp, gt.finished_timestamp;
