@@ -31,14 +31,9 @@ CREATE  TABLE User
     CONSTRAINT chk_registered_timestamp CHECK (registered_timestamp <= NOW())
 );
 
-CREATE INDEX idx_usr_status ON usr USING btree (status);
 CREATE INDEX idx_usr_display_name ON usr USING btree (display_name);
-CREATE INDEX idx_usr_date_registered ON usr USING btree (date_registered);
+CREATE INDEX idx_usr_registered_timestamp ON usr USING btree (registered_timestamp);
 CREATE INDEX idx_usr_last_active ON usr USING btree (last_active);
-CREATE INDEX idx_usr_status_display_name ON usr USING btree (status, display_name);
-CREATE INDEX idx_usr_status_last_active ON usr USING btree (status, last_active);
-CREATE UNIQUE INDEX unq_idx_usr_status_email ON usr (status, email);
-
 
 CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
@@ -82,7 +77,11 @@ BEFORE INSERT OR UPDATE ON game_match
 FOR EACH ROW
 EXECUTE FUNCTION calculate_duration();
 
+CREATE INDEX idx_game_match_started_timestamp ON game_match USING btree (started_timestamp);
+CREATE INDEX idx_game_match_finished_timestamp ON game_match USING btree (finished_timestamp);
+CREATE INDEX idx_game_match_duration ON game_match USING btree (duration);
 CREATE INDEX idx_game_match_outcome_started_timestamp ON game_match USING btree (outcome, started_timestamp);
+CREATE INDEX idx_game_match_outcome_finished_timestamp ON game_match USING btree (outcome, finished_timestamp);
 CREATE INDEX idx_game_match_duration_outcome ON game_match USING btree (duration, outcome);
 
 
@@ -100,6 +99,7 @@ CREATE  TABLE GameTournament
     leaderboard          uuid[] DEFAULT '{}' NOT NULL,
 
     CONSTRAINT           pk_game_tournament PRIMARY KEY (id),
+    CONSTRAINT
 
     CONSTRAINT           chk_started_timestamp CHECK (started_timestamp <= NOW()),
     CONSTRAINT           chk_finished_timestamp CHECK (finished_timestamp <= NOW())
@@ -110,8 +110,12 @@ BEFORE INSERT OR UPDATE ON game_tournament
 FOR EACH ROW
 EXECUTE FUNCTION calculate_duration();
 
+CREATE INDEX idx_game_tournament_started_timestamp ON game_tournament (started_timestamp);
+CREATE INDEX idx_game_tournament_finished_timestamp ON game_tournament (finished_timestamp);
+CREATE INDEX idx_game_tournament_duration ON game_tournament (duration);
 CREATE INDEX idx_game_tournament_mode_started_timestamp ON game_tournament (play_mode, started_timestamp);
-
+CREATE INDEX idx_game_tournament_mode_finished_timestamp ON game_tournament (play_mode, finished_timestamp);
+CREATE INDEX idx_game_tournament_mode_duration ON game_tournament (play_mode, duration);
 
 CREATE  TABLE UserMatches
 (
