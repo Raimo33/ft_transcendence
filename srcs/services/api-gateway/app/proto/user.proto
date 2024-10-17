@@ -75,8 +75,8 @@ message GetUsersResponse
     response_outcome           outcome = 1;
     optional oneof content
     {
-        repeated public_user   users_public = 2;
-        repeated private_user  users_private = 3;
+        map<string, public_user>   users_public = 2;
+        map<string, private_user>  users_private = 3;
     }
 }
 
@@ -290,8 +290,8 @@ message GetFriendsResponse
     response_outcome           outcome = 1;
     optional oneof content
     {
-        repeated public_user   friends_public = 2;
-        repeated private_user  friends_private = 3;
+        map<string, public_user>   friends_public = 2;
+        map<string, private_user>  friends_private = 3;
     }
 }
 

@@ -175,8 +175,8 @@ paths:
                         - type: object
                           properties:
                             users:
-                              type: array
-                              items:
+                              type: object
+                              additionalProperties:
                                 $ref: "#/components/schemas/private_user"
                 required: true
               responses:
@@ -1189,8 +1189,8 @@ paths:
                         - type: object
                           properties:
                             matches:
-                              type: array
-                              items:
+                              type: object
+                              additionalProperties:
                                 $ref: "#/components/schemas/Match"
                 required: true
               responses:
@@ -1319,8 +1319,8 @@ paths:
                         - type: object
                           properties:
                             tournaments:
-                              type: array
-                              items:
+                              type: object
+                              additionalProperties:
                                 $ref: "#/components/schemas/Tournament"
                 required: true
               responses:
@@ -1494,8 +1494,8 @@ paths:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: array
-                          items:
+                        - type: object
+                          additionalProperties:
                             $ref: "#/components/schemas/PublicUser"
                 required: true
               responses:
@@ -2595,9 +2595,8 @@ components:
         websocket_url:
           $ref: "#/components/schemas/websocket_url"
         players:
-          type: array
-          description: Array of the players in the match.
-          items:
+          type: object
+          additionalProperties:
             $ref: "#/components/schemas/PublicUser"
         status:
           $ref: "#/components/schemas/match_status"
@@ -2623,9 +2622,8 @@ components:
         tournament_mode:
           $ref: "#/components/schemas/tournament_mode"
         matches:
-          type: array
-          description: Array of all the tournament matches.
-          items:
+          type: object
+          additionalProperties:
             $ref: "#/components/schemas/Match"
         status:
           $ref: "#/components/schemas/tournament_status"
