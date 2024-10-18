@@ -66,4 +66,28 @@ class EndpointTreeNode
 
     current_node
   end
+
+  def parse_swagger_file(file_path)
+    require 'yaml'
+    swagger_data = YAML.load_file(file_path)
+
+    swagger_data['paths'].each do |path, methods|
+      api_methods = methods.map do |http_method, details|
+        auth_level = convert_security_to_auth_level(details['security'])
+        ApiMethod.new(http_method.to_sym, auth_level)
+      end
+      add_path(path, api_methods)
+    end
+  end
+
+  def convert_security_to_auth_level(security)
+    return AuthLevel::NONE if security.nil? || security.empty?
+
+    security.each do |sec|
+      return AuthLevel::ADMIN if sec.key?('jwtAuth') && sec['jwtAuth'].include?('admin')
+      return AuthLevel::USER if sec.key?('jwtAuth')
+    end
+
+    AuthLevel::NONE
+  end
 end
