@@ -3,6 +3,5 @@ require_relative 'EndpointTreeNode.rb'
 # Define the RESTful API endpoints
 EndpointTree = EndpointTreeNode.new('v1') # Root node
 
-#TODO parse the API endpoints from a file and add them to the tree
-
-
+# Parse the API endpoints from the API_swagger.yaml file and add them to the tree
+EndpointTree.parse_swagger_file('config/API_swagger.yaml')
