@@ -40,8 +40,8 @@ message GetUserTournamentsRequest
 }
 message GetUserTournamentsResponse
 {
-    response_outcome                  outcome = 1;
-    optional map<string, tournament>  tournaments = 2;
+    response_outcome             outcome = 1;
+    optional repeated tournament tournaments = 2;
 }
 
 // v1/tournaments POST

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/18 17:16:49 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/18 17:26:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -1492,11 +1492,11 @@ paths:
                 content:
                   application/json:
                     schema:
-                      oneOf:
+                      allOf:
                         - $ref: "#/components/schemas/async_call_response_outcome"
                         - type: array
                           items:
-                            $ref: "#/components/schemas/PublicUser"
+                            $ref: "#/components/schemas/user_id"
                 required: true
               responses:
                 "200":

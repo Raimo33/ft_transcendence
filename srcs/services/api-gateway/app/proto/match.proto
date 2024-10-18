@@ -39,8 +39,8 @@ message GetUserMatchesRequest
 }
 message GetUserMatchesResponse
 {
-    response_outcome            outcome = 1;
-    optional map<string, match> matches = 2;
+    response_outcome         outcome = 1;
+    optional repeated match  matches = 2;
 }
 
 // v1/matches POST
