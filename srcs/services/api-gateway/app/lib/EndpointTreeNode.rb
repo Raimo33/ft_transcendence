@@ -73,14 +73,16 @@ class EndpointTreeNode
 
     swagger_data['paths'].each do |path, methods|
       api_methods = methods.map do |http_method, details|
-        auth_level = convert_security_to_auth_level(details['security'])
+        auth_level = _convert_security_to_auth_level(details['security'])
         ApiMethod.new(http_method.to_sym, auth_level)
       end
       add_path(path, api_methods)
     end
   end
 
-  def convert_security_to_auth_level(security)
+  private
+
+  def _convert_security_to_auth_level(security)
     return AuthLevel::NONE if security.nil? || security.empty?
 
     security.each do |sec|
