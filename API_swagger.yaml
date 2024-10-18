@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/17 13:48:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/18 17:16:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -175,9 +175,9 @@ paths:
                         - type: object
                           properties:
                             users:
-                              type: object
-                              additionalProperties:
-                                $ref: "#/components/schemas/private_user"
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/PrivateUser"
                 required: true
               responses:
                 "200":
@@ -1189,8 +1189,8 @@ paths:
                         - type: object
                           properties:
                             matches:
-                              type: object
-                              additionalProperties:
+                              type: array
+                              items:
                                 $ref: "#/components/schemas/Match"
                 required: true
               responses:
@@ -1319,8 +1319,8 @@ paths:
                         - type: object
                           properties:
                             tournaments:
-                              type: object
-                              additionalProperties:
+                              type: array
+                              items:
                                 $ref: "#/components/schemas/Tournament"
                 required: true
               responses:
@@ -1494,8 +1494,8 @@ paths:
                     schema:
                       oneOf:
                         - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: object
-                          additionalProperties:
+                        - type: array
+                          items:
                             $ref: "#/components/schemas/PublicUser"
                 required: true
               responses:
@@ -2576,8 +2576,8 @@ components:
       required: [user_id, display_name, avatar, status, last_active, email, two_factor_auth]
 
     MatchSettings:
-      type: object
       description: Settings and configurations for the match, such as ball speed, match duration, and player health.
+      type: object
       properties:
         ball_speed:
           $ref: "#/components/schemas/match_ball_speed"
@@ -2587,17 +2587,18 @@ components:
           $ref: "#/components/schemas/match_starting_health_points"
     
     Match:
-      type: object
       description: Represents a match of Pong between two players.
+      type: object
       properties:
         id:
           $ref: "#/components/schemas/match_id"
         websocket_url:
           $ref: "#/components/schemas/websocket_url"
         players:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/PublicUser"
+          description: Array of user_ids representing the players in the match.
+          type: array
+          intems:
+            $ref: "#/components/schemas/user_id"
         status:
           $ref: "#/components/schemas/match_status"
         started_timestamp:
@@ -2607,24 +2608,25 @@ components:
         settings:
           $ref: "#/components/schemas/MatchSettings"
         leaderboard:
-          type: array
           description: Array of user_ids in the order of their scores.
+          type: array
           items:
             $ref: "#/components/schemas/user_id"
       required: [match_id, players, status, started_timestamp, match_settings]
 
     Tournament:
-      type: object
       description: Represents a Pong tournament, containing multiple matches and players.
+      type: object
       properties:
         tournament_id:
           $ref: "#/components/schemas/tournament_id"
         tournament_mode:
           $ref: "#/components/schemas/tournament_mode"
         matches:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/Match"
+          description: Array of match_ids in the tournament.
+          type: array
+          items:
+            $ref: "#/components/schemas/match_id"
         status:
           $ref: "#/components/schemas/tournament_status"
         started_timestamp:
@@ -2632,8 +2634,8 @@ components:
         finished_timestamp:
           $ref: "#/components/schemas/timestamp"
         leaderboard:
-          type: array
           description: Array of user_ids in the order of their scores.
+          type: array
           items:
             $ref: "#/components/schemas/user_id"
       required: [tournament_id, tournament_mode, matches, status, started_timestamp]
@@ -2694,10 +2696,10 @@ components:
         - type: object
           properties:
             leaderboard_position:
+              description: "Position of the user in the leaderboard. (better than)"
               type: integer
               format: int32
               minimum: 1
-              description: "Position of the user in the leaderboard. (better than)"
 
     tournament_sorting_options:
       description: Options to sort the tournaments list.
@@ -2724,10 +2726,10 @@ components:
         - type: object
           properties:
             leaderboard_position:
+              description: "Position of the user in the leaderboard. (better than)"
               type: integer
               format: int32
               minimum: 1
-              description: "Position of the user in the leaderboard. (better than)"
     
     async_call_outcome:
       description: Outcome of an asynchronous call.
@@ -2854,10 +2856,10 @@ components:
 
   securitySchemes:
     jwtAuth:
+      description: JWT used for authorization. Send the token in the `Authorization` header with the format `Bearer {token}`.
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT used for authorization. Send the token in the `Authorization` header with the format `Bearer {token}`.
 
 security:
   - jwtAuth: []
