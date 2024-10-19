@@ -32,6 +32,7 @@ services:
     
     container_name: api-gateway
     environment:
+      - API_GATEWAY_PORT=${API_GATEWAY_PORT}
       - KEYCLOAK_DOMAIN=${KEYCLOAK_DOMAIN}
       - KEYCLOAK_REALM=${KEYCLOAK_REALM}
       - KEYCLOAK_CERTS=${KEYCLOAK_CERTS}
@@ -40,7 +41,7 @@ services:
     volumes:
     
     ports:
-      - "8080:8080"
+      - "3000:3000"
     networks:
       - edgenet
     restart: always

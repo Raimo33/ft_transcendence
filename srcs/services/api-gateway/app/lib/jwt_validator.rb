@@ -44,6 +44,16 @@ class JwtValidator
 
     _validate_claims(decoded_token)
   end
+
+  def validate_token_with_auth_level(token, required_auth_level)
+    decoded_token = _verify_token(token)
+    return false unless decoded_token
+
+    return false unless _validate_claims(decoded_token)
+    return false unless _validate_auth_level(decoded_token, required_auth_level)
+
+    true
+  end
   
   private
 
@@ -69,6 +79,18 @@ class JwtValidator
     return false if Time.now.to_i < iat - JWT_EXPIRY_LEEWAY
 
     true
+  end
+
+  def _validate_auth_level(decoded_token, required_auth_level)
+    user_roles = decoded_token[0]['roles'] || []
+    case required_auth_level
+    when AuthLevel::ADMIN
+      user_roles.include?('admin')
+    when AuthLevel::USER
+      user_roles.include?('user') || user_roles.include?('admin')
+    else
+      true
+    end
   end
 
 end

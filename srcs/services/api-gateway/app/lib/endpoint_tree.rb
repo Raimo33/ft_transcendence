@@ -71,17 +71,18 @@ class EndpointTreeNode
         ApiMethod.new(http_method.to_sym, auth_level)
       end
       add_path(path, api_methods)
-
-    rescue ERRNO::ENOENT => e
-      STDERR.puts "File not found: #{e.message}"
-    rescue ERRNO::EACCES => e
-      STDERR.puts "Permission denied: #{e.message}"
-    rescue Psych::SyntaxError => e
-      STDERR.puts "Error parsing YAML: #{e.message}"
-    rescue StandardError => e
-      STDERR.puts "Unexpected error: #{e.message}"
-    nil
     end
+
+  rescue ERRNO::ENOENT => e
+    STDERR.puts "File not found: #{e.message}"
+  rescue ERRNO::EACCES => e
+    STDERR.puts "Permission denied: #{e.message}"
+  rescue Psych::SyntaxError => e
+    STDERR.puts "Error parsing YAML: #{e.message}"
+  rescue StandardError => e
+    STDERR.puts "Unexpected error: #{e.message}"
+    nil
+  end
 
   private
 
