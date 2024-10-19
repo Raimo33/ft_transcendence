@@ -17,11 +17,12 @@ module AuthLevel
 end
 
 class ApiMethod
-  attr_accessor :http_method, :auth_level
+  attr_accessor :http_method, :auth_level, :is_async
 
-  def initialize(http_method, auth_level)
+  def initialize(http_method, auth_level, is_async)
     @http_method = http_method
     @auth_level = auth_level
+    @is_async = is_async
   end
 end
 
@@ -68,7 +69,8 @@ class EndpointTreeNode
     swagger_data['paths'].each do |path, methods|
       api_methods = methods.map do |http_method, details|
         auth_level = _convert_security_to_auth_level(details['security'])
-        ApiMethod.new(http_method.to_sym, auth_level)
+        is_async = details['x-is-async'] || false
+        ApiMethod.new(http_method.to_sym, auth_level, is_async)
       end
       add_path(path, api_methods)
     end

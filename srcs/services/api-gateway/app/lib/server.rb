@@ -1,5 +1,6 @@
 require 'socket'
 require 'json'
+require 'deque'
 require_relative 'endpoint_tree'
 require_relative 'jwt_validator'
 require_relative 'grpc_client'
@@ -13,11 +14,12 @@ class Server
     @jwt_validator = JwtValidator.new
     @server = TCPServer.new('0.0.0.0', ENV['API_GATEWAY_PORT'])
     @clients = []
+    @response_queue = Deque.new
   end
 
   def run
     loop do
-      readable, writeable, error = IO.select([@server] + @clients)
+      readable, _, error = IO.select([@server] + @clients, nil, @clients)
 
       readable.each do |socket|
         if socket == @server
@@ -27,13 +29,11 @@ class Server
         end
       end
 
-      writeable.each do |socket|
-        # Future implementation
+      error.each do |socket|
+        handle_socket_error(socket)
       end
 
-      error.each do |socket|
-        # Future implementation
-      end
+      process_response_queue
     end
   end
 
@@ -84,14 +84,60 @@ class Server
     end
 
     begin
-      response = # Placeholder for gRPC service call
-
-      socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
-      socket.puts response.to_json
+      if api_method.is_async
+        # Handle asynchronous call
+        socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
+        Thread.new do
+          response = # Placeholder for gRPC service call
+          if socket_ready_for_write?(socket)
+            @response_queue.push_front({ socket: socket, response: response })
+          else
+            @response_queue.push_back({ socket: socket, response: response })
+          end
+        end
+      else
+        response = # Placeholder for gRPC service call
+        socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
+        socket.puts response.to_json
+      end
     rescue StandardError => e
       return_error(socket, 500, e.message)
     end
 
     true
+  end
+
+  def handle_socket_error(socket)
+    STDERR.puts "Socket error occurred: #{socket}"
+    @clients.delete(socket)
+    socket.close
+  end
+
+  def process_response_queue
+    until @response_queue.empty?
+      item = @response_queue.pop_front
+      socket = item[:socket]
+      response = item[:response]
+
+      if socket.closed?
+        next
+      end
+
+      begin
+        socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
+        socket.puts response.to_json
+        @clients.delete(socket)
+        socket.close
+      rescue StandardError => e
+        STDERR.puts "Error sending response: #{e.message}"
+        @clients.delete(socket)
+        socket.close
+      end
+    end
+  end
+
+  def socket_ready_for_write?(socket)
+    _, writeable, _ = IO.select(nil, [socket], nil, 0)
+    !writeable.empty?
   end
 end
