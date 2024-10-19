@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/10/19 11:56:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/19 12:11:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,15 +16,12 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache ruby ruby-json ruby-dev build-base libffi-dev
 
-RUN mkdir -p /etc/api-gateway
-
 COPY ./app  /app
-COPY ./conf /etc/api-gateway
 
 RUN adduser -DHS api-gateway
-RUN chown -R api-gateway:api-gateway /app /etc/api-gateway
+RUN chown -R api-gateway:api-gateway /app
 
-WORKDIR /app
+WORKDIR /app 
 USER api-gateway
 # EXPOSE 
 # VOLUME []

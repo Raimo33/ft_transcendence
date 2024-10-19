@@ -4,8 +4,11 @@ require 'uri'
 require 'json'
 
 class JwtValidator
-  KEYCLOAK_URL = 'https://keycloak.example.com/auth/realms/your-realm'
-  CACHE_EXPIRY = 3600 # 1 hour
+  KEYCLOAK_DOMAIN = ENV['KEYCLOAK_DOMAIN']
+  KEYCLOAK_REALM = ENV['KEYCLOAK_REALM']
+  KEYCLOAK_CERTS = ENV['KEYCLOAK_CERTS']
+  JWT_CACHE_EXPIRY = ENV['JWT_CACHE_EXPIRY'].to_i
+  JWT_ALGORITHM = ENV['JWT_ALGORITHM']
 
   def initialize
     @public_key = nil
@@ -13,9 +16,9 @@ class JwtValidator
   end
 
   def fetch_public_key
-    return @public_key if @public_key && (Time.now - @last_fetched < CACHE_EXPIRY)
+    return @public_key if @public_key && (Time.now - @last_fetched < JWT_CACHE_EXPIRY)
 
-    uri = URI("#{KEYCLOAK_URL}/protocol/openid-connect/certs")
+    uri = URI("#{KEYCLOAK_DOMAIN}#{KEYCLOAK_REALM}#{KEYCLOAK_CERTS}")
     response = Net::HTTP.get(uri)
     jwks = JSON.parse(response)
     @public_key = OpenSSL::X509::Certificate.new(Base64.decode64(jwks['keys'][0]['x5c'][0])).public_key
@@ -29,7 +32,7 @@ class JwtValidator
 
   def verify_token(token)
     public_key = fetch_public_key
-    decoded_token = JWT.decode(token, public_key, true, { algorithm: 'RS256' })
+    decoded_token = JWT.decode(token, public_key, true, { algorithm: JWT_ALGORITHM })
     decoded_token
   rescue JWT::DecodeError => e
     puts "Token verification failed: #{e.message}"

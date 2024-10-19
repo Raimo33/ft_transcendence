@@ -1,5 +1,4 @@
-require 'dotenv/load'
-require_relative 'EndpointTreeNode.rb'
+require_relative 'endpoint_tree.rb'
 require_relative 'jwt_validator.rb'
 
 EndpointTree = EndpointTreeNode.new('v1') # Root node

@@ -32,6 +32,11 @@ services:
     
     container_name: api-gateway
     environment:
+      - KEYCLOAK_DOMAIN=${KEYCLOAK_DOMAIN}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CERTS=${KEYCLOAK_CERTS}
+      - JWT_CACHE_EXPIRY=${JWT_CACHE_EXPIRY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
     volumes:
     
     ports:
