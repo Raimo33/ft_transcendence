@@ -76,8 +76,8 @@ class Server
 
   def handle_client_request(socket, endpoint_node, api_method)
     if api_method.auth_level != AuthLevel::NONE
-      auth_header = extract_headers(socket)['authorization']
-      unless check_auth_header(auth_header, @jwt_validator, api_method.auth_level)
+      headers = extract_headers(socket)
+      unless check_auth_header(headers['authorization'], @jwt_validator, api_method.auth_level)
         return_error(socket, 401, 'Invalid or missing JWT token')
         return false
       end
