@@ -23,6 +23,7 @@ paths:
     post:
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
+      x-is-async: true
       requestBody:
         content:
           application/json:
@@ -63,6 +64,7 @@ paths:
     get:
       summary: Get a list of users
       description: Retrieve a paginated list of users.
+      x-is-async: true
       parameters:
         - name: page
           in: query
@@ -263,6 +265,7 @@ paths:
     delete:
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -373,6 +376,7 @@ paths:
     patch:
       summary: Update user profile
       description: Update the public profile of a user account.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -438,6 +442,7 @@ paths:
     put:
       summary: Update user password
       description: Update the password of a user account.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -488,6 +493,7 @@ paths:
     post:
       summary: Generate password recovery token
       description: Generate and send a password recovery token to the user via email.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -534,6 +540,7 @@ paths:
     post:
       summary: Verify password recovery token
       description: Verify the password recovery token provided by the user.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -654,6 +661,7 @@ paths:
     put:
       summary: Update user email
       description: Update the email address of a user account.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -704,6 +712,7 @@ paths:
     post:
       summary: Verify email address
       description: Verify the email address of a user account.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -746,6 +755,7 @@ paths:
     post:
       summary: Verify email verification token
       description: Verify the email verification token provided by the user.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -794,6 +804,7 @@ paths:
     post:
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -882,6 +893,7 @@ paths:
     delete:
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -927,6 +939,7 @@ paths:
     #verrà chiamata subito dopo il post di /users/{user_id}/2fa per verificare il codice otp
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -977,6 +990,7 @@ paths:
     post:
       summary: Generate 2fa recovery token
       description: Generate and send 2fa recovery token to the user via email.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1023,6 +1037,7 @@ paths:
     post:
       summary: Verify 2fa recovery token
       description: Verify the 2fa recovery token provided by the user.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1071,6 +1086,7 @@ paths:
     get:
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1201,6 +1217,7 @@ paths:
     get:
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1330,6 +1347,7 @@ paths:
     post:
       summary: Add a friend
       description: Add a user to the friend list.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1379,6 +1397,7 @@ paths:
     get:
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1505,6 +1524,7 @@ paths:
     delete:
       summary: Remove a friend
       description: Remove a user from the friend list.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1641,6 +1661,7 @@ paths:
     delete:
       summary: Disconnect all users
       description: Logs out all users from the system.
+      x-is-async: true
       security:
         - jwtAuth: [admin]
       responses:
@@ -1678,6 +1699,7 @@ paths:
     post:
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1802,6 +1824,7 @@ paths:
     delete:
       summary: User logout
       description: Logs out a specific user from the system.
+      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1847,6 +1870,7 @@ paths:
     post:
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user ID.
+      x-is-async: true
       security:
         - jwtAuth: []
       requestBody:
@@ -1898,6 +1922,7 @@ paths:
     delete:
       summary: Interrupt all ongoing matches
       description: Terminate all currently active matches and clear session data.
+      x-is-async: true
       security:
         - jwtAuth: [admin]
       responses:
@@ -1935,6 +1960,7 @@ paths:
     post:
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
+      x-is-async: true
       parameters:
         - name: match_id
           in: path
@@ -2054,6 +2080,7 @@ paths:
     delete:
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
+      x-is-async: true
       parameters:
         - name: match_id
           in: path
@@ -2099,6 +2126,7 @@ paths:
     post:
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
+      x-is-async: true
       security:
         - jwtAuth: []
       requestBody:
@@ -2153,6 +2181,7 @@ paths:
       #2 al giorno
       summary: Interrupt all ongoing tournaments
       description: Terminate all currently active tournaments and clear session data.
+      x-is-async: true
       security:
         - jwtAuth: [admin]
       responses:
@@ -2190,6 +2219,7 @@ paths:
     post:
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
+      x-is-async: true
       parameters:
         - name: tournament_id
           in: path
@@ -2298,6 +2328,7 @@ paths:
     patch:
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
+      x-is-async: true
       parameters:
         - name: tournament_id
           in: path
@@ -2341,6 +2372,7 @@ paths:
     delete:
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
+      x-is-async: true
       parameters:
         - name: tournament_id
           in: path
