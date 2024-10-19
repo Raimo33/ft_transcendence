@@ -20,8 +20,6 @@ class ApiMethod
   attr_accessor :http_method, :auth_level
 
   def initialize(http_method, auth_level)
-    raise ArgumentError, 'Invalid HTTP method' unless HttpMethod::VALID_HTTP_METHODS.include?(http_method)
-    raise ArgumentError, 'Invalid auth level' unless AuthLevel::VALID_AUTH_LEVELS.include?(auth_level)
     @http_method = http_method
     @auth_level = auth_level
   end
@@ -31,16 +29,12 @@ class EndpointTreeNode
   attr_accessor :segment, :children, :endpoint_data
   
   def initialize(segment)
-    raise ArgumentError, 'Invalid segment' unless segment.is_a?(String)
     @segment = segment
     @children = {}
     @endpoint_data = {}
   end
 
   def add_path(path, api_methods)
-    raise ArgumentError, 'Invalid path' unless path.is_a?(String)
-    raise ArgumentError, 'Invalid api_methods' unless api_methods.is_a?(Array)
-
     parts = path.split('/').reject(&:empty?)
     current_node = self
   
@@ -50,14 +44,12 @@ class EndpointTreeNode
     end
 
     api_methods.each do |api_method|
-    raise ArgumentError, 'Invalid ApiMethod' unless api_method.is_a?(ApiMethod)
     current_node.endpoint_data[api_method.http_method] = api_method
     end
   end
 
   # not recursive (better for shallow trees)
   def find_path(path)
-    raise ArgumentError, 'Invalid path' unless path.is_a?(String)
     parts = path.split('/').reject(&:empty?)
     current_node = self
   
@@ -70,19 +62,26 @@ class EndpointTreeNode
   end
 
   def parse_swagger_file(file_path)
-    raise ArgumentError, 'Invalid file_path' unless file_path.is_a?(String)
     require 'yaml'
-    swagger_data = YAML.load_file(file_path)
-    #TODO handle error (log)
 
+    swagger_data = YAML.load_file(file_path)
     swagger_data['paths'].each do |path, methods|
       api_methods = methods.map do |http_method, details|
         auth_level = _convert_security_to_auth_level(details['security'])
         ApiMethod.new(http_method.to_sym, auth_level)
       end
       add_path(path, api_methods)
+
+    rescue ERRNO::ENOENT => e
+      STDERR.puts "File not found: #{e.message}"
+    rescue ERRNO::EACCES => e
+      STDERR.puts "Permission denied: #{e.message}"
+    rescue Psych::SyntaxError => e
+      STDERR.puts "Error parsing YAML: #{e.message}"
+    rescue StandardError => e
+      STDERR.puts "Unexpected error: #{e.message}"
+    nil
     end
-  end
 
   private
 

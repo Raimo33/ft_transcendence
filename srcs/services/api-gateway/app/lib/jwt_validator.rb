@@ -4,11 +4,12 @@ require 'uri'
 require 'json'
 
 class JwtValidator
-  KEYCLOAK_DOMAIN = ENV['KEYCLOAK_DOMAIN']
-  KEYCLOAK_REALM = ENV['KEYCLOAK_REALM']
-  KEYCLOAK_CERTS = ENV['KEYCLOAK_CERTS']
-  JWT_CACHE_EXPIRY = ENV['JWT_CACHE_EXPIRY'].to_i
-  JWT_ALGORITHM = ENV['JWT_ALGORITHM']
+  KEYCLOAK_DOMAIN   = ENV['KEYCLOAK_DOMAIN']
+  KEYCLOAK_REALM    = ENV['KEYCLOAK_REALM']
+  KEYCLOAK_CERTS    = ENV['KEYCLOAK_CERTS']
+  JWT_CACHE_EXPIRY  = ENV['JWT_CACHE_EXPIRY'].to_i
+  JWT_ALGORITHM     = ENV['JWT_ALGORITHM']
+  JWT_EXPIRY_LEEWAY = ENV['JWT_EXPIRY_LEEWAY'].to_i
 
   def initialize
     @public_key = nil
@@ -20,21 +21,27 @@ class JwtValidator
 
     uri = URI("#{KEYCLOAK_DOMAIN}#{KEYCLOAK_REALM}#{KEYCLOAK_CERTS}")
     response = Net::HTTP.get(uri)
-    #TODO handle error (log)
     jwks = JSON.parse(response)
 
-    #TODO abbellire
-    return nil unless jwks['keys'] && jwks['keys'][0] && jwks['keys'][0]['x5c'] && jwks['keys'][0]['x5c'][0]
+    return nil unless jwks&.dig('keys', 0, 'x5c', 0)
 
     @public_key = OpenSSL::X509::Certificate.new(Base64.decode64(jwks['keys'][0]['x5c'][0])).public_key
     @last_fetched = Time.now
     @public_key
+
+  rescue Net::HTTPError => e
+    STDERR.puts "Error fetching public key: #{e.message}"
+  rescue JSON::ParserError => e
+    STDERR.puts "Error parsing public key: #{e.message}"
+  rescue StandardError => e
+    STDERR.puts "Unexpected error: #{e.message}"
+    nil
   end
 
   def validate_token(token)
     decoded_token = _verify_token(token)
     return false unless decoded_token
-    
+
     _validate_claims(decoded_token)
   end
   
@@ -44,8 +51,12 @@ class JwtValidator
     public_key = fetch_public_key
     decoded_token = JWT.decode(token, public_key, true, { algorithm: JWT_ALGORITHM })
     decoded_token
+
   rescue JWT::DecodeError => e
-    #TODO log error
+    STDERR.puts "Error decoding token: #{e.message}"
+  rescue StandardError => e
+    STDERR.puts "Unexpected error: #{e.message}"
+    nil
   end
 
   def _validate_claims(decoded_token)
@@ -54,8 +65,8 @@ class JwtValidator
     aud = decoded_token[0]['aud']
 
     return false if exp.nil? || iat.nil? || aud.nil?
-    return false if Time.now.to_i > exp
-    return false if Time.now.to_i < iat
+    return false if Time.now.to_i > exp + JWT_EXPIRY_LEEWAY
+    return false if Time.now.to_i < iat - JWT_EXPIRY_LEEWAY
 
     true
   end
