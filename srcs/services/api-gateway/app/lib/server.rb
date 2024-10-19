@@ -12,7 +12,7 @@ class Server
     @endpoint_tree = EndpointTreeNode.new('v1')
     @endpoint_tree.parse_swagger_file('app/config/API_swagger.yaml')
     @jwt_validator = JwtValidator.new
-    @server = TCPServer.new('0.0.0.0', ENV['API_GATEWAY_PORT'])
+    @server = TCPServer.new(ENV['API_GATEWAY_DOMAIN'], ENV['API_GATEWAY_PORT'])
     @clients = []
     @response_queue = Deque.new
   end

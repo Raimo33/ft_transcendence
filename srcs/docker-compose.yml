@@ -24,30 +24,6 @@ services:
     depends_on:
     init: true
 
-  api-gateway:
-    build:
-      context: ./services/api-gateway
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: api-gateway
-    environment:
-      - API_GATEWAY_PORT=${API_GATEWAY_PORT}
-      - KEYCLOAK_DOMAIN=${KEYCLOAK_DOMAIN}
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
-      - KEYCLOAK_CERTS=${KEYCLOAK_CERTS}
-      - JWT_CACHE_EXPIRY=${JWT_CACHE_EXPIRY}
-      - JWT_ALGORITHM=${JWT_ALGORITHM}
-    volumes:
-    
-    ports:
-      - "3000:3000"
-    networks:
-      - edgenet
-    restart: always
-    depends_on:
-    init: true
-
   redis-edge:
     build:
       context: ./services/redis-edge
@@ -64,6 +40,35 @@ services:
       - edgenet
     restart: always
     depends_on:
+    init: true
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: api-gateway
+    environment:
+      - API_GATEWAY_DOMAIN=${API_GATEWAY_DOMAIN}
+      - API_GATEWAY_PORT=${API_GATEWAY_PORT}
+      - KEYCLOAK_DOMAIN=${KEYCLOAK_DOMAIN}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CERTS=${KEYCLOAK_CERTS}
+      - JWT_CACHE_EXPIRY=${JWT_CACHE_EXPIRY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+    volumes:
+
+    ports:
+      - "3000:3000"
+    networks:
+      - edgenet
+    restart: always
+    depends_on:
+      nginx:
+        condition: service_healthy
+      redis-edge:
+        condition: service_healthy
     init: true
   
   user:
