@@ -31,6 +31,7 @@ class EndpointTreeNode
   attr_accessor :segment, :children, :endpoint_data
   
   def initialize(segment)
+    raise ArgumentError, 'Invalid segment' unless segment.is_a?(String)
     @segment = segment
     @children = {}
     @endpoint_data = {}
@@ -56,6 +57,7 @@ class EndpointTreeNode
 
   # not recursive (better for shallow trees)
   def find_path(path)
+    raise ArgumentError, 'Invalid path' unless path.is_a?(String)
     parts = path.split('/').reject(&:empty?)
     current_node = self
   
@@ -68,8 +70,10 @@ class EndpointTreeNode
   end
 
   def parse_swagger_file(file_path)
+    raise ArgumentError, 'Invalid file_path' unless file_path.is_a?(String)
     require 'yaml'
     swagger_data = YAML.load_file(file_path)
+    #TODO handle error (log)
 
     swagger_data['paths'].each do |path, methods|
       api_methods = methods.map do |http_method, details|
