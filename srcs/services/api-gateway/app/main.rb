@@ -12,6 +12,7 @@ begin
 
   jwt_validator = JwtValidator.new
 
+  #TODO non-blocking
   server = TCPServer.new('0.0.0.0', ENV['API_GATEWAY_PORT'])
 
   loop do
@@ -34,7 +35,7 @@ begin
     end
 
     if api_method.auth_level != AuthLevel::NONE
-      auth_header = client.gets.split(': ')[1].strip
+      auth_header = extract_headers(client)['authorization']
       if !check_auth_header(auth_header, jwt_validator, api_method.auth_level)
         return_error(client, 401, 'Invalid or missing JWT token')
         next

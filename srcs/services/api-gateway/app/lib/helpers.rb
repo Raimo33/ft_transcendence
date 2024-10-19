@@ -1,3 +1,15 @@
+def extract_headers(client)
+  headers = {}
+  
+  while (line = client.gets)
+    break if line.strip.empty?
+    key, value = line.split(': ', 2)
+    headers[key.strip.downcase] = value.strip if key && value
+  end
+
+  headers
+end
+
 def check_auth_header(auth_header, jwt_validator, required_auth_level)
   return false unless auth_header&.start_with?('Bearer')
   token = auth_header.split(' ')[1]
