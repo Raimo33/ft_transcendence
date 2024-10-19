@@ -6,6 +6,7 @@ require_relative 'jwt_validator'
 require_relative 'grpc_client'
 require_relative 'response_formatter'
 require_relative 'helpers'
+require_relative 'thread_pool'
 
 class Server
   def initialize
@@ -15,6 +16,7 @@ class Server
     @server = TCPServer.new(ENV['API_GATEWAY_DOMAIN'], ENV['API_GATEWAY_PORT'])
     @clients = []
     @response_queue = Deque.new
+    @thread_pool = ThreadPool.new(ENV['THREAD_POOL_SIZE'].to_i)
   end
 
   def run
@@ -87,7 +89,7 @@ class Server
       if api_method.is_async
         # Handle asynchronous call
         socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
-        Thread.new do
+        @thread_pool.schedule do
           response = # Placeholder for gRPC service call
           if socket_ready_for_write?(socket)
             @response_queue.push_front({ socket: socket, response: response })
@@ -123,15 +125,17 @@ class Server
         next
       end
 
-      begin
-        socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
-        socket.puts response.to_json
-        @clients.delete(socket)
-        socket.close
-      rescue StandardError => e
-        STDERR.puts "Error sending response: #{e.message}"
-        @clients.delete(socket)
-        socket.close
+      @thread_pool.schedule do
+        begin
+          socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
+          socket.puts response.to_json
+          @clients.delete(socket)
+          socket.close
+        rescue StandardError => e
+          STDERR.puts "Error sending response: #{e.message}"
+          @clients.delete(socket)
+          socket.close
+        end
       end
     end
   end
