@@ -52,7 +52,12 @@ class Server
   end
 
   def stop
-    #TODO Implement graceful shutdown
+    @clients.each do |client|
+      client.close
+    end
+    @server.close
+    @thread_pool.shutdown
+  end
 
   private
 

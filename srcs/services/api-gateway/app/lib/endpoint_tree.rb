@@ -16,16 +16,12 @@ module HttpMethod
   PUT = :PUT
   PATCH = :PATCH
   DELETE = :DELETE
-
-  VALID_HTTP_METHODS = [GET, POST, PUT, PATCH, DELETE].freeze
 end
 
 module AuthLevel
   NONE = :none
   USER = :user
   ADMIN = :admin
-
-  VALID_AUTH_LEVELS = [NONE, USER, ADMIN].freeze
 end
 
 class ApiMethod

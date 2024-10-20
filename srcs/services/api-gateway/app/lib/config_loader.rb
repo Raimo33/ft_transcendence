@@ -10,7 +10,19 @@
 #                                                                              #
 # **************************************************************************** #
 
+
 class ConfigLoader
+  VALID_KEYS = %i[
+    bind_address
+    bind_port
+    keycloak_host
+    keycloak_realm
+    keycloak_certs
+    jwt_cache_expiry
+    jwt_algorithm
+    thread_pool_size
+  ].freeze
+
   def initialize
     @config = {}
   end
@@ -36,9 +48,14 @@ class ConfigLoader
   private
 
   def validate_config_file(file_path)
-    #TODO check file name extension (expected: '.conf')
-    #TODO key and value are admitted (key exists in the ones expected, value is formatted correctly)
-    #throw exception
+    raise "Invalid file extension" unless File.extname(file_path) == '.conf'
+
+    File.readlines(file_path).each do |line|
+      key, value = line.strip.split('=', 2)
+      raise "Invalid key: #{key}" unless VALID_KEYS.include?(key.strip)
+      raise "Invalid value for key: #{key}" if value.strip.empty?
+    end
+  end
 
   def parse_config_file(file_path)
     config = {}
