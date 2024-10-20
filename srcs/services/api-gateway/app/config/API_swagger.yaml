@@ -32,6 +32,11 @@ paths:
             schema:
               $ref: '#/components/schemas/RegisterUser'
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The registration request has been accepted and is being processed asynchronously.
@@ -238,10 +243,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PrivateUser"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -283,6 +284,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The deletion request has been accepted and is being processed asynchronously.
@@ -364,10 +371,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PublicUser"
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
@@ -402,6 +405,11 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateUserProfile"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -470,6 +478,11 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateUserPassword"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -523,6 +536,11 @@ paths:
             schema:
               $ref: "#/components/schemas/user_email"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
           "202":
             description: The request has been accepted and is being processed asynchronously.
@@ -578,6 +596,12 @@ paths:
           schema:
             $ref: "#/components/schemas/user_psw"
           required: true
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -659,10 +683,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/user_email"
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
@@ -697,6 +717,11 @@ paths:
             schema:
               $ref: "#/components/schemas/user_email"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -744,6 +769,12 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -795,6 +826,12 @@ paths:
           schema:
             type: string
           required: true
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -842,6 +879,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -901,10 +944,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/two_factor_auth_status"
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
@@ -935,6 +974,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -987,6 +1032,11 @@ paths:
             schema:
               $ref: "#/components/schemas/totp_code"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -1040,6 +1090,11 @@ paths:
             schema:
               $ref: "#/components/schemas/user_email"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
           "202":
             description: The request has been accepted and is being processed asynchronously.
@@ -1089,6 +1144,12 @@ paths:
           schema:
             type: string
           required: true
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1405,6 +1466,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/user_id"
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -1588,6 +1654,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1675,13 +1747,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                description: map of user_id to user_status.
-                type: object
-                additionalProperties:
-                  $ref: "#/components/schemas/user_status"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -1716,6 +1781,12 @@ paths:
       x-grpc-service: UserService
       security:
         - jwtAuth: [admin]
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1767,6 +1838,11 @@ paths:
             schema:
               $ref: "#/components/schemas/user_psw"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1847,10 +1923,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/user_status"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -1892,6 +1964,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1946,6 +2024,11 @@ paths:
                       items:
                         $ref: "#/components/schemas/user_id"
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1987,6 +2070,12 @@ paths:
       x-grpc-service: MatchService
       security:
         - jwtAuth: [admin]
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2034,6 +2123,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2113,10 +2208,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Match"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -2158,6 +2249,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2214,6 +2311,11 @@ paths:
                     required: true
                     additionalProperties: false
         required: true
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2256,6 +2358,12 @@ paths:
       x-grpc-service: TournamentService
       security:
         - jwtAuth: [admin]
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2303,6 +2411,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2382,10 +2496,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Tournament"
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
@@ -2416,6 +2526,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2462,6 +2578,12 @@ paths:
           required: true
       security:
         - jwtAuth: []
+      requestBody:
+        headers:
+          Content-Length:
+            $ref: '#/components/headers/Content-Length'
+          X-Callback-Url:
+            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "401":
           $ref: '#/components/responses/Unauthorized'
@@ -2939,6 +3061,21 @@ components:
         format: int32
         minimum: 0
       example: 60
+
+    Content-Length:
+      description: The length of the request or response body in octets (8-bit bytes).
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+      example: 12345
+
+    X-Callback-Url:
+      description: The URL to which the server will send the callback request.
+      schema:
+        type: string
+        format: uri
+      example: "https://example.com/callback"
   
   responses:
 
