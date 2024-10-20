@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:36 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 08:33:37 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 11:37:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,3 +34,5 @@ def return_error(client, status_code, message)
   client.puts({ error: message }.to_json)
   client.close
 end
+
+#TODO includere in qualche oggetto?

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 08:33:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 11:39:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,10 +25,10 @@ class Server
     @endpoint_tree = EndpointTreeNode.new('v1')
     @endpoint_tree.parse_swagger_file('app/config/API_swagger.yaml')
     @jwt_validator = JwtValidator.new
-    @server = TCPServer.new(ENV['API_GATEWAY_HOST'], ENV['API_GATEWAY_PORT'])
+    @server = TCPServer.new($BIND_ADDRESS, $BIND_PORT)
     @clients = []
     @response_queue = Deque.new
-    @thread_pool = ThreadPool.new(ENV['THREAD_POOL_SIZE'].to_i)
+    @thread_pool = ThreadPool.new($THREAD_POOL_SIZE)
   end
 
   def run
@@ -50,6 +50,9 @@ class Server
       process_response_queue
     end
   end
+
+  def stop
+    #TODO Implement graceful shutdown
 
   private
 

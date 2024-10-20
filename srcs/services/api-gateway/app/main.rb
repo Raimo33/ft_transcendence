@@ -11,13 +11,31 @@
 # **************************************************************************** #
 
 require_relative 'lib/server'
+require_relative 'lib/config_loader'
 
 begin
+  config_dir = '/etc/api-gateway'
+  pid_file = '/var/run/api-gateway.pid'
 
-Server.new.run
+  File.write(pid_file, Process.pid)
+  config_loader = ConfigLoader.new
+  config_loader.load_configs(config_dir)
 
-#TODO parse variables settings from .conf file into global vars each time server receives specific signal (e.g. SIGHUP)
-#if you change some settings such as bind_address or port the server should restart
+  server = Server.new
+
+  Signal.trap('SIGHUP') do
+    begin
+      if config_loader.load_configs(config_dir)
+        server.stop
+        server = Server.new
+        server.run
+      end
+    rescue StandardError => e
+      STDERR.puts "Error reloading configuration: #{e.message}"
+    end
+  end
 
 rescue => e
-    STDERR.puts "Fatal Error: #{e.message}"
+  STDERR.puts "Fatal Error: #{e.message}"
+  exit 1
+end
