@@ -25,6 +25,7 @@ paths:
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       x-is-async: true
       x-grpc-method: RegisterUser
+      x-grpc-service: UserService
       requestBody:
         content:
           application/json:
@@ -67,6 +68,7 @@ paths:
       description: Retrieve a paginated list of users.
       x-is-async: true
       x-grpc-method: GetUsers
+      x-grpc-service: UserService
       parameters:
         - name: page
           in: query
@@ -191,6 +193,7 @@ paths:
       summary: Get public and private user data by user_id
       description: Retrieve detailed information of a specific user using their unique user_id.
       x-grpc-method: GetUser
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -270,6 +273,7 @@ paths:
       description: Permanently delete a user account by their user_id.
       x-is-async: true
       x-grpc-method: DeleteUser
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -315,6 +319,7 @@ paths:
       summary: Get user profile
       description: Retrieve the public profile of a user account.
       x-grpc-method: GetUserProfile
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -383,6 +388,7 @@ paths:
       description: Update the public profile of a user account.
       x-is-async: true
       x-grpc-method: UpdateUserProfile
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -450,6 +456,7 @@ paths:
       description: Update the password of a user account.
       x-is-async: true
       x-grpc-method: UpdateUserPassword
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -502,6 +509,7 @@ paths:
       description: Generate and send a password recovery token to the user via email.
       x-is-async: true
       x-grpc-method: RecoverUserPassword
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -550,6 +558,7 @@ paths:
       description: Verify the password recovery token provided by the user.
       x-is-async: true
       x-grpc-method: RecoverUserPasswordWithToken
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -605,6 +614,7 @@ paths:
       summary: Get user email
       description: Retrieve the email address of a user account.
       x-grpc-method: GetUserEmail
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -673,6 +683,7 @@ paths:
       description: Update the email address of a user account.
       x-is-async: true
       x-grpc-method: UpdateUserEmail
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -725,6 +736,7 @@ paths:
       description: Verify the email address of a user account.
       x-is-async: true
       x-grpc-method: VerifyUserEmail
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -769,6 +781,7 @@ paths:
       description: Verify the email verification token provided by the user.
       x-is-async: true
       x-grpc-method: VerifyUserEmailWithToken
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -819,6 +832,7 @@ paths:
       description: Enable two-factor authentication for a user account.
       x-is-async: true
       x-grpc-method: EnableTwoFactorAuth
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -865,6 +879,7 @@ paths:
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
       x-grpc-method: GetTwoFactorAuthStatus
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -910,6 +925,7 @@ paths:
       description: Disable two-factor authentication for a user account.
       x-is-async: true
       x-grpc-method: DisableTwoFactorAuth
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -957,6 +973,7 @@ paths:
       description: Verify the two-factor authentication code provided by the user.
       x-is-async: true
       x-grpc-method: VerifyTwoFactorAuth
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1009,6 +1026,7 @@ paths:
       description: Generate and send 2fa recovery token to the user via email.
       x-is-async: true
       x-grpc-method: RecoverTwoFactorAuth
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1057,6 +1075,7 @@ paths:
       description: Verify the 2fa recovery token provided by the user.
       x-is-async: true
       x-grpc-method: RecoverTwoFactorAuthWithToken
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1107,6 +1126,7 @@ paths:
       description: Returns the list of matches a user has ever played in.
       x-is-async: true
       x-grpc-method: GetUserMatches
+      x-grpc-service: MatchService
       parameters:
         - name: user_id
           in: path
@@ -1239,6 +1259,7 @@ paths:
       description: Returns the list of tournaments a user has ever participated in.
       x-is-async: true
       x-grpc-method: GetUserTournaments
+      x-grpc-service: TournamentService
       parameters:
         - name: user_id
           in: path
@@ -1370,6 +1391,7 @@ paths:
       description: Add a user to the friend list.
       x-is-async: true
       x-grpc-method: AddFriend
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1421,6 +1443,7 @@ paths:
       description: Retrieve the list of friends of a specific user.
       x-is-async: true
       x-grpc-method: GetFriends
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1549,6 +1572,7 @@ paths:
       description: Remove a user from the friend list.
       x-is-async: true
       x-grpc-method: RemoveFriend
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1600,6 +1624,7 @@ paths:
       summary: Get login status of all users
       description: Retrieve the login status of all users.
       x-grpc-method: GetLoginStatus
+      x-grpc-service: UserService
       parameters:
         - name: page
           in: query
@@ -1688,6 +1713,7 @@ paths:
       description: Logs out all users from the system.
       x-is-async: true
       x-grpc-method: DisconnectAllUsers
+      x-grpc-service: UserService
       security:
         - jwtAuth: [admin]
       responses:
@@ -1727,6 +1753,7 @@ paths:
       description: Authenticate the user and return a JWT token for session management.
       x-is-async: true
       x-grpc-method: UserLogin
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1775,6 +1802,7 @@ paths:
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
       x-grpc-method: GetLoginStatus
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1854,6 +1882,7 @@ paths:
       description: Logs out a specific user from the system.
       x-is-async: true
       x-grpc-method: UserLogout
+      x-grpc-service: UserService
       parameters:
         - name: user_id
           in: path
@@ -1901,6 +1930,7 @@ paths:
       description: Initialize a new Pong match by providing the match settings and the opponent user ID.
       x-is-async: true
       x-grpc-method: CreateMatch
+      x-grpc-service: MatchService
       security:
         - jwtAuth: []
       requestBody:
@@ -1954,6 +1984,7 @@ paths:
       description: Terminate all currently active matches and clear session data.
       x-is-async: true
       x-grpc-method: InterruptMatches
+      x-grpc-service: MatchService
       security:
         - jwtAuth: [admin]
       responses:
@@ -1993,6 +2024,7 @@ paths:
       description: Allows a user to join an ongoing match by providing the match ID.
       x-is-async: true
       x-grpc-method: JoinMatch
+      x-grpc-service: MatchService
       parameters:
         - name: match_id
           in: path
@@ -2037,6 +2069,7 @@ paths:
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
       x-grpc-method: GetMatch
+      x-grpc-service: MatchService
       parameters:
         - name: match_id
           in: path
@@ -2115,6 +2148,7 @@ paths:
       description: Exit and terminate the ongoing match.
       x-is-async: true
       x-grpc-method: AbandonMatch
+      x-grpc-service: MatchService
       parameters:
         - name: match_id
           in: path
@@ -2162,6 +2196,7 @@ paths:
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       x-is-async: true
       x-grpc-method: CreateTournament
+      x-grpc-service: TournamentService
       security:
         - jwtAuth: []
       requestBody:
@@ -2218,6 +2253,7 @@ paths:
       description: Terminate all currently active tournaments and clear session data.
       x-is-async: true
       x-grpc-method: InterruptTournaments
+      x-grpc-service: TournamentService
       security:
         - jwtAuth: [admin]
       responses:
@@ -2257,6 +2293,7 @@ paths:
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       x-is-async: true
       x-grpc-method: JoinTournament
+      x-grpc-service: TournamentService
       parameters:
         - name: tournament_id
           in: path
@@ -2301,6 +2338,7 @@ paths:
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
       x-grpc-method: GetTournament
+      x-grpc-service: TournamentService
       parameters:
         - name: tournament_id
           in: path
@@ -2368,6 +2406,7 @@ paths:
       description: Force start the tournament (even if not all players have accepted the invitation).
       x-is-async: true
       x-grpc-method: UpdateTournament
+      x-grpc-service: TournamentService
       parameters:
         - name: tournament_id
           in: path
@@ -2413,6 +2452,7 @@ paths:
       description: Exit and resign from the ongoing tournament.
       x-is-async: true
       x-grpc-method: AbandonTournament
+      x-grpc-service: TournamentService
       parameters:
         - name: tournament_id
           in: path
