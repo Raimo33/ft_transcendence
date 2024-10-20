@@ -31,17 +31,9 @@ class JwtValidator
     nil
   end
 
-  def validate_token(token)
+  def validate_token(token, required_auth_level)
     decoded_token = _verify_token(token)
     return false unless decoded_token
-
-    _validate_claims(decoded_token)
-  end
-
-  def validate_token_with_auth_level(token, required_auth_level)
-    decoded_token = _verify_token(token)
-    return false unless decoded_token
-
     return false unless _validate_claims(decoded_token)
     return false unless _validate_auth_level(decoded_token, required_auth_level)
 
@@ -63,13 +55,13 @@ class JwtValidator
   end
 
   def _validate_claims(decoded_token)
-    exp = decoded_token[0]['exp']
-    iat = decoded_token[0]['iat']
+    exp = decoded_token[0]['exp'] + JWT_EXPIRY_LEEWAY
+    iat = decoded_token[0]['iat'] - JWT_EXPIRY_LEEWAY
     aud = decoded_token[0]['aud']
 
-    return false if exp.nil? || iat.nil? || aud.nil?
-    return false if Time.now.to_i > exp + JWT_EXPIRY_LEEWAY
-    return false if Time.now.to_i < iat - JWT_EXPIRY_LEEWAY
+    return false unless exp && iat && aud
+    now = Time.now.to_i
+    return false unless (iat..exp).cover?(now)
 
     true
   end

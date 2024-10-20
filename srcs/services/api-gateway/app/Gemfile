@@ -1,5 +1,0 @@
-source 'https://rubygems.org'
-
-gem 'redis'
-gem 'grpc'
-gem 'httparty'

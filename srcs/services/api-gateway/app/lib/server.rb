@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 16:16:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 20:31:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,7 @@ class Server
     @jwt_validator = JwtValidator.new
     @server = TCPServer.new($BIND_ADDRESS, $BIND_PORT)
     @clients = []
-    @response_queue = Deque.new
+    @callbacks_queue = Deque.new
     @thread_pool = ThreadPool.new($THREAD_POOL_SIZE)
   end
 
@@ -37,17 +37,17 @@ class Server
 
       readable.each do |socket|
         if socket == @server
-          handle_new_client
+          _handle_new_client
         else
-          handle_existing_client(socket)
+          _handle_existing_client(socket)
         end
       end
 
       error.each do |socket|
-        handle_socket_error(socket)
+        _handle_socket_error(socket)
       end
 
-      process_response_queue
+      _route_responses
     end
   end
 
@@ -61,85 +61,64 @@ class Server
 
   private
 
-  def handle_new_client
+  def _handle_new_client
     client = @server.accept_nonblock
     @clients << client
   end
 
-  def handle_existing_client(socket)
+  def _handle_existing_client(socket)
     request_line = socket.gets
     if request_line
       method, path, _ = request_line.split
       endpoint_node = @endpoint_tree.find_path(path) #TODO use a trie instead of tree?
 
-      method = method.to_sym
-      unless endpoint_node && HttpMethod::VALID_HTTP_METHODS.include?(method)
-        return_error(socket, 404, 'Invalid path or method')
-        @clients.delete(socket)
-        return
-      end
-
       api_method = endpoint_node.endpoint_data[method]
       unless api_method
-        return_error(socket, 405, 'Method not allowed')
+        return_error(socket, 405)
         @clients.delete(socket)
         return
       end
 
-      if handle_client_request(socket, api_method)
-        @clients.delete(socket)
-        socket.close
-      end
-    else
-      @clients.delete(socket)
-      socket.close
+      _handle_client_request(socket, api_method)
     end
   end
 
-  def handle_client_request(socket, api_method)
-    if api_method.auth_level != AuthLevel::NONE
-      headers = extract_headers(socket)
-      unless check_auth_header(headers['authorization'], @jwt_validator, api_method.auth_level)
-        return_error(socket, 401, 'Invalid or missing JWT token')
-        return false
-      end
-    end
+  def _handle_client_request(socket, api_method)
+    headers = extract_headers(socket)
+    return unless _check_auth(socket, api_method, headers)
 
-    #TODO estrazione della richiesta: api call body -> request object
-    #request = 
+    body = extract_body(socket, headers)
+    #TODO trasformazione da body a request, estrazione del callback url
 
     begin
       if api_method.is_async
+        #TODO check del callback url
         socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
         @thread_pool.schedule do
           response = api_method.service.send(api_method.method, request)
-          if socket_ready_for_write?(socket)
-            @response_queue.push_front({ socket: socket, response: response })
-          else
-            @response_queue.push_back({ socket: socket, response: response })
-          end
+          queue_method = socket_ready_for_write?(socket) ? :push_front : :push_back
+          @response_queue.send(queue_method, { socket: socket, response: response })
         end
       else
         response = api_method.service.send(api_method.method, request)
-        socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
-        socket.puts response.to_json
+        return_response(socket, response)
       end
     rescue StandardError => e
-      return_error(socket, 500, e.message)
+      return_error(socket, 500)
     end
 
     true
   end
 
-  def handle_socket_error(socket)
+  def _handle_socket_error(socket)
     STDERR.puts "Socket error occurred: #{socket}"
     @clients.delete(socket)
     socket.close
   end
 
-  def process_response_queue
-    until @response_queue.empty?
-      item = @response_queue.pop_front
+  def _process_callbacks
+    until @callbacks_queue.empty?
+      item = @callbacks_queue.pop_front
       socket = item[:socket]
       response = item[:response]
 
@@ -149,20 +128,25 @@ class Server
 
       @thread_pool.schedule do
         begin
-          socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
-          socket.puts response.to_json
-          @clients.delete(socket)
-          socket.close
+          return_response_callback(socket, response)
         rescue StandardError => e
           STDERR.puts "Error sending response: #{e.message}"
-          @clients.delete(socket)
-          socket.close
+        @clients.delete(socket)
+        socket.close
         end
       end
     end
   end
 
-  def socket_ready_for_write?(socket)
+  def _check_auth(socket, api_method, headers)
+    if api_method.auth_level != AuthLevel::NONE
+      unless check_auth_header(headers['authorization'], @jwt_validator, api_method.auth_level)
+        return_error(socket, 401, 'Invalid or missing JWT token')
+        return false
+      end
+    end
+
+  def _socket_ready_for_write?(socket)
     _, writeable, _ = IO.select(nil, [socket], nil, 0)
     !writeable.empty?
   end
