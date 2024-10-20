@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    server.rb                                          :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
+#    Updated: 2024/10/20 08:33:22 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 require 'socket'
 require 'json'
 require 'deque'
@@ -13,7 +25,7 @@ class Server
     @endpoint_tree = EndpointTreeNode.new('v1')
     @endpoint_tree.parse_swagger_file('app/config/API_swagger.yaml')
     @jwt_validator = JwtValidator.new
-    @server = TCPServer.new(ENV['API_GATEWAY_DOMAIN'], ENV['API_GATEWAY_PORT'])
+    @server = TCPServer.new(ENV['API_GATEWAY_HOST'], ENV['API_GATEWAY_PORT'])
     @clients = []
     @response_queue = Deque.new
     @thread_pool = ThreadPool.new(ENV['THREAD_POOL_SIZE'].to_i)
@@ -87,7 +99,6 @@ class Server
 
     begin
       if api_method.is_async
-        # Handle asynchronous call
         socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
         @thread_pool.schedule do
           response = # Placeholder for gRPC service call

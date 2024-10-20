@@ -4,7 +4,7 @@ require 'uri'
 require 'json'
 
 class JwtValidator
-  KEYCLOAK_DOMAIN   = ENV['KEYCLOAK_DOMAIN']
+  KEYCLOAK_HOST   = ENV['KEYCLOAK_HOST']
   KEYCLOAK_REALM    = ENV['KEYCLOAK_REALM']
   KEYCLOAK_CERTS    = ENV['KEYCLOAK_CERTS']
   JWT_CACHE_EXPIRY  = ENV['JWT_CACHE_EXPIRY'].to_i
@@ -19,7 +19,7 @@ class JwtValidator
   def fetch_public_key
     return @public_key if @public_key && (Time.now - @last_fetched < JWT_CACHE_EXPIRY)
 
-    uri = URI("#{KEYCLOAK_DOMAIN}#{KEYCLOAK_REALM}#{KEYCLOAK_CERTS}")
+    uri = URI("#{KEYCLOAK_HOST}#{KEYCLOAK_REALM}#{KEYCLOAK_CERTS}")
     response = Net::HTTP.get(uri)
     jwks = JSON.parse(response)
 

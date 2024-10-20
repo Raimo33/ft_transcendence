@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/10/19 12:11:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 08:59:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,16 +16,22 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache ruby ruby-json ruby-dev build-base libffi-dev
 
-COPY ./app  /app
+COPY ./app                 /app
+COPY ./tools/load-conf.sh  /usr/local/bin/
+
+RUN mkdir -p /etc/api-gateway
+#TODO: add a /var/run folder to store the pid file?
 
 RUN adduser -DHS api-gateway
 RUN chown -R api-gateway:api-gateway /app
+RUN chmod +x /usr/local/bin/load-conf.sh
 
 WORKDIR /app 
 USER api-gateway
-# EXPOSE 
-# VOLUME []
+EXPOSE 3000
+VOLUME ["/etc/api-gateway"]
 
+ENTRYPOINT ["load-conf", "default.template.conf"]
 CMD ["ruby", "main.rb"]
 
 # HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD 
