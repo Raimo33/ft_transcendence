@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 11:39:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 16:16:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,7 +86,7 @@ class Server
         return
       end
 
-      if handle_client_request(socket, endpoint_node, api_method)
+      if handle_client_request(socket, api_method)
         @clients.delete(socket)
         socket.close
       end
@@ -96,20 +96,20 @@ class Server
     end
   end
 
-  def handle_client_request(socket, endpoint_node, api_method)
+  def handle_client_request(socket, api_method)
     if api_method.auth_level != AuthLevel::NONE
       headers = extract_headers(socket)
       unless check_auth_header(headers['authorization'], @jwt_validator, api_method.auth_level)
         return_error(socket, 401, 'Invalid or missing JWT token')
         return false
       end
-    end
+    end    
 
     begin
       if api_method.is_async
         socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
         @thread_pool.schedule do
-          response = # Placeholder for gRPC service call
+          response = api_method.grpc_function(request)
           if socket_ready_for_write?(socket)
             @response_queue.push_front({ socket: socket, response: response })
           else
@@ -117,7 +117,7 @@ class Server
           end
         end
       else
-        response = # Placeholder for gRPC service call
+        response = api_method.grpc_function(request)
         socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
         socket.puts response.to_json
       end
