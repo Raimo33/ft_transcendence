@@ -35,6 +35,18 @@ begin
     end
   end
 
+  Signal.trap('SIGTERM') do
+    begin
+      server.stop
+      exit 0
+    rescue StandardError => e
+      STDERR.puts "Error during shutdown: #{e.message}"
+      exit 1
+    end
+  end
+
+  server.run
+
 rescue => e
   STDERR.puts "Fatal Error: #{e.message}"
   exit 1
