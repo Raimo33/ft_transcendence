@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package tournament;
+
+import "common.proto";
+
+service TournamentService
+{
+    rpc GetUserTournaments(GetUserTournamentsRequest) returns (GetUserTournamentsResponse) {}
+    rpc CreateTournament(CreateTournamentRequest) returns (CreateTournamentResponse) {}
+    rpc InterruptTournaments(InterruptTournamentsRequest) returns (InterruptTournamentsResponse) {}
+    rpc JoinTournament(JoinTournamentRequest) returns (JoinTournamentResponse) {}
+    rpc GetTournament(GetTournamentRequest) returns (GetTournamentResponse) {}
+    rpc UpdateTournament(UpdateTournamentRequest) returns (UpdateTournamentResponse) {}
+    rpc AbandonTournament(AbandonTournamentRequest) returns (AbandonTournamentResponse) {}
+}
+
+enum sorting_options
+{
+    AGE = 0;
+    DURATION = 1;
+    NUMBER_OF_PLAYERS = 2;
+}
+
+message filter_options
+{
+    optional tournament_status  status = 1;
+    optional tournament_mode    mode = 2;
+    // Add more filter options here
+}
+
+// v1/users/{user_id}/tournaments GET
+message GetUserTournamentsRequest
+{
+    string                    user_id = 1;
+    optional uint32           page = 2;
+    optional uint32           results_per_page = 3;
+    optional sorting_options  sort = 4;
+    optional filter_options   filter = 5;
+}
+message GetUserTournamentsResponse
+{
+    response_outcome             outcome = 1;
+    optional repeated tournament tournaments = 2;
+}
+
+// v1/tournaments POST
+message CreateTournamentRequest
+{
+    repeated string           invided_users_ids = 1;
+    optional tournament_mode  mode = 2;
+}
+message CreateTournamentResponse
+{
+    response_outcome  outcome = 1;
+    optional string   tournament_id = 2;
+}
+
+// v1/tournaments DELETE
+message InterruptTournamentsRequest
+{
+}
+message InterruptTournamentsResponse
+{
+    response_outcome  outcome = 1;
+}
+
+// v1/tournaments/{tournament_id} POST
+message JoinTournamentRequest
+{
+    string  tournament_id = 1;
+}
+message JoinTournamentResponse
+{
+    response_outcome    outcome = 1;
+}
+
+// v1/tournaments/{tournament_id} GET
+message GetTournamentRequest
+{
+    string  tournament_id = 1;
+}
+message GetTournamentResponse
+{
+    response_outcome     outcome = 1;
+    optional tournament  tournament = 2;
+}
+
+// v1/tournaments/{tournament_id} PATCH
+message UpdateTournamentRequest
+{
+    string tournament_id = 1;
+}
+message UpdateTournamentResponse
+{
+    response_outcome     outcome = 1;
+}
+
+// v1/tournaments/{tournament_id} DELETE
+message AbandonTournamentRequest
+{
+    string tournament_id = 1;
+}
+message AbandonTournamentResponse
+{
+    response_outcome  outcome = 1;
+}
