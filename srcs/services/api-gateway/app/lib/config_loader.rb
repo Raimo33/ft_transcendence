@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 11:35:02 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 12:20:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ class ConfigLoader
         needs_restart ||= (new_config['bind_address'] != @config['bind_address'] || new_config['bind_port'] != @config['bind_port'])
         @config.merge!(new_config)
       rescue StandardError => e
-        STDERR.puts "Error loading config from file '#{config_file}': #{e.message}"
+        STDERR.puts "Error loading config from file '#{config_file}': #{e.message}. Skipping."
       end
     end
     
