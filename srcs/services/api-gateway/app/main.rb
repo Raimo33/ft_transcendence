@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:13 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 12:20:56 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 14:37:13 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ require_relative 'lib/config_loader'
 
 begin
   config_dir = '/etc/api-gateway'
-  pid_file = '/var/run/api-gateway.pid'
+  pid_file = '/run/api-gateway.pid'
 
   File.write(pid_file, Process.pid)
   config_loader = ConfigLoader.new

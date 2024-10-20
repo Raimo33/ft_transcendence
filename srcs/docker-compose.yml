@@ -52,7 +52,7 @@ services:
       context: ./services/api-gateway
       dockerfile: Dockerfile
       args:
-    
+
     container_name: api-gateway
     environment:
       - API_GATEWAY_HOST=${API_GATEWAY_HOST}
@@ -64,7 +64,7 @@ services:
       - JWT_ALGORITHM=${JWT_ALGORITHM}
       - THREAD_POOL_SIZE=${THREAD_POOL_SIZE}
     volumes:
-
+      - ./services/api-gateway/conf/:etc/api-gateway/:rw
     ports:
       - "3000:3000"
     networks:
