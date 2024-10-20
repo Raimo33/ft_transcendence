@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:13 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 08:37:46 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/20 10:31:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ begin
 
 Server.new.run
 
-#TODO parse global variables settings from .conf file each time server receives specific signal (e.g. SIGHUP)
+#TODO parse variables settings from .conf file into global vars each time server receives specific signal (e.g. SIGHUP)
 #if you change some settings such as bind_address or port the server should restart
 
 rescue => e
