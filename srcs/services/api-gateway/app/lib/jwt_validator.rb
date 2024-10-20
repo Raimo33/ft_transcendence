@@ -4,22 +4,15 @@ require 'uri'
 require 'json'
 
 class JwtValidator
-  KEYCLOAK_HOST   = ENV['KEYCLOAK_HOST']
-  KEYCLOAK_REALM    = ENV['KEYCLOAK_REALM']
-  KEYCLOAK_CERTS    = ENV['KEYCLOAK_CERTS']
-  JWT_CACHE_EXPIRY  = ENV['JWT_CACHE_EXPIRY'].to_i
-  JWT_ALGORITHM     = ENV['JWT_ALGORITHM']
-  JWT_EXPIRY_LEEWAY = ENV['JWT_EXPIRY_LEEWAY'].to_i
-
   def initialize
     @public_key = nil
     @last_fetched = nil
   end
 
   def fetch_public_key
-    return @public_key if @public_key && (Time.now - @last_fetched < JWT_CACHE_EXPIRY)
+    return @public_key if @public_key && (Time.now - @last_fetched < $JWT_CACHE_EXPIRY)
 
-    uri = URI("#{KEYCLOAK_HOST}#{KEYCLOAK_REALM}#{KEYCLOAK_CERTS}")
+    uri = URI("#{$KEYCLOAK_HOST}#{$KEYCLOAK_REALM}#{$KEYCLOAK_CERTS}")
     response = Net::HTTP.get(uri)
     jwks = JSON.parse(response)
 
@@ -59,7 +52,7 @@ class JwtValidator
 
   def _verify_token(token)
     public_key = fetch_public_key
-    decoded_token = JWT.decode(token, public_key, true, { algorithm: JWT_ALGORITHM })
+    decoded_token = JWT.decode(token, public_key, true, { algorithm: $JWT_ALGORITHM })
     decoded_token
 
   rescue JWT::DecodeError => e
