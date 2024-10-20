@@ -70,7 +70,7 @@ class Server
     request_line = socket.gets
     if request_line
       method, path, _ = request_line.split
-      endpoint_node = @endpoint_tree.find_path(path)
+      endpoint_node = @endpoint_tree.find_path(path) #TODO use a trie instead of tree?
 
       method = method.to_sym
       unless endpoint_node && HttpMethod::VALID_HTTP_METHODS.include?(method)
@@ -103,13 +103,16 @@ class Server
         return_error(socket, 401, 'Invalid or missing JWT token')
         return false
       end
-    end    
+    end
+
+    #TODO estrazione della richiesta: api call body -> request object
+    #request = 
 
     begin
       if api_method.is_async
         socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
         @thread_pool.schedule do
-          response = api_method.grpc_function(request)
+          response = api_method.service.send(api_method.method, request)
           if socket_ready_for_write?(socket)
             @response_queue.push_front({ socket: socket, response: response })
           else
@@ -117,7 +120,7 @@ class Server
           end
         end
       else
-        response = api_method.grpc_function(request)
+        response = api_method.service.send(api_method.method, request)
         socket.puts "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
         socket.puts response.to_json
       end

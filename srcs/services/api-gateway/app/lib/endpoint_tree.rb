@@ -98,8 +98,15 @@ class EndpointTreeNode
   end
 
   def _get_grpc_service_by_name(service_name)
-    # Implement this method to return the gRPC service object based on the service name
-    # This is a placeholder implementation
-    service_name
+    case service_name
+    when "UserService"
+      UserService::Stub.new
+    when "MatchService"
+      MatchService::Stub.new
+    when "TournamentService"
+      TournamentService::Stub.new
+    else
+      raise "Unknown gRPC service: #{service_name}"
+    end
   end
 end
