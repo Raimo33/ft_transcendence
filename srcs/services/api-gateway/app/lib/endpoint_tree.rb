@@ -1,12 +1,11 @@
 class ApiMethod
-  attr_accessor :http_method, :auth_level, :is_async, :grpc_method_name, :grpc_service
+  attr_accessor :http_method, :auth_level, :is_async, :grpc_message
 
-  def initialize(http_method, auth_level, is_async, grpc_method_name, grpc_service)
+  def initialize(http_method, auth_level, is_async, grpc_message)
     @http_method = http_method
     @auth_level = auth_level
     @is_async = is_async
-    @grpc_method_name = grpc_method_name
-    @grpc_service = grpc_service
+    @grpc_message = grpc_message #TODO trovare il modo di mappare method e grpc_message
   end
 end
 
@@ -80,10 +79,8 @@ class EndpointTreeNode
       api_methods = methods.map do |http_method, details|
         auth_level = _convert_security_to_auth_level(details['security'])
         is_async = details['x-is-async'] || false
-        grpc_method_name = details['x-grpc-method']
-        grpc_service_name = details['x-grpc-service']
-        grpc_service = _get_grpc_service_by_name(grpc_service_name)
-        ApiMethod.new(http_method.to_sym, auth_level, is_async, grpc_method_name, grpc_service)
+        grpc_message = details['operationId']
+        ApiMethod.new(http_method.to_sym, auth_level, is_async, grpc_message)
       end
       add_path(path, api_methods)
     end
@@ -101,7 +98,7 @@ class EndpointTreeNode
 
   private
 
-  def _convert_security_to_auth_level(security)
+  def _convert_security_to_auth_level(security) #TODO refactor
     return AuthLevel::NONE if security.nil? || security.empty?
 
     security.each do |sec|
@@ -109,18 +106,5 @@ class EndpointTreeNode
     end
 
     AuthLevel::NONE
-  end
-
-  def _get_grpc_service_by_name(service_name)
-    case service_name
-    when "UserService"
-      UserService::Stub.new
-    when "MatchService"
-      MatchService::Stub.new
-    when "TournamentService"
-      TournamentService::Stub.new
-    else
-      raise "Unknown gRPC service: #{service_name}"
-    end
   end
 end
