@@ -96,7 +96,6 @@ class EndpointTreeNode
     return AuthLevel::NONE if security.nil? || security.empty?
 
     security.each do |sec|
-      return AuthLevel::ADMIN if sec.key?('jwtAuth') && sec['jwtAuth'].include?('admin')
       return AuthLevel::USER if sec.key?('jwtAuth')
     end
 
