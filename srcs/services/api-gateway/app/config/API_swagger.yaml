@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 22:31:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 23:33:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -2071,26 +2071,6 @@ components:
             - $ref: "#/components/schemas/tournament_mode"
             - $ref: "#/components/schemas/tournament_status"
             - $ref: "#/components/schemas/player_leaderboard_position"
-    
-    async_call_outcome:
-      description: Outcome of an asynchronous call.
-      type: string
-      enum: [success, failure]
-      examples:
-        - value: "success"
-        - value: "failure"  
-    async_call_message:
-      description: Message returned from an asynchronous call.
-      type: string
-    async_call_response_outcome:
-      type: object
-      properties:
-        outcome:
-          $ref: "#/components/schemas/async_call_outcome"
-        message:
-          $ref: "#/components/schemas/async_call_message"
-      required: [outcome, message]
-      additionalProperties: true
 
 ############################################################################################################
 # Call specific schemas                                                                                    #
