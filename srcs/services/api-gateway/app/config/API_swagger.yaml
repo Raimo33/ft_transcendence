@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 21:32:31 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 22:31:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,6 @@ paths:
     post:
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
-      x-is-async: true
       requestBody:
         content:
           application/json:
@@ -33,22 +32,15 @@ paths:
       parameters:
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       responses:
-        "202":
-          description: The registration request has been accepted and is being processed asynchronously.
+        "201":
+          description: User registration successful.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -58,25 +50,12 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user_id"
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        registrationCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Registration completion callback
-              description: Server calls this endpoint when the user registration is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - $ref: "#/components/schemas/user_id"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the registration result.
   /users/{user_id}:
     get:
       summary: Get public and private user data by user_id
@@ -158,7 +137,6 @@ paths:
     delete:
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -168,24 +146,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The deletion request has been accepted and is being processed asynchronously.
+        "200":
+          description: User account successfully deleted.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -199,21 +170,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        userDeletionCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: User deletion completion callback
-              description: Server calls this endpoint when the user deletion is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the user deletion result.
   /users/{user_id}/profile:
     get:
       summary: Get user profile
@@ -284,7 +240,6 @@ paths:
     patch:
       summary: Update user profile
       description: Update the public profile of a user account.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -294,19 +249,12 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
@@ -316,8 +264,8 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User profile successfully updated.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -331,41 +279,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        userProfileUpdateCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: User profile update completion callback
-              description: Server calls this endpoint when the user profile update is complete or failed.
-              parameters:
-                - name: ETag
-                  in: header
-                  description: ETag header value representing the version of the data.
-                  schema:
-                    type: string
-                  example: W/"123456789"
-                  required: true
-                - name: Cache-Control
-                  in: header
-                  description: Cache control directives for the response.
-                  schema:
-                    type: string
-                  example: private, max-age=900, must-revalidate
-                  required: true
-              requestBody:                
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the user profile update result.
   /users/{user_id}/password:
     put:
       summary: Update user password
       description: Update the password of a user account.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -375,19 +292,12 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
@@ -397,8 +307,8 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User password successfully updated.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -412,26 +322,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        passwordUpdateCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Password update completion callback
-              description: Server calls this endpoint when the password update is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the password update result.
   /users/{user_id}/password/recovery:
     post:
       summary: Generate password recovery token
       description: Generate and send a password recovery token to the user via email.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -441,19 +335,12 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
@@ -461,8 +348,8 @@ paths:
               $ref: "#/components/schemas/user_email"
         required: true
       responses:
-          "202":
-            description: The request has been accepted and is being processed asynchronously.
+          "200":
+            description: The password recovery token has been sent to the user's email address.
             headers:
               X-Rate-Limit-Limit:
                 $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -474,26 +361,10 @@ paths:
                 $ref: '#/components/headers/X-Rate-Limit-Interval'
           "429":
             $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        passwordRecoveryCompleted:
-         "{$request.body.callbackUrl}":
-            post:
-              summary: Password recovery token generation completion callback
-              description: Server calls this endpoint when the password recovery token generation is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the password recovery token via email.
   /users/{user_id}/password/recovery/{token}:
     post:
       summary: Verify password recovery token
       description: Verify the password recovery token provided by the user.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -515,22 +386,15 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: The password recovery token has been verified and the user's password has been updated.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -544,21 +408,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        passwordRecoveryCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Password recovery completion callback
-              description: Server calls this endpoint when the password recovery is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the password recovery result.
   /users/{user_id}/email:
     get:
       summary: Get user email
@@ -625,7 +474,6 @@ paths:
     put:
       summary: Update user email
       description: Update the email address of a user account.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -635,19 +483,12 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
@@ -657,8 +498,8 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User email successfully updated.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -672,26 +513,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        emailUpdateCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Email update completion callback
-              description: Server calls this endpoint when the email update is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the email update result.
   /users/{user_id}/email/verification:
     post:
       summary: Verify email address
       description: Verify the email address of a user account.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -701,22 +526,15 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: A token has been sent to the user's email address for verification.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -730,26 +548,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        emailVerificationCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Email verification request completion callback
-              description: Server calls this endpoint when the confirmation email is sent or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the email verification request result.
   /users/{user_id}/email/verify/{token}:
     post:
       summary: Verify email verification token
       description: Verify the email verification token provided by the user.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -765,22 +567,15 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: The email verification token has been verified and the user's email address has been confirmed.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -794,26 +589,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        emailVerificationCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Email verification completion callback
-              description: Server calls this endpoint when the email verification is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the email verification result.
   /users/{user_id}/2fa:
     post:
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -823,24 +602,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Two-factor authentication successfully enabled.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -850,27 +622,14 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/totp_secret"
         "401":
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        2faSetupCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: 2fa setup completion callback
-              description: Server calls this endpoint when the 2fa setup is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - $ref: "#/components/schemas/totp_key"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the 2fa key.
     get:
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
@@ -913,7 +672,6 @@ paths:
     delete:
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -923,24 +681,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Two-factor authentication successfully disabled.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -954,27 +705,11 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        2faDisableCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: 2fa disable completion callback
-              description: Server calls this endpoint when the 2fa disable is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the 2fa disable result.
   /users/{user_id}/2fa/verify:
     post:
-    #verrà chiamata subito dopo il post di /users/{user_id}/2fa per verificare il codice otp
+    #verrà chiamata subito dopo il post e delete di /users/{user_id}/2fa per verificare il codice otp
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -984,24 +719,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Two-factor authentication code successfully verified.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1015,26 +743,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        2faVerifyCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: 2fa verification completion callback
-              description: Server calls this endpoint when the 2fa verification is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the 2fa verification result.
   /users/{user_id}/2fa/recovery:
     post:
       summary: Generate 2fa recovery token
       description: Generate and send 2fa recovery token to the user via email.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1044,19 +756,12 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
@@ -1064,8 +769,8 @@ paths:
               $ref: "#/components/schemas/user_email"
         required: true
       responses:
-          "202":
-            description: The request has been accepted and is being processed asynchronously.
+          "200":
+            description: The 2fa recovery token has been sent to the user's email address.
             headers:
               X-Rate-Limit-Limit:
                 $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1077,26 +782,10 @@ paths:
                 $ref: '#/components/headers/X-Rate-Limit-Interval'
           "429":
             $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        2faVerifyCompleted:
-         "{$request.body.callbackUrl}":
-            post:
-              summary: 2fa recovery token generation completion callback
-              description: Server calls this endpoint when the 2fa recovery token generation is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the 2fa recovery token via email.
   /users/{user_id}/2fa/recovery/{token}:
     post:
       summary: Verify 2fa recovery token
       description: Verify the 2fa recovery token provided by the user.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1112,22 +801,15 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: The 2fa recovery token has been verified and the user's 2fa has been disabled.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1141,26 +823,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        2faRecoveryCompleted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: 2fa recovery completion callback
-              description: Server calls this endpoint when the 2fa recovery is complete or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the 2fa recovery result.
   /users/{user_id}/matches:
     get:
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1212,8 +878,8 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Matches list successfully retrieved.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1223,6 +889,11 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              type: array
+              items:
+                $ref: "#/components/schemas/Match"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -1249,49 +920,11 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        matchesListReady:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Matches list ready callback
-              description: Server calls this endpoint when the matches list is ready to be retrieved.
-              parameters:
-                - name: ETag
-                  in: header
-                  description: ETag header value representing the version of the data.
-                  schema:
-                    type: string
-                  example: W/"123456789"
-                  required: true
-                - name: Cache-Control
-                  in: header
-                  description: Cache control directives for the response.
-                  schema:
-                    type: string
-                  example: public, max-age=3600, no-cache
-                  required: true
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: object
-                          properties:
-                            matches:
-                              type: array
-                              items:
-                                $ref: "#/components/schemas/Match"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the matches list.
 
   /users/{user_id}/tournaments:
     get:
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1343,8 +976,8 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Tournaments list successfully retrieved.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1354,6 +987,11 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              type: array
+              items:
+                $ref: "#/components/schemas/Tournament"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -1380,48 +1018,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        tournamentsListReady:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Tournaments list ready callback
-              description: Server calls this endpoint when the tournaments list is ready to be retrieved.
-              parameters:
-                - name: ETag
-                  in: header
-                  description: ETag header value representing the version of the data.
-                  schema:
-                    type: string
-                  example: W/"123456789"
-                  required: true
-                - name: Cache-Control
-                  in: header
-                  description: Cache control directives for the response.
-                  schema:
-                    type: string
-                  example: public, max-age=3600, no-cache
-                  required: true
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: object
-                          properties:
-                            tournaments:
-                              type: array
-                              items:
-                                $ref: "#/components/schemas/Tournament"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the tournaments list.
   /users/{user_id}/friends:
     post:
       summary: Add a friend
       description: Add a user to the friend list.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1431,19 +1031,12 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       requestBody:
         required: true
         content:
@@ -1453,8 +1046,8 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "201":
+          description: Friend request successfully sent.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1468,25 +1061,9 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        friendAdded:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Friend added callback
-              description: Server calls this endpoint when the friend has been added successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the friend addition result.
     get:
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1538,8 +1115,8 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Friends list successfully retrieved.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1549,6 +1126,11 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              type: array
+              items:
+                $ref: "#/components/schemas/user_id"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -1575,45 +1157,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        friendsListReady:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Friends list ready callback
-              description: Server calls this endpoint when the friends list is ready to be retrieved.
-              parameters:
-                - name: ETag
-                  in: header
-                  description: ETag header value representing the version of the data.
-                  schema:
-                    type: string
-                  example: W/"123456789"
-                  required: true
-                - name: Cache-Control
-                  in: header
-                  description: Cache control directives for the response.
-                  schema:
-                    type: string
-                  example: private, max-age=3600, no-cache
-                  required: true
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: array
-                          items:
-                            $ref: "#/components/schemas/user_id"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the friends list.
   /users/{user_id}/friends/{friend_id}:
     delete:
       summary: Remove a friend
       description: Remove a user from the friend list.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1629,24 +1176,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Friend successfully removed.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1660,26 +1200,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        friendRemoved:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Friend removed callback
-              description: Server calls this endpoint when the friend has been removed successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the friend removal result.
   /sessions/{user_id}:
     post:
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1689,19 +1213,12 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
@@ -1709,8 +1226,8 @@ paths:
               $ref: "#/components/schemas/user_psw"
         required: true
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User successfully logged in.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1720,25 +1237,12 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jwt_token"
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        userLoggedIn:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: User logged in callback
-              description: Server calls this endpoint when the user has been logged in successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - $ref: "#/components/schemas/jwt_token"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the user login result.
     get:
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
@@ -1815,7 +1319,6 @@ paths:
     delete:
       summary: User logout
       description: Logs out a specific user from the system.
-      x-is-async: true
       parameters:
         - name: user_id
           in: path
@@ -1825,24 +1328,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User successfully logged out.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1856,27 +1352,11 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        userLoggedOut:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: User logged out callback
-              description: Server calls this endpoint when the user has been logged out successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the user logout result.
 
   /matches:
     post:
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user ID.
-      x-is-async: true
       security:
         - jwtAuth: []
       requestBody:
@@ -1898,8 +1378,8 @@ paths:
           X-Callback-Url:
             $ref: '#/components/headers/X-Callback-Url'
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "201":
+          description: Match successfully created.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1913,28 +1393,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        matchReady:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Match creation callback
-              description: Server calls this endpoint when the match was created successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - $ref: "#/components/schemas/match_id"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the match creation result.
   /matches/{match_id}:
     post:
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
-      x-is-async: true
       parameters:
         - name: match_id
           in: path
@@ -1944,24 +1406,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User successfully joined the match.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -1975,21 +1430,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        matchJoined:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Match joined callback
-              description: Server calls this endpoint when the user has joined the match successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the match joined result.
     get:
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
@@ -2065,7 +1505,6 @@ paths:
     delete:
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
-      x-is-async: true
       parameters:
         - name: match_id
           in: path
@@ -2075,24 +1514,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User successfully abandoned the match.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -2106,27 +1538,11 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        matchAbandoned:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Match abandoned callback
-              description: Server calls this endpoint when the match has been abandoned successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the match abandoned result.
 
   /tournaments:
     post:
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
-      x-is-async: true
       security:
         - jwtAuth: []
       requestBody:
@@ -2150,8 +1566,8 @@ paths:
           X-Callback-Url:
             $ref: '#/components/headers/X-Callback-Url'
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "201":
+          description: Tournament successfully created.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -2161,32 +1577,18 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tournament_id"
         "401":
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        tournamentReady:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Tournament creation callback
-              description: Server calls this endpoint when the tournament was created successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - $ref: "#/components/schemas/tournament_id"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the tournament creation result.
   /tournaments/{tournament_id}:
     post:
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
-      x-is-async: true
       parameters:
         - name: tournament_id
           in: path
@@ -2196,24 +1598,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: User successfully joined the tournament.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -2227,21 +1622,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        tournamentJoined:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Tournament joined callback
-              description: Server calls this endpoint when the user has joined the tournament successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the tournament joined result.
     get:
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
@@ -2306,7 +1686,6 @@ paths:
     patch:
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
-      x-is-async: true
       parameters:
         - name: tournament_id
           in: path
@@ -2316,24 +1695,17 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
+        "200":
+          description: Tournament successfully started.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -2347,25 +1719,9 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        tournamentStarted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Tournament started callback
-              description: Server calls this endpoint when the tournament has been started successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the tournament started result.
     delete:
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
-      x-is-async: true
       parameters:
         - name: tournament_id
           in: path
@@ -2375,41 +1731,30 @@ paths:
           required: true
         - name: Content-Length
           in: header
-          description: The length of the request or response body in octets (8-bit bytes).
+          description: The length of the request body in octets (8-bit bytes).
           schema:
             type: integer
             format: int32
             minimum: 0
           example: 12345
-        - name: X-Callback-Url
-          in: header
-          description: The URL to which the server will send the callback request.
-          schema:
-            type: string
-            format: uri
-          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
+        "200":
+          description: User successfully abandoned the tournament.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
         "401":
           $ref: '#/components/responses/Unauthorized'
         "429":
           $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        tournamentAbandoned:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Tournament abandoned callback
-              description: Server calls this endpoint when the tournament has been abandoned successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the tournament abandoned result.
 
 components:
   schemas:
@@ -2819,7 +2164,7 @@ components:
       example: 60
 
     Content-Length:
-      description: The length of the request or response body in octets (8-bit bytes).
+      description: The length of the request body in octets (8-bit bytes).
       schema:
         type: integer
         format: int32
