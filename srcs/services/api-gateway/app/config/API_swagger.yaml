@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 19:49:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 21:02:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -2580,14 +2580,13 @@ components:
       examples:
         - value: 3
 
-    player_health_points:
-      description: Current health points of the player.
+    player_leaderboard_position:
+      description: Position of the player in the leaderboard.
       type: integer
       format: int32
-      minimum: 0
-      maximum: 100
+      minimum: 1
       examples:
-        - value: 2
+        - value: 3
 
     tournament_id:
       description: Unique identifier for the tournament (UUID format or similar).
@@ -2781,9 +2780,7 @@ components:
         value:
           oneOf:
             - $ref: "#/components/schemas/match_status"
-            - type: integer
-              format: int32
-              minimum: 1
+            - $ref: "#/components/schemas/player_leaderboard_position"
 
     player_tournament_sorting_options:
       description: Options to sort the player's tournaments list.
@@ -2801,9 +2798,7 @@ components:
           oneOf:
             - $ref: "#/components/schemas/tournament_mode"
             - $ref: "#/components/schemas/tournament_status"
-            - type: integer
-              format: int32
-              minimum: 1
+            - $ref: "#/components/schemas/player_leaderboard_position"
     
     async_call_outcome:
       description: Outcome of an asynchronous call.

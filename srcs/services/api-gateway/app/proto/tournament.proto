@@ -15,28 +15,30 @@ service TournamentService
     rpc AbandonTournament(AbandonTournamentRequest) returns (AbandonTournamentResponse) {}
 }
 
-enum sorting_options
+enum player_tournament_sorting_options
 {
     AGE = 0;
     DURATION = 1;
     NUMBER_OF_PLAYERS = 2;
+    LEADERBOARD_POSITION = 3;
 }
 
-message filter_options
+message player_tournament_filters
 {
     optional tournament_status  status = 1;
     optional tournament_mode    mode = 2;
+    optional uint32             leaderboard_position = 3;
     // Add more filter options here
 }
 
 // v1/users/{user_id}/tournaments GET
 message GetUserTournamentsRequest
 {
-    string                    user_id = 1;
-    optional uint32           page = 2;
-    optional uint32           results_per_page = 3;
-    optional sorting_options  sort = 4;
-    optional filter_options   filter = 5;
+    string                                              user_id = 1;
+    optional uint32                                     page = 2;
+    optional uint32                                     results_per_page = 3;
+    optional repeated player_tournament_sorting_options sorting_options = 4;
+    optional player_tournament_filters                  filters = 5;
 }
 message GetUserTournamentsResponse
 {

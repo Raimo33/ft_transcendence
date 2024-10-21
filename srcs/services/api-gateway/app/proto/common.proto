@@ -8,6 +8,15 @@ enum user_status
     ONLINE = 0;
     OFFLINE = 1;
 }
+message user_profile
+{
+    string       user_id = 1;
+    string       display_name = 2;
+    string       avatar = 3;
+    user_status  status = 4;
+    uint64       last_active = 5;
+    uint64       date_registered = 6;
+}
 message user
 {
     string       user_id = 1;
@@ -18,15 +27,6 @@ message user
     uint64       date_registered = 6;
     string       email = 7;
     bool         two_factor_auth = 8;
-}
-message user_profile
-{
-    string       user_id = 1;
-    string       display_name = 2;
-    string       avatar = 3;
-    user_status  status = 4;
-    uint64       last_active = 5;
-    uint64       date_registered = 6;
 }
 
 //match

@@ -7,7 +7,6 @@ import "common.proto";
 service UserService
 {
     rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
-    rpc GetUsers(GetUsersRequest) returns (GetUsersResponse) {}
     rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
     rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
     rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse) {}
@@ -28,22 +27,18 @@ service UserService
     rpc AddFriend(AddFriendRequest) returns (AddFriendResponse) {}
     rpc GetFriends(GetFriendsRequest) returns (GetFriendsResponse) {}
     rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
-    rpc GetLoginStatus(GetLoginStatusRequest) returns (GetLoginStatusResponse) {}
-    rpc DisconnectAllUsers(DisconnectAllUsersRequest) returns (DisconnectAllUsersResponse) {}
     rpc UserLogin(UserLoginRequest) returns (UserLoginResponse) {}
     rpc UserLogout(UserLogoutRequest) returns (UserLogoutResponse) {}
 }
 
-enum sort_options
+enum profile_sorting_options
 {
-    UNSORTED = 0;
-    DISPLAY_NAME = 1;
-    EMAIL = 2;
-    REGISTERED_TIMESTAMP = 3;
-    LAST_ACTIVE_TIMESTAMP = 4;
+    DISPLAY_NAME = 0;
+    REGISTERED_TIMESTAMP = 1;
+    LAST_ACTIVE_TIMESTAMP = 2;
 }
 
-message filter_options
+message profile_filters
 {
     optional user_status status = 1;
     // Add more filter options here
@@ -60,24 +55,6 @@ message RegisterUserRequest
 message RegisterUserResponse
 {
     response_outcome  outcome = 1;
-}
-
-// v1/users GET
-message GetUsersRequest
-{
-    optional uint32          page = 1;
-    optional uint32          results_per_page = 2;
-    optional sort_options    sort = 3;
-    optional filter_options  filter = 4;
-}
-message GetUsersResponse
-{
-    response_outcome           outcome = 1;
-    optional oneof content
-    {
-        repeated user_profile   users_public = 2;
-        repeated user  users_private = 3;
-    }
 }
 
 // v1/users/{user_id} GET
@@ -279,11 +256,11 @@ message AddFriendResponse
 // v1/users/{user_id}/friends/ GET
 message GetFriendsRequest
 {
-    string                   user_id = 1;
-    optional uint32          page = 2;
-    optional uint32          results_per_page = 3;
-    optional sort_options    sort = 4;
-    optional filter_options  filter = 5;
+    string                                    user_id = 1;
+    optional uint32                           page = 2;
+    optional uint32                           results_per_page = 3;
+    optional repeated profile_sorting_options sorting = 4;
+    optional profile_filters                  filters = 5;
 }
 message GetFriendsResponse
 {
@@ -298,28 +275,6 @@ message RemoveFriendRequest
     string  friend_id = 2;
 }
 message RemoveFriendResponse
-{
-    response_outcome  outcome = 1;
-}
-
-// v1/sessions GET
-message GetLoginStatusRequest
-{
-    optional uint32       page = 1;
-    optional uint32       results_per_page = 2;
-    optional user_status  filter = 3;
-}
-message GetLoginStatusResponse
-{
-    response_outcome   outcome = 1;
-    optional repeated  login_status = 2;
-}
-
-// v1/sessions DELETE
-message DisconnectAllUsersRequest
-{
-}
-message DisconnectAllUsersResponse
 {
     response_outcome  outcome = 1;
 }
