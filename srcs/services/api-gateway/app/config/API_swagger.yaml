@@ -32,11 +32,22 @@ paths:
             schema:
               $ref: '#/components/schemas/RegisterUser'
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+      parameters:
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       responses:
         "202":
           description: The registration request has been accepted and is being processed asynchronously.
@@ -161,14 +172,23 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The deletion request has been accepted and is being processed asynchronously.
@@ -282,17 +302,27 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateUserProfile"
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -355,17 +385,27 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateUserPassword"
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -413,17 +453,27 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/user_email"
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
           "202":
             description: The request has been accepted and is being processed asynchronously.
@@ -479,12 +529,21 @@ paths:
           schema:
             $ref: "#/components/schemas/user_psw"
           required: true
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -594,17 +653,27 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/user_email"
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -652,12 +721,21 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -709,12 +787,21 @@ paths:
           schema:
             type: string
           required: true
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -760,14 +847,23 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -855,14 +951,23 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -909,17 +1014,21 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/totp_code"
-        required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
       responses:
@@ -967,17 +1076,27 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/user_email"
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
           "202":
             description: The request has been accepted and is being processed asynchronously.
@@ -1027,12 +1146,21 @@ paths:
           schema:
             type: string
           required: true
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1343,17 +1471,27 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/user_id"
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       security:
         - jwtAuth: []
       responses:
@@ -1535,14 +1673,23 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1588,17 +1735,27 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/user_psw"
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1718,14 +1875,23 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1832,14 +1998,23 @@ paths:
           schema:
             $ref: "#/components/schemas/match_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -1958,14 +2133,23 @@ paths:
           schema:
             $ref: "#/components/schemas/match_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2074,14 +2258,23 @@ paths:
           schema:
             $ref: "#/components/schemas/tournament_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2189,14 +2382,23 @@ paths:
           schema:
             $ref: "#/components/schemas/tournament_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "202":
           description: The request has been accepted and is being processed asynchronously.
@@ -2241,14 +2443,23 @@ paths:
           schema:
             $ref: "#/components/schemas/tournament_id"
           required: true
+        - name: Content-Length
+          in: header
+          description: The length of the request or response body in octets (8-bit bytes).
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          example: 12345
+        - name: X-Callback-Url
+          in: header
+          description: The URL to which the server will send the callback request.
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/callback"
       security:
         - jwtAuth: []
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
       responses:
         "401":
           $ref: '#/components/responses/Unauthorized'
