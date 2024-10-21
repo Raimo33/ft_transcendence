@@ -1,10 +1,9 @@
 class ApiMethod
-  attr_accessor :http_method, :auth_level, :is_async, :grpc_message
+  attr_accessor :http_method, :auth_level, :grpc_message
 
-  def initialize(http_method, auth_level, is_async, grpc_message)
+  def initialize(http_method, auth_level, grpc_message)
     @http_method = http_method
     @auth_level = auth_level
-    @is_async = is_async
     @grpc_message = grpc_message #TODO trovare il modo di mappare method e grpc_message
   end
 end
@@ -77,8 +76,7 @@ class EndpointTreeNode
     swagger_data = YAML.load_file(file_path)
     swagger_data['paths'].each do |path, methods|
       api_methods = methods.map do |http_method, details|
-        auth_level = _convert_security_to_auth_level(details['security'])
-        is_async = details['x-is-async'] || false
+        needs_auth = details['security']
         grpc_message = details['operationId']
         ApiMethod.new(http_method.to_sym, auth_level, is_async, grpc_message)
       end
@@ -96,15 +94,4 @@ class EndpointTreeNode
     nil
   end
 
-  private
-
-  def _convert_security_to_auth_level(security) #TODO refactor
-    return AuthLevel::NONE if security.nil? || security.empty?
-
-    security.each do |sec|
-      return AuthLevel::USER if sec.key?('jwtAuth')
-    end
-
-    AuthLevel::NONE
-  end
 end

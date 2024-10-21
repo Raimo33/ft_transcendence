@@ -7,5 +7,3 @@ keycloak_certs   = ${KEYCLOAK_CERTS}
 
 jwt_cache_expiry = ${JWT_CACHE_EXPIRY}
 jwt_algorithm    = ${JWT_ALGORITHM}
-
-thread_pool_size = ${THREAD_POOL_SIZE}

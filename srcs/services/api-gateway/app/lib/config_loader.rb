@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 19:41:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 23:14:28 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,6 @@ class ConfigLoader
     keycloak_certs
     jwt_cache_expiry
     jwt_algorithm
-    thread_pool_size
   ].freeze
 
   def initialize
@@ -83,8 +82,6 @@ class ConfigLoader
         $JWT_CACHE_EXPIRY = value.to_i
       when 'jwt_algorithm'
         $JWT_ALGORITHM = value
-      when 'thread_pool_size'
-        $THREAD_POOL_SIZE = value.to_i
       end
     end
   end

@@ -1,24 +1,13 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    server.rb                                          :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 19:46:09 by craimond         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
+require 'async'
 require 'socket'
 require 'json'
-require 'deque'
 require_relative 'endpoint_tree'
 require_relative 'jwt_validator'
 require_relative 'grpc_client'
 require_relative 'response_formatter'
 require_relative 'helpers'
-require_relative 'thread_pool'
+
+#TODO rivedere async e come funziona
 
 class Server
   def initialize
@@ -27,39 +16,62 @@ class Server
     @jwt_validator = JwtValidator.new
     @server = TCPServer.new($BIND_ADDRESS, $BIND_PORT)
     @clients = []
-    @callbacks_queue = Deque.new
-    @thread_pool = ThreadPool.new($THREAD_POOL_SIZE)
+    @responses = {}
   end
 
   def run
     loop do
-      readable, _, error = IO.select([@server] + @clients, nil, @clients)
+      readable, writable, broken = IO.select([@server] + @clients, @clients, @clients)
 
-      readable.each do |socket|
-        if socket == @server
-          _handle_new_client
-        else
-          _handle_existing_client(socket)
-        end
+      Async do
+        _handle_readable(readable)
       end
 
-      error.each do |socket|
-        _handle_socket_error(socket)
+      Async do
+        _handle_writeable(writable)
       end
 
-      _route_responses
+      Async do
+        _handle_broken(broken)
+      end
     end
   end
 
   def stop
-    @clients.each do |client|
-      client.close
-    end
+    @clients.each(&:close)
     @server.close
-    @thread_pool.shutdown
   end
 
   private
+
+  def _handle_readable(readable)
+    readable.each do |socket|
+      if socket == @server
+        _handle_new_client
+      else
+        Async do
+          _handle_existing_client(socket)
+        end
+      end
+    end
+  end
+
+  def _handle_writeable(writable)
+    writable.each do |socket|
+      response = @responses.delete(socket)
+      if response
+        send_response(socket, response)
+      end
+    end
+  end
+
+  def _handle_broken(broken)
+    broken.each do |socket|
+      @clients.delete(socket)
+      socket.close
+      _handle_socket_error(socket)
+    end
+  end
 
   def _handle_new_client
     client = @server.accept_nonblock
@@ -75,7 +87,6 @@ class Server
       api_method = endpoint_node.endpoint_data[method]
       unless api_method
         send_error(socket, 405)
-        @clients.delete(socket)
         return
       end
 
@@ -85,75 +96,28 @@ class Server
 
   def _handle_client_request(socket, api_method, path_params, query_params)
     headers = extract_headers(socket)
-    return unless _check_auth(socket, api_method, headers)
-
-    body = extract_body(socket, headers)
-    #headers: cache_headers, content_lenght, callback_url
-    #body: json object
-    #path_params: uuid
-    #query_params: pagination, sorting
-    grpc_request = #TODO trasformazione a request
-
-    begin
-      if api_method.is_async
-        #TODO check del callback url
-        socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
-        @thread_pool.schedule do
-          grpc_response = api_method.service.send(api_method.method, request)
-          response = ResponseFormatter.format_response(grpc_response) #TODO trasformazione a response
-          queue_method = socket_ready_for_write?(socket) ? :push_front : :push_back
-          @response_queue.send(queue_method, { socket: socket, response: response })
-        end
-      else
-        grpc_response = api_method.service.send(api_method.method, request)
-        response = ResponseFormatter.format_response(grpc_response) #TODO trasformazione a response
-        send_response(socket, response)
+    _check_auth(socket, api_method, headers['authorization'])
+  
+    grpc_request = # TODO transform to gRPC request
+  
+    # Use an asynchronous block to handle the gRPC request
+    Async do
+      begin
+        grpc_response = api_method.service.send(api_method.method, grpc_request)
+        response = # TODO transform gRPC response to REST response
+        @responses[socket] = response
+      rescue StandardError => e
+        send_error(socket, 500)  # Send error response to the client
       end
-    rescue StandardError => e
-      send_error(socket, 500)
     end
-
+  
     true
   end
 
-  def _handle_socket_error(socket)
-    STDERR.puts "Socket error occurred: #{socket}"
-    @clients.delete(socket)
-    socket.close
-  end
-
-  def _process_callbacks
-    until @callbacks_queue.empty?
-      item = @callbacks_queue.pop_front
-      socket = item[:socket]
-      response = item[:response]
-
-      if socket.closed?
-        next
-      end
-
-      @thread_pool.schedule do
-        begin
-          send_callback(socket, response)
-        rescue StandardError => e
-          STDERR.puts "Error sending response: #{e.message}"
-        @clients.delete(socket)
-        socket.close
-        end
-      end
-    end
-  end
-
-  def _check_auth(socket, api_method, headers)
+  def _check_auth(socket, api_method, auth_header)
     if api_method.auth_level != AuthLevel::NONE
-      unless check_auth_header(headers['authorization'], @jwt_validator, api_method.auth_level)
-        send_error(socket, 401, 'Invalid or missing JWT token')
-        return false
-      end
+      send_error(socket, 401, 'Invalid or missing JWT token') unless check_auth_header(auth_header, @jwt_validator, api_method.auth_level)
     end
-
-  def _socket_ready_for_write?(socket)
-    _, writeable, _ = IO.select(nil, [socket], nil, 0)
-    !writeable.empty?
   end
+
 end

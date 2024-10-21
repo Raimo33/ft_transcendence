@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:36 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 18:20:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 23:32:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,24 +36,21 @@ def check_auth_header(auth_header, jwt_validator, required_auth_level)
   true
 end
 
-def send_success(client, status_code, body)
-  client.puts "HTTP/1.1 #{status_code}"
-  client.puts "Content-Type: application/json"
-  client.puts body.to_json if body
-  client.close
+def send_success(socket, status_code, body)
+  #TODO check socket is still open
+  socket.puts "HTTP/1.1 #{status_code}"
+  socket.puts "Content-Type: application/json"
+  socket.puts body.to_json if body
+  socket.close
 end
 
-def send_error(client, status_code)
-  client.puts "HTTP/1.1 #{status_code}"
-  client.close
+def send_error(socket, status_code)
+  #TODO check socket is still open
+  socket.puts "HTTP/1.1 #{status_code}"
+  socket.close
 end
 
-def send_response(client, response)
+def send_response(socket, response)
   if #TODO calls send_success or send_error based on the response
-  end
-end
-
-def send_callback(client, response)
-  if #TODO calls send_success or send_error based on the response (adds POST and callback url)
   end
 end
