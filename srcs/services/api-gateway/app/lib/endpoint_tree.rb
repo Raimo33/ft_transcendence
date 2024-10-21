@@ -34,9 +34,11 @@ class EndpointTreeNode
   end
 
   def find_path(path)
+    path, query_string = path.split('?', 2)
     parts = path.split('/').reject(&:empty?)
     current_node = self
-    variable_segments = {}
+    path_params = {}
+    query_params = {}
 
     parts.each do |part|
       if current_node.children[part]
@@ -59,8 +61,15 @@ class EndpointTreeNode
       end
     end
 
-    # Return the current node along with matched variables
-    { node: current_node, variables: path_params }
+    if query_string
+      query_string.split('&').each do |param|
+        key, value = param.split('=', 2)
+        query_params[key] = value
+      end
+    end
+
+    # Return the current node along with matched variables and query parameters
+    return current_node, path_params, query_params
   end
 
   def parse_swagger_file(file_path)

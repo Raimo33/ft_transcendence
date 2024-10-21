@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 21:02:56 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 21:32:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -2484,9 +2484,9 @@ paths:
 components:
   schemas:
 
-    # ===================
-    # = General Objects =
-    # ===================
+###########################################################################################################
+# Generic reusable schemas                                                                                #
+###########################################################################################################
 
     user_id:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
@@ -2527,19 +2527,6 @@ components:
       examples:
         - value: "online"
         - value: "offline"
-  
-    jwt_token:
-      description: JWT token for session management.
-      type: string
-      examples:
-        - value: <Header>.<Payload>.<Signature>
-
-    websocket_url:
-      description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
-      type: string
-      format: uri
-      examples:
-        - value: "wss://example.com/ws"
 
     match_id:
       description: Unique identifier for the match (UUID format or similar).
@@ -2652,6 +2639,19 @@ components:
           $ref: "#/components/schemas/qr_code"
         secret:
           $ref: "#/components/schemas/totp_secret"
+
+    jwt_token:
+      description: JWT token for session management.
+      type: string
+      examples:
+        - value: <Header>.<Payload>.<Signature>
+
+    websocket_url:
+      description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
+      type: string
+      format: uri
+      examples:
+        - value: "wss://example.com/ws"
     
     UserProfile:
       description: Represents a public user profile with limited information.
@@ -2753,7 +2753,6 @@ components:
       description: Options to sort the user profiles list.
       type: string
       enum: [display_name, registered_timestamp, last_active]
-    
     profile_filter_options:
       description: Options to filter the user profiles list.
       type: object
@@ -2769,7 +2768,6 @@ components:
       description: Options to sort the player's matches list.
       type: string
       enum: [age, duration, number_of_players, leaderboard_position]
-    
     player_match_filter_options:
       description: Options to filter the player's matches list.
       type: object
@@ -2786,7 +2784,6 @@ components:
       description: Options to sort the player's tournaments list.
       type: string
       enum: [age, duration, number_of_players, leaderboard_position]
-
     player_tournament_filter_options:
       description: Options to filter the player's tournaments list.
       type: object
@@ -2807,11 +2804,9 @@ components:
       examples:
         - value: "success"
         - value: "failure"  
-
     async_call_message:
       description: Message returned from an asynchronous call.
       type: string
-    
     async_call_response_outcome:
       type: object
       properties:
@@ -2821,11 +2816,11 @@ components:
           $ref: "#/components/schemas/async_call_message"
       required: [outcome, message]
       additionalProperties: true
-    
-    # =========================
-    # = Call-Specific Objects =
-    # =========================
-  
+
+############################################################################################################
+# Call specific schemas                                                                                    #
+############################################################################################################
+
     UpdateUserProfile:
       type: object
       properties:
@@ -2855,7 +2850,7 @@ components:
         display_name:
           $ref: "#/components/schemas/user_display_name"
       required: [email, password, display_name]
-  
+
   headers:
     X-Rate-Limit-Limit:
       description: Maximum number of requests allowed in the current window.
@@ -2864,7 +2859,6 @@ components:
         format: int32
         minimum: 1
       example: 100
-
     X-Rate-Limit-Remaining:
       description: Remaining number of requests allowed in the current window.
       schema:
@@ -2872,7 +2866,6 @@ components:
         format: int32
         minimum: 0
       example: 99
-
     X-Rate-Limit-Reset:
       description: Time in seconds until the rate limit resets.
       schema:
@@ -2880,7 +2873,6 @@ components:
         format: int32
         minimum: 0
       example: 60
-
     X-Rate-Limit-Interval:
       description: Time interval in seconds for the rate limit window.
       schema:
@@ -2888,7 +2880,6 @@ components:
         format: int32
         minimum: 1
       example: 60
-  
     Retry-After:
       description: Time in seconds until the client can retry the request.
       schema:
