@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:36 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 20:30:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 18:20:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,24 +36,24 @@ def check_auth_header(auth_header, jwt_validator, required_auth_level)
   true
 end
 
-def return_success(client, status_code, body)
+def send_success(client, status_code, body)
   client.puts "HTTP/1.1 #{status_code}"
   client.puts "Content-Type: application/json"
   client.puts body.to_json if body
   client.close
 end
 
-def return_error(client, status_code)
+def send_error(client, status_code)
   client.puts "HTTP/1.1 #{status_code}"
   client.close
 end
 
-def return_response(client, response)
-  if #TODO calls return_success or return_error based on the response
+def send_response(client, response)
+  if #TODO calls send_success or send_error based on the response
   end
 end
 
-def return_response_callback(client, response)
-  if #TODO calls return_success or return_error based on the response (adds POST and callback url)
+def send_callback(client, response)
+  if #TODO calls send_success or send_error based on the response (adds POST and callback url)
   end
 end

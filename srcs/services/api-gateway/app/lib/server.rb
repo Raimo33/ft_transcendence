@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 20:31:57 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 18:20:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,41 +70,46 @@ class Server
     request_line = socket.gets
     if request_line
       method, path, _ = request_line.split
-      endpoint_node = @endpoint_tree.find_path(path) #TODO use a trie instead of tree?
+      endpoint_node, path_params = @endpoint_tree.find_path(path)
 
       api_method = endpoint_node.endpoint_data[method]
       unless api_method
-        return_error(socket, 405)
+        send_error(socket, 405)
         @clients.delete(socket)
         return
       end
 
-      _handle_client_request(socket, api_method)
+      _handle_client_request(socket, api_method, path_params)
     end
   end
 
-  def _handle_client_request(socket, api_method)
+  def _handle_client_request(socket, api_method, path_params)
     headers = extract_headers(socket)
     return unless _check_auth(socket, api_method, headers)
 
     body = extract_body(socket, headers)
-    #TODO trasformazione da body a request, estrazione del callback url
+    #headers: cache_headers, content_lenght, callback_url, sorting/filtering
+    #body: json object
+    #path_params: uuid
+    grpc_request = #TODO trasformazione a request
 
     begin
       if api_method.is_async
         #TODO check del callback url
         socket.puts "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n"
         @thread_pool.schedule do
-          response = api_method.service.send(api_method.method, request)
+          grpc_response = api_method.service.send(api_method.method, request)
+          response = ResponseFormatter.format_response(grpc_response) #TODO trasformazione a response
           queue_method = socket_ready_for_write?(socket) ? :push_front : :push_back
           @response_queue.send(queue_method, { socket: socket, response: response })
         end
       else
-        response = api_method.service.send(api_method.method, request)
-        return_response(socket, response)
+        grpc_response = api_method.service.send(api_method.method, request)
+        response = ResponseFormatter.format_response(grpc_response) #TODO trasformazione a response
+        send_response(socket, response)
       end
     rescue StandardError => e
-      return_error(socket, 500)
+      send_error(socket, 500)
     end
 
     true
@@ -128,7 +133,7 @@ class Server
 
       @thread_pool.schedule do
         begin
-          return_response_callback(socket, response)
+          send_callback(socket, response)
         rescue StandardError => e
           STDERR.puts "Error sending response: #{e.message}"
         @clients.delete(socket)
@@ -141,7 +146,7 @@ class Server
   def _check_auth(socket, api_method, headers)
     if api_method.auth_level != AuthLevel::NONE
       unless check_auth_header(headers['authorization'], @jwt_validator, api_method.auth_level)
-        return_error(socket, 401, 'Invalid or missing JWT token')
+        send_error(socket, 401, 'Invalid or missing JWT token')
         return false
       end
     end

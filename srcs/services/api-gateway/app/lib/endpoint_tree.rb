@@ -1,15 +1,3 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    endpoint_tree.rb                                   :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/20 08:33:42 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 16:39:27 by craimond         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 class ApiMethod
   attr_accessor :http_method, :auth_level, :is_async, :grpc_method_name, :grpc_service
 
@@ -23,10 +11,10 @@ class ApiMethod
 end
 
 class EndpointTreeNode
-  attr_accessor :segment, :children, :endpoint_methods
+  attr_accessor :part, :children, :endpoint_methods
 
-  def initialize(segment)
-    @segment = segment
+  def initialize(part)
+    @part = part
     @children = {}
     @endpoint_methods = {}
   end
@@ -36,7 +24,7 @@ class EndpointTreeNode
     current_node = self
 
     parts.each do |part|
-      current_node.children[part] ||= EndpointTreeNode.new(part)
+      current_node.children[part] ||= EndpointTrieNode.new(part)
       current_node = current_node.children[part]
     end
 
@@ -48,13 +36,31 @@ class EndpointTreeNode
   def find_path(path)
     parts = path.split('/').reject(&:empty?)
     current_node = self
-  
+    variable_segments = {}
+
     parts.each do |part|
-      return nil unless current_node.children[part]
-      current_node = current_node.children[part]
+      if current_node.children[part]
+        # Exact match (literal segment)
+        current_node = current_node.children[part]
+      else
+        variable_node = current_node.children.find do |key, _|
+          key.start_with?('{') && key.end_with?('}')
+        end
+
+        if variable_node
+          # Matched a variable segment
+          variable_name = variable_node[0][1..-2]
+          path_params[variable_name] = part
+          current_node = variable_node[1]
+        else
+          # No match
+          return nil
+        end
+      end
     end
 
-    current_node
+    # Return the current node along with matched variables
+    { node: current_node, variables: path_params }
   end
 
   def parse_swagger_file(file_path)
