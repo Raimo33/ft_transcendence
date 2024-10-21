@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 18:20:29 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 19:46:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,7 +70,7 @@ class Server
     request_line = socket.gets
     if request_line
       method, path, _ = request_line.split
-      endpoint_node, path_params = @endpoint_tree.find_path(path)
+      endpoint_node, path_params, query_params = @endpoint_tree.find_path(path)
 
       api_method = endpoint_node.endpoint_data[method]
       unless api_method
@@ -79,18 +79,19 @@ class Server
         return
       end
 
-      _handle_client_request(socket, api_method, path_params)
+      _handle_client_request(socket, api_method, path_params, query_params)
     end
   end
 
-  def _handle_client_request(socket, api_method, path_params)
+  def _handle_client_request(socket, api_method, path_params, query_params)
     headers = extract_headers(socket)
     return unless _check_auth(socket, api_method, headers)
 
     body = extract_body(socket, headers)
-    #headers: cache_headers, content_lenght, callback_url, sorting/filtering
+    #headers: cache_headers, content_lenght, callback_url
     #body: json object
     #path_params: uuid
+    #query_params: pagination, sorting
     grpc_request = #TODO trasformazione a request
 
     begin

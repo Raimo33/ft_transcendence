@@ -8,7 +8,7 @@ enum user_status
     ONLINE = 0;
     OFFLINE = 1;
 }
-message private_user
+message user
 {
     string       user_id = 1;
     string       avatar = 3;
@@ -19,7 +19,7 @@ message private_user
     string       email = 7;
     bool         two_factor_auth = 8;
 }
-message public_user
+message user_profile
 {
     string       user_id = 1;
     string       display_name = 2;

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/18 17:26:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/21 19:49:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,131 +68,6 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the registration result.
-    get:
-      summary: Get a list of users
-      description: Retrieve a paginated list of users.
-      x-is-async: true
-      x-grpc-method: GetUsers
-      x-grpc-service: UserService
-      parameters:
-        - name: page
-          in: query
-          description: Page number of the results to retrieve.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
-        - name: results_per_page
-          in: query
-          description: Number of users to retrieve per page.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
-        - name: sorting_options
-          in: query
-          description: Sort the users list by display name, email, registered_timestamp, last active.
-          schema:
-            $ref: "#/components/schemas/user_sorting_options"
-          required: false
-        - name: filter_options
-          in: query
-          description: Filter the users list by status.
-          schema:
-            $ref: "#/components/schemas/user_filter_options"
-          required: false
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence request caching behavior.
-          schema:
-            type: string
-          example: max-age=900, private
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
-      security:
-        - jwtAuth: [admin]
-      responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400": 
-          description: Bad request due to invalid query parameters.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        usersListReady:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: Users list ready callback
-              description: Server calls this endpoint when the users list is ready to be retrieved.
-              parameters:
-                - name: ETag
-                  in: header
-                  description: ETag header value representing the version of the data.
-                  schema:
-                    type: string
-                  example: W/"123456789"
-                  required: true
-                - name: Cache-Control
-                  in: header
-                  description: Cache control directives for the response.
-                  schema:
-                    type: string
-                  example: private, max-age=900
-                  required: true
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      allOf:
-                        - $ref: "#/components/schemas/async_call_response_outcome"
-                        - type: object
-                          properties:
-                            users:
-                              type: array
-                              items:
-                                $ref: "#/components/schemas/PrivateUser"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the users list.
   /users/{user_id}:
     get:
       summary: Get public and private user data by user_id
@@ -243,6 +118,10 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
         "304":
           description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
           headers:
@@ -371,6 +250,10 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
@@ -1215,13 +1098,13 @@ paths:
           in: query
           description: Sort the matches list by age, duration or number of players.
           schema:
-            $ref: "#/components/schemas/match_sorting_options"
+            $ref: "#/components/schemas/player_match_sorting_options"
           required: false
         - name: filter_options
           in: query
           description: Filter the matches list by status or leaderboard position.
           schema:
-            $ref: "#/components/schemas/user_match_filter_options"
+            $ref: "#/components/schemas/player_match_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -1348,13 +1231,13 @@ paths:
           in: query
           description: Sort the tournaments list by age, duration, or number of players.
           schema:
-            $ref: "#/components/schemas/tournament_sorting_options"
+            $ref: "#/components/schemas/player_tournament_sorting_options"
           required: false
         - name: filter_options
           in: query
           description: Filter the tournaments list by status or mode.
           schema:
-            $ref: "#/components/schemas/user_tournament_filter_options"
+            $ref: "#/components/schemas/player_tournament_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -1537,13 +1420,13 @@ paths:
           in: query
           description: Sort the users list by display name, registered_timestamp, last active.
           schema:
-            $ref: "#/components/schemas/friends_sorting_options"
+            $ref: "#/components/schemas/profile_sorting_options"
           required: false
         - name: filter_options
           in: query
           description: Filter the users list by status.
           schema:
-            $ref: "#/components/schemas/friends_filter_options"
+            $ref: "#/components/schemas/profile_filter_options"
           required: false
         - name: Cache-Control
           in: header
@@ -1691,133 +1574,6 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the friend removal result.
-  /sessions:
-    get:
-      summary: Get login status of all users
-      description: Retrieve the login status of all users.
-      x-grpc-method: GetLoginStatus
-      x-grpc-service: UserService
-      parameters:
-        - name: page
-          in: query
-          description: Page number of the results to retrieve.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
-        - name: results_per_page
-          in: query
-          description: Number of users to retrieve per page.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
-        - name: filter_options
-          in: query
-          description: Filter the users list by status.
-          schema:
-            $ref: "#/components/schemas/user_status"
-          required: false
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence caching behavior.
-          schema:
-            type: string
-          example: no-cache
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
-      security:
-        - jwtAuth: [admin]
-      responses:
-        "200":
-          description: Returns the login status of all users.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400":
-          description: Bad request due to invalid query parameters.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
-    delete:
-      summary: Disconnect all users
-      description: Logs out all users from the system.
-      x-is-async: true
-      x-grpc-method: DisconnectAllUsers
-      x-grpc-service: UserService
-      security:
-        - jwtAuth: [admin]
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
-      responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        allUsersLoggedOut:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: All users logged out callback
-              description: Server calls this endpoint when all users have been logged out successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the all users logged out result.
   /sessions/{user_id}:
     post:
       summary: User login
@@ -2062,51 +1818,6 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the match creation result.
-    delete:
-      summary: Interrupt all ongoing matches
-      description: Terminate all currently active matches and clear session data.
-      x-is-async: true
-      x-grpc-method: InterruptMatches
-      x-grpc-service: MatchService
-      security:
-        - jwtAuth: [admin]
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
-      responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        allMatchesInterrupted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: All matches interrupted callback
-              description: Server calls this endpoint when all matches have been interrupted successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the all matches interrupted result.
   /matches/{match_id}:
     post:
       summary: Join an ongoing match
@@ -2349,52 +2060,6 @@ paths:
               responses:
                 "200":
                   description: Client successfully received the tournament creation result.
-    delete:
-      #2 al giorno
-      summary: Interrupt all ongoing tournaments
-      description: Terminate all currently active tournaments and clear session data.
-      x-is-async: true
-      x-grpc-method: InterruptTournaments
-      x-grpc-service: TournamentService
-      security:
-        - jwtAuth: [admin]
-      requestBody:
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
-      responses:
-        "202":
-          description: The request has been accepted and is being processed asynchronously.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
-      callbacks:
-        allTournamentsInterrupted:
-          "{$request.body.callbackUrl}":
-            post:
-              summary: All tournaments interrupted callback
-              description: Server calls this endpoint when all tournaments have been interrupted successfully or failed.
-              requestBody:
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/async_call_response_outcome"
-                required: true
-              responses:
-                "200":
-                  description: Client successfully received the all tournaments interrupted result.
   /tournaments/{tournament_id}:
     post:
       summary: Join an ongoing tournament
@@ -2778,7 +2443,7 @@ components:
         secret:
           $ref: "#/components/schemas/totp_secret"
     
-    PublicUser:
+    UserProfile:
       description: Represents a public user profile with limited information.
       type: object
       properties: 
@@ -2796,11 +2461,11 @@ components:
           $ref: "#/components/schemas/timestamp"
       required: [user_id, display_name, avatar, status, last_active, registered_timestamp]
 
-    PrivateUser:
+    User:
       description: Represents a private user profile with additional information.
       type: object
       allOf:
-        - $ref: "#/components/schemas/PublicUser"
+        - $ref: "#/components/schemas/UserProfile"
         - properties:
             email:
               $ref: "#/components/schemas/user_email"
@@ -2874,94 +2539,58 @@ components:
             $ref: "#/components/schemas/user_id"
       required: [tournament_id, tournament_mode, matches, status, started_timestamp]
 
-    user_sorting_options:
-      description: Options to sort the users list.
-      type: string
-      enum: [display_name, email, registered_timestamp, last_active]
-      examples:
-        - value: "display_name"
-        - value: "email"
-        - value: "registered_timestamp"
-        - value: "last_active"
-
-    user_filter_options:
-      description: Options to filter the users list.
-      type: object
-      properties:
-        status:
-          $ref: "#/components/schemas/user_status"
-
-    friends_sorting_options:
-      description: Options to sort the friends list.
+    profile_sorting_options:
+      description: Options to sort the user profiles list.
       type: string
       enum: [display_name, registered_timestamp, last_active]
-      examples:
-        - value: "display_name"
-        - value: "registered_timestamp"
-        - value: "last_active"
-
-    friends_filter_options:
-      description: Options to filter the friends list.
-      type: object
-      properties:
-        status:
-          $ref: "#/components/schemas/user_status"
-
-    match_sorting_options:
-      description: Options to sort the matches list.
-      type: string
-      enum: [age, duration, number_of_players]
-      examples:
-        - value: "age"
-        - value: "duration"
-        - value: "number_of_players"
-
-    match_filter_options:
-      description: Options to filter the matches list.
-      type: object
-      properties:
-        status:
-          $ref: "#/components/schemas/match_status"
     
-    user_match_filter_options:
+    profile_filter_options:
+      description: Options to filter the user profiles list.
       type: object
-      allOf:
-        - $ref: "#/components/schemas/match_filter_options"
-        - type: object
-          properties:
-            leaderboard_position:
-              description: "Position of the user in the leaderboard. (better than)"
-              type: integer
+      properties:
+        key:
+          type: string
+          enum: [status]
+        value:
+          oneOf:
+            - $ref: "#/components/schemas/user_status"
+
+    player_match_sorting_options:
+      description: Options to sort the player's matches list.
+      type: string
+      enum: [age, duration, number_of_players, leaderboard_position]
+    
+    player_match_filter_options:
+      description: Options to filter the player's matches list.
+      type: object
+      properties:
+        key:
+          type: string
+          enum: [status, leaderboard_position]
+        value:
+          oneOf:
+            - $ref: "#/components/schemas/match_status"
+            - type: integer
               format: int32
               minimum: 1
 
-    tournament_sorting_options:
-      description: Options to sort the tournaments list.
+    player_tournament_sorting_options:
+      description: Options to sort the player's tournaments list.
       type: string
-      enum: [age, duration, number_of_players]
-      examples:
-        - value: "age"
-        - value: "duration"
-        - value: "number_of_players"
-    
-    tournament_filter_options:
-      description: Options to filter the tournaments list.
+      enum: [age, duration, number_of_players, leaderboard_position]
+
+    player_tournament_filter_options:
+      description: Options to filter the player's tournaments list.
       type: object
       properties:
-        status:
-          $ref: "#/components/schemas/tournament_status"
-        mode:
-          $ref: "#/components/schemas/tournament_mode"
-    
-    user_tournament_filter_options:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/tournament_filter_options"
-        - type: object
-          properties:
-            leaderboard_position:
-              description: "Position of the user in the leaderboard. (better than)"
-              type: integer
+        key:
+          type: string
+          enum: [mode, status, leaderboard_position]
+        value:
+          oneOf:
+            - $ref: "#/components/schemas/tournament_mode"
+            - $ref: "#/components/schemas/tournament_status"
+            - type: integer
               format: int32
               minimum: 1
     

@@ -75,8 +75,8 @@ message GetUsersResponse
     response_outcome           outcome = 1;
     optional oneof content
     {
-        repeated public_user   users_public = 2;
-        repeated private_user  users_private = 3;
+        repeated user_profile   users_public = 2;
+        repeated user  users_private = 3;
     }
 }
 
@@ -88,7 +88,7 @@ message GetUserRequest
 message GetUserResponse
 {
     response_outcome       outcome = 1;
-    optional private_user  user = 2;
+    optional user  user = 2;
 }
 
 // v1/users/{user_id} DELETE
@@ -109,7 +109,7 @@ message GetUserProfileRequest
 message GetUserProfileResponse
 {
     response_outcome      outcome = 1;
-    optional public_user  user = 2;
+    optional user_profile  user = 2;
 }
 
 // v1/users/{user_id}/profile PATCH
