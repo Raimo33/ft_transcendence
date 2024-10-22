@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 14:37:13 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/22 16:02:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,13 +19,13 @@ RUN apk add --no-cache ruby ruby-json ruby-dev build-base libffi-dev
 COPY ./app    /app
 COPY ./tools/ /usr/local/bin/
 
-RUN mkdir -p /etc/api-gateway /run/api-gateway
+RUN mkdir -p /shared /run/api-gateway
 
 RUN adduser -DHS api-gateway
-RUN chown -R api-gateway:api-gateway /app /etc/api-gateway /run/api-gateway
+RUN chown -R api-gateway:api-gateway /app /run/api-gateway
 RUN chmod +x /usr/local/bin/
 
-WORKDIR /etc/api-gateway
+WORKDIR /shared
 USER api-gateway
 EXPOSE 3000
 VOLUME ["/etc/api-gateway"]

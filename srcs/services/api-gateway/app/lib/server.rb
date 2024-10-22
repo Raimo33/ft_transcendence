@@ -7,33 +7,26 @@ require_relative 'grpc_client'
 require_relative 'response_formatter'
 require_relative 'helpers'
 
-#TODO rivedere async e come funziona
-
 class Server
-  def initialize
+  def initialize(grpc_client)
     @endpoint_tree = EndpointTreeNode.new('v1')
     @endpoint_tree.parse_swagger_file('app/config/API_swagger.yaml')
     @jwt_validator = JwtValidator.new
     @server = TCPServer.new($BIND_ADDRESS, $BIND_PORT)
+    @grpc_client = grpc_client
     @clients = []
     @responses = {}
+    @task_queue = Queue.new
+    @active_tasks = 0
   end
 
   def run
     loop do
       readable, writable, broken = IO.select([@server] + @clients, @clients, @clients)
 
-      Async do
-        _handle_readable(readable)
-      end
-
-      Async do
-        _handle_writeable(writable)
-      end
-
-      Async do
-        _handle_broken(broken)
-      end
+      queue_task { _handle_readable(readable) }
+      queue_task { _handle_writeable(writable) }
+      queue_task { _handle_broken(broken) }
     end
   end
 
@@ -43,6 +36,23 @@ class Server
   end
 
   private
+
+  def queue_task(&block)
+    if @active_tasks >= $MAX_CONCURRENT_TASKS
+      @task_queue.push(block)
+      return
+    end
+
+    @active_tasks += 1
+    Async do
+      begin
+        block.call
+      ensure
+        @active_tasks -= 1
+        process_next_task unless @task_queue.empty?
+      end
+    end
+  end
 
   def _handle_readable(readable)
     readable.each do |socket|
@@ -97,7 +107,7 @@ class Server
 
   def _handle_client_request(socket, api_method, path_params, query_params)
     headers = extract_headers(socket)
-    _check_auth(socket, api_method, headers['authorization'])
+    _check_auth(socket, api_method, headers['authorization']) if api_method.needs_auth
   
     grpc_request = # TODO transform to gRPC request
   
@@ -116,9 +126,7 @@ class Server
   end
 
   def _check_auth(socket, api_method, auth_header)
-    if api_method.auth_level != AuthLevel::NONE
-      send_error(socket, 401, 'Invalid or missing JWT token') unless check_auth_header(auth_header, @jwt_validator, api_method.auth_level)
-    end
+    send_error(socket, 401, 'Invalid or missing JWT token') unless check_auth_header(auth_header, @jwt_validator)
   end
 
 end

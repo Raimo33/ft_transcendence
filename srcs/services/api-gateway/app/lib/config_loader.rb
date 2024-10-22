@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 23:14:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/22 14:30:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ class ConfigLoader
     keycloak_certs
     jwt_cache_expiry
     jwt_algorithm
+    max_concurrent_tasks
   ].freeze
 
   def initialize
@@ -79,9 +80,11 @@ class ConfigLoader
       when 'keycloak_certs'
         $KEYCLOAK_CERTS = value
       when 'jwt_cache_expiry'
-        $JWT_CACHE_EXPIRY = value.to_i
+        $JWT_CACHE_EXPIRY = clamp(value.to_i, 1, Float::INFINITY)
       when 'jwt_algorithm'
         $JWT_ALGORITHM = value
+      when 'max_concurrent_tasks'
+        $MAX_CONCURRENT_TASKS = clamp(value.to_i, 1, Float::INFINITY)
       end
     end
   end

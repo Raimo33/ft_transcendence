@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:13 by craimond          #+#    #+#              #
-#    Updated: 2024/10/20 14:37:13 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/22 16:53:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,8 @@ begin
   config_loader = ConfigLoader.new
   config_loader.load_configs(config_dir)
 
-  server = Server.new
+  grpc_client = GrpcClient.new
+  server = Server.new(grpc_client)
 
   Signal.trap('SIGHUP') do
     begin

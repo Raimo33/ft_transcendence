@@ -19,7 +19,8 @@ services:
     secrets:
       - source: nginx-key
         target: /etc/ssl/private/nginx.key
-    
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "80:80"
       - "443:443"
@@ -38,7 +39,12 @@ services:
     container_name: redis-edge
     environment:
     volumes:
-    
+      - redis-edge_cert:/etc/ssl/certs/redis-edge.crt:ro
+    secrets:
+      - source: redis-edge_key
+        target: /etc/ssl/private/redis-edge.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "6379:6379"
     networks:
@@ -63,7 +69,18 @@ services:
       - JWT_CACHE_EXPIRY=${JWT_CACHE_EXPIRY}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
     volumes:
-      - ./services/api-gateway/conf/:etc/api-gateway/:rw
+      - ./services/api-gateway/shared/:/shared/:ro
+      - api-gateway_cert:/etc/ssl/certs/api-gateway.crt:ro
+      - user_cert:/etc/ssl/certs/user.crt:ro
+      - match_cert:/etc/ssl/certs/match.crt:ro
+      - tournament_cert:/etc/ssl/certs/tournament.crt:ro
+      - redis-edge_cert:/etc/ssl/certs/redis-edge.crt:ro
+      - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
+    secrets:
+      - source: api-gateway_key
+        target: /etc/ssl/private/api-gateway.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "3000:3000"
     networks:
@@ -85,6 +102,15 @@ services:
     container_name: user
     environment:
     volumes:
+      - user_cert:/etc/ssl/certs/user.crt:ro
+      - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
+      - query_cert:/etc/ssl/certs/query.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
+    secrets:
+      - source: user_key
+        target: /etc/ssl/private/user.key
+        uid: #TODO uid
+        mode: 0400
     
     ports:
       - 
@@ -103,7 +129,15 @@ services:
     container_name: match
     environment:
     volumes:
-    
+      - match_cert:/etc/ssl/certs/match.crt:ro
+      - game-state_cert:/etc/ssl/certs/game-state.crt:ro
+      - query_cert:/etc/ssl/certs/query.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
+    secrets:
+      - source: match_key
+        target: /etc/ssl/private/match.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -121,7 +155,15 @@ services:
     container_name: tournament
     environment:
     volumes:
-    
+      - tournament_cert:/etc/ssl/certs/tournament.crt:ro
+      - game-state_cert:/etc/ssl/certs/game-state.crt:ro
+      - query_cert:/etc/ssl/certs/query.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
+    secrets:
+      - source: tournament_key
+        target: /etc/ssl/private/tournament.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -139,7 +181,13 @@ services:
     container_name: keycloak
     environment:
     volumes:
-    
+      - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
+    secrets:
+      - source: keycloak_key
+        target: /etc/ssl/certs/keycloak.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       -
     networks:
@@ -157,7 +205,14 @@ services:
     container_name: matchmaking
     environment:
     volumes:
-    
+      - matchmaking_cert:/etc/ssl/certs/matchmaking.crt:ro
+      - ai_cert:/etc/ssl/certs/ai.crt:ro
+      - query_cert:/etc/ssl/certs/query.crt:ro
+    secrets:
+      - source: matchmaking_key
+        target: /etc/ssl/certs/matchmaking.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -175,7 +230,13 @@ services:
     container_name: game-state
     environment:
     volumes:
-    
+      - ai_cert:/etc/ssl/certs/ai.crt:ro
+      - nginx_cert:/etc/ssl/certs/nginx.crt:ro
+    secrets:
+      - source: game-state_key
+        target: /etc/ssl/certs/game-state.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -193,7 +254,13 @@ services:
     container_name: ai
     environment:
     volumes:
-    
+      - ai_cert:/etc/ssl/certs/ai.crt:ro
+      - game-state_cert:/etc/ssl/certs/game-state.crt:ro
+    secrets: 
+      - source: ai_key
+        target: /etc/ssl/certs/ai.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -211,7 +278,13 @@ services:
     container_name: query
     environment:
     volumes:
-    
+      - query_cert:/etc/ssl/certs/query.crt:ro
+      - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
+    secrets:
+      - source: query_key
+        target: /etc/ssl/certs/query.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -225,11 +298,16 @@ services:
       context: ./services/postgresql
       dockerfile: Dockerfile
       args:
-    
+
     container_name: postgresql
     environment:
     volumes:
-    
+      - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
+    secrets:
+      - source: postgresql_key
+        target: /etc/ssl/certs/postgresql.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "5432:5432"
     networks:
@@ -382,11 +460,18 @@ services:
     depends_on:
     init: true
 
+#TODO add certs
 volumes:
+  nginx-cert:
+  user_cert:
+  match_cert:
+  tournament_cert:
 
 secrets:
-  nginx-cert:
-  nginx-key:
+  nginx-key:        #real
+  user_key:         #self-signed internal
+  match_key:        #self-signed internal
+  tournament_key:   #self-signed internal
 
 networks:
   edgenet:

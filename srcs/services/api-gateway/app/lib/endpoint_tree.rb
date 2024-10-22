@@ -1,10 +1,9 @@
 class ApiMethod
-  attr_accessor :http_method, :auth_level, :grpc_message
+  attr_accessor :http_method, :needs_auth
 
-  def initialize(http_method, auth_level, grpc_message)
+  def initialize(http_method, needs_auth)
     @http_method = http_method
-    @auth_level = auth_level
-    @grpc_message = grpc_message #TODO trovare il modo di mappare method e grpc_message
+    @needs_auth = needs_auth
   end
 end
 
@@ -77,8 +76,7 @@ class EndpointTreeNode
     swagger_data['paths'].each do |path, methods|
       api_methods = methods.map do |http_method, details|
         needs_auth = details['security']
-        grpc_message = details['operationId']
-        ApiMethod.new(http_method.to_sym, auth_level, is_async, grpc_message)
+        ApiMethod.new(http_method.to_sym, needs_auth)
       end
       add_path(path, api_methods)
     end

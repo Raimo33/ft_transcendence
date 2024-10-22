@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:36 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 23:32:46 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/22 17:02:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,10 +29,10 @@ def extract_body(client, headers)
   JSON.parse(body) if body
 end
 
-def check_auth_header(auth_header, jwt_validator, required_auth_level)
+def check_auth_header(auth_header, jwt_validator)
   return false unless auth_header&.start_with?('Bearer')
   token = auth_header.split(' ')[1]
-  return false unless token && jwt_validator.validate_token(token, required_auth_level)
+  return false unless token && jwt_validator.validate_token(token)
   true
 end
 
