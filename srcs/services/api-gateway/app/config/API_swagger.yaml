@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/21 23:33:46 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/22 19:45:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -2160,6 +2160,138 @@ components:
   
   responses:
 
+    NoContent:
+      description: No content to return. The request was successful but there is no content to return.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    NotModified:
+      description: Not modified. The resource has not changed since the last request.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    BadRequest:
+      description: Bad request. The request was invalid or cannot be served.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+
+    Unauthorized:
+      description: Unauthorized. JWT token is missing or invalid.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    Forbidden:
+      description: Forbidden. The user does not have permission to perform the action.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    RequestTimeout:
+      description: Request timeout. Idle time exceeded the server's limit.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    Conflict:
+      description: Conflict. The request could not be complteed due to a conflict with the current state of the resource.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    LenghtRequired:
+      description: Length required. The request did not specify the length of its content, which is required by the requested resource.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+      
+    PreconditionFailed:
+      description: Precondition failed. The server does not meet one of the preconditions that the requester put on the request.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    ContentTooLarge:
+      description: Content too large. The request is larger than the server is willing or able to process.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    UriTooLong:
+      description: URI too long. The URI provided was too long for the server to process.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+
     TooManyRequests:
       description: Rate limit exceeded. Too many requests in a given time window.
       headers:
@@ -2171,9 +2303,9 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
         Retry-After:
           $ref: '#/components/headers/Retry-After'
-
-    Unauthorized:
-      description: Unauthorized. JWT token is missing or invalid.
+    
+    HeaderFieldsTooLarge:
+      description: Header fields too large. The server is unwilling to process the request because its header fields are too large.
       headers:
         X-Rate-Limit-Limit:
           $ref: '#/components/headers/X-Rate-Limit-Limit'
