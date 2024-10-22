@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/22 19:45:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/22 22:29:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,26 +18,21 @@ info:
 servers:
   - url: /api/v1
     description: Main API server
+security:
+  - jwtAuth: []
 paths:
   /users:
     post:
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
+      parameters:
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RegisterUser'
         required: true
-      parameters:
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       responses:
         "201":
           description: User registration successful.
@@ -50,12 +45,18 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/user_id"
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
   /users/{user_id}:
     get:
       summary: Get public and private user data by user_id
@@ -67,35 +68,14 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence request caching behavior.
-          schema:
-            type: string
-          example: no-store
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the Private User object of the specified user.
           headers:
-            ETag:
-              description: The ETag header value representing the version of the data.
-              schema:
-                type: string
-              example: W/"123456789"
-            Cache-Control:
-              description: Cache control directives for the response.
-              schema:
-                type: string
-              example: no-store
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -104,36 +84,24 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
         "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
     delete:
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
@@ -144,32 +112,17 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User account successfully deleted.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/profile:
     get:
       summary: Get user profile
@@ -181,35 +134,14 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence request caching behavior.
-          schema:
-            type: string
-          example: max-age=3600, public
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the Public User object of the specified user.
           headers:
-            ETag:
-              description: The ETag header value representing the version of the data.
-              schema:
-                type: string
-              example: W/"123456789"
-            Cache-Control:
-              description: Cache control directives for the response.
-              schema:
-                type: string
-              example: max-age=3600, public
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -218,25 +150,22 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserProfile"
+        "304":
+          $ref: '#/components/responses/NotModified'
+        "412":
+          $ref: '#/components/responses/PreconditionFailed'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge' 
     patch:
       summary: Update user profile
       description: Update the public profile of a user account.
@@ -247,14 +176,7 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
@@ -264,21 +186,18 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User profile successfully updated.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password:
     put:
       summary: Update user password
@@ -290,14 +209,7 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
@@ -307,21 +219,18 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User password successfully updated.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password/recovery:
     post:
       summary: Generate password recovery token
@@ -333,14 +242,7 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
@@ -348,19 +250,18 @@ paths:
               $ref: "#/components/schemas/user_email"
         required: true
       responses:
-          "200":
-            description: The password recovery token has been sent to the user's email address.
-            headers:
-              X-Rate-Limit-Limit:
-                $ref: '#/components/headers/X-Rate-Limit-Limit'
-              X-Rate-Limit-Remaining:
-                $ref: '#/components/headers/X-Rate-Limit-Remaining'
-              X-Rate-Limit-Reset:
-                $ref: '#/components/headers/X-Rate-Limit-Reset'
-              X-Rate-Limit-Interval:
-                $ref: '#/components/headers/X-Rate-Limit-Interval'
-          "429":
-            $ref: '#/components/responses/TooManyRequests'
+          "204":
+            $ref: '#/components/responses/NoContent'
+          "401":
+            $ref: '#/components/responses/Unauthorized'
+          "403":
+            $ref: '#/components/responses/Forbidden'
+          "411":
+            $ref: '#/components/responses/LengthRequired'
+          "413":
+            $ref: '#/components/responses/ContentTooLarge'
+          "431":
+            $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password/recovery/{token}:
     post:
       summary: Verify password recovery token
@@ -378,36 +279,22 @@ paths:
           schema:
             type: string
           required: true
-        - name: new_password
-          in: query
-          description: New password to set for the user account.
-          schema:
-            $ref: "#/components/schemas/user_psw"
-          required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/user_psw"
+        required: true
       responses:
-        "200":
-          description: The password recovery token has been verified and the user's password has been updated.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "204":
+          $ref: '#/components/responses/NoContent'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email:
     get:
       summary: Get user email
@@ -419,35 +306,14 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence request caching behavior.
-          schema:
-            type: string
-          example: max-age=3600, private
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the email address of the specified user.
           headers:
-            ETag:
-              description: The ETag header value representing the version of the data.
-              schema:
-                type: string
-              example: W/"123456789"
-            Cache-Control:
-              description: Cache control directives for the response.
-              schema:
-                type: string
-              example: max-age=3600, private
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -456,21 +322,18 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
+        "304":
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     put:
       summary: Update user email
       description: Update the email address of a user account.
@@ -481,14 +344,7 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
@@ -498,21 +354,20 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User email successfully updated.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification:
     post:
       summary: Verify email address
@@ -524,30 +379,17 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       responses:
-        "200":
-          description: A token has been sent to the user's email address for verification.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verify/{token}:
     post:
       summary: Verify email verification token
@@ -565,30 +407,13 @@ paths:
           schema:
             type: string
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       responses:
-        "200":
-          description: The email verification token has been verified and the user's email address has been confirmed.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "204":
+          $ref: '#/components/responses/NoContent'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa:
     post:
       summary: Setup two-factor authentication
@@ -600,14 +425,6 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
@@ -628,8 +445,12 @@ paths:
                 $ref: "#/components/schemas/totp_secret"
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
@@ -654,21 +475,18 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/two_factor_auth_status"
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: 2fa not enabled for the user.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
@@ -679,35 +497,21 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: Two-factor authentication successfully disabled.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/verify:
     post:
-    #verrà chiamata subito dopo il post e delete di /users/{user_id}/2fa per verificare il codice otp
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
       parameters:
@@ -717,32 +521,19 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: Two-factor authentication code successfully verified.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery:
     post:
       summary: Generate 2fa recovery token
@@ -754,34 +545,28 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/user_email"
         required: true
+      security:
+        - jwtAuth: []
       responses:
-          "200":
-            description: The 2fa recovery token has been sent to the user's email address.
-            headers:
-              X-Rate-Limit-Limit:
-                $ref: '#/components/headers/X-Rate-Limit-Limit'
-              X-Rate-Limit-Remaining:
-                $ref: '#/components/headers/X-Rate-Limit-Remaining'
-              X-Rate-Limit-Reset:
-                $ref: '#/components/headers/X-Rate-Limit-Reset'
-              X-Rate-Limit-Interval:
-                $ref: '#/components/headers/X-Rate-Limit-Interval'
-          "429":
-            $ref: '#/components/responses/TooManyRequests'
+          "204":
+            $ref: '#/components/responses/NoContent'
+          "401":
+            $ref: '#/components/responses/Unauthorized'
+          "403":
+            $ref: '#/components/responses/Forbidden'
+          "411":
+            $ref: '#/components/responses/LengthRequired'
+          "413":
+            $ref: '#/components/responses/ContentTooLarge'
+          "431":
+            $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery/{token}:
     post:
       summary: Verify 2fa recovery token
@@ -799,30 +584,13 @@ paths:
           schema:
             type: string
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       responses:
-        "200":
-          description: The 2fa recovery token has been verified and the user's 2fa has been disabled.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "204":
+          $ref: '#/components/responses/NoContent'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/matches:
     get:
       summary: Get list of user matches.
@@ -862,19 +630,8 @@ paths:
           schema:
             $ref: "#/components/schemas/player_match_filter_options"
           required: false
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence caching behavior.
-          schema:
-            type: string
-          example: max-age=300, public, must-revalidate
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
@@ -889,37 +646,24 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
-              type: array
-              items:
-                $ref: "#/components/schemas/Match"
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Match"
         "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400": 
-          description: Bad request due to invalid query parameters.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "412":
+          $ref: '#/components/responses/PreconditionFailed'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
 
   /users/{user_id}/tournaments:
     get:
@@ -960,19 +704,8 @@ paths:
           schema:
             $ref: "#/components/schemas/player_tournament_filter_options"
           required: false
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence caching behavior.
-          schema:
-            type: string
-          example: max-age=300, public, must-revalidate
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
@@ -987,37 +720,24 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
-              type: array
-              items:
-                $ref: "#/components/schemas/Tournament"
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tournament"
         "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400": 
-          description: Bad request due to invalid query parameters.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "412":
+          $ref: '#/components/responses/PreconditionFailed'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/friends:
     post:
       summary: Add a friend
@@ -1029,14 +749,7 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         required: true
         content:
@@ -1046,21 +759,20 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "201":
-          description: Friend request successfully sent.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
@@ -1099,19 +811,8 @@ paths:
           schema:
             $ref: "#/components/schemas/profile_filter_options"
           required: false
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence caching behavior.
-          schema:
-            type: string
-          example: private, no-cache
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
@@ -1126,37 +827,26 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
-              type: array
-              items:
-                $ref: "#/components/schemas/user_id"
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/user_id"
         "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "400":
-          description: Bad request due to invalid query parameters.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":  
+          $ref: '#/components/responses/Forbidden'
+        "412":
+          $ref: '#/components/responses/PreconditionFailed'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/friends/{friend_id}:
     delete:
       summary: Remove a friend
@@ -1174,32 +864,20 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: Friend successfully removed.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
+        
   /sessions/{user_id}:
     post:
       summary: User login
@@ -1211,14 +889,7 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
@@ -1237,12 +908,22 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/jwt_token"
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
@@ -1253,69 +934,34 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence caching behavior.
-          schema:
-            type: string
-          example: private, max-age=60, must-revalidate
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
         "200":
           description: Returns the login status of the user.
           headers:
-            ETag:
-              description: The ETag header value representing the version of the data.
-              schema:
-                type: string
-              example: W/"123456789"
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
             Cache-Control:
-              description: Cache control directives for the response.
-              schema:
-                type: string
-              example: private, max-age=3600, no-cache
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
         "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: User not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "412":
+          $ref: '#/components/responses/PreconditionFailed'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
       summary: User logout
       description: Logs out a specific user from the system.
@@ -1326,39 +972,26 @@ paths:
           schema:
             $ref: "#/components/schemas/user_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User successfully logged out.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
 
   /matches:
     post:
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user ID.
-      security:
-        - jwtAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
@@ -1372,11 +1005,8 @@ paths:
                       items:
                         $ref: "#/components/schemas/user_id"
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+      security:
+        - jwtAuth: []
       responses:
         "201":
           description: Match successfully created.
@@ -1389,10 +1019,24 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/match_id"
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /matches/{match_id}:
     post:
       summary: Join an ongoing match
@@ -1404,32 +1048,20 @@ paths:
           schema:
             $ref: "#/components/schemas/match_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User successfully joined the match.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
@@ -1440,68 +1072,36 @@ paths:
           schema:
             $ref: "#/components/schemas/match_id"
           required: true
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence caching behavior.
-          schema:
-            type: string
-          example: no-cache
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       responses:
         "200":
           description: Returns match information.
           headers:
-            ETag:
-              description: The ETag header value representing the version of the data.
-              schema:
-                type: string
-              example: W/"123456789"
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
             Cache-Control:
-              description: Cache control directives for the response.
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
               schema:
-                type: string
-              #response cache-control depends if the match is ongoing or completed (ongoing: no-cache, public. completed: max-age=31536000, public)
-              example: max-age=31536000, public
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+                $ref: "#/components/schemas/Match"
         "304":
-          description: Not modified. The resource has not changed since the last request with the given `If-None-Match` value.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: Match not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "412":
+          $ref: '#/components/responses/PreconditionFailed'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
@@ -1512,39 +1112,27 @@ paths:
           schema:
             $ref: "#/components/schemas/match_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User successfully abandoned the match.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
 
   /tournaments:
     post:
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
-      security:
-        - jwtAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
@@ -1560,11 +1148,8 @@ paths:
                     required: true
                     additionalProperties: false
         required: true
-        headers:
-          Content-Length:
-            $ref: '#/components/headers/Content-Length'
-          X-Callback-Url:
-            $ref: '#/components/headers/X-Callback-Url'
+      security:
+        - jwtAuth: []
       responses:
         "201":
           description: Tournament successfully created.
@@ -1583,8 +1168,14 @@ paths:
                 $ref: "#/components/schemas/tournament_id"
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /tournaments/{tournament_id}:
     post:
       summary: Join an ongoing tournament
@@ -1596,32 +1187,20 @@ paths:
           schema:
             $ref: "#/components/schemas/tournament_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
+        - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User successfully joined the tournament.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
@@ -1632,34 +1211,12 @@ paths:
           schema:
             $ref: "#/components/schemas/tournament_id"
           required: true
-        - name: Cache-Control
-          in: header
-          description: Cache control directives to influence caching behavior.
-          schema:
-            type: string
-          example: no-cache
-          required: false
-        - name: If-None-Match
-          in: header
-          description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-          schema:
-            type: string
-          required: false
+        - $ref: '#/components/parameters/Cache-Control'
+        - $ref: '#/components/parameters/If-None-Match'
       responses:
         "200":
           description: Returns match information.
           headers:
-            ETag:
-              description: The ETag header value representing the version of the data.
-              schema:
-                type: string
-              example: W/"123456789"
-            Cache-Control:
-              description: Cache control directives for the response.
-              schema:
-                type: string
-              #response cache-control depends if the tournament is ongoing or completed (ongoing: no-cache, public. completed: max-age=31536000, public)
-              example: max-age=31536000, no-cache, public
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -1668,21 +1225,22 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Reset'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tournament"
+        "304":
+          $ref: '#/components/responses/NotModified'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "404":
-          description: Tournament not found.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "412":
+          $ref: '#/components/responses/PreconditionFailed'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     patch:
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
@@ -1693,32 +1251,19 @@ paths:
           schema:
             $ref: "#/components/schemas/tournament_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: Tournament successfully started.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
@@ -1729,39 +1274,22 @@ paths:
           schema:
             $ref: "#/components/schemas/tournament_id"
           required: true
-        - name: Content-Length
-          in: header
-          description: The length of the request body in octets (8-bit bytes).
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          example: 12345
       security:
         - jwtAuth: []
       responses:
-        "200":
-          description: User successfully abandoned the tournament.
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
+        "204":
+          $ref: '#/components/responses/NoContent'
         "401":
           $ref: '#/components/responses/Unauthorized'
-        "429":
-          $ref: '#/components/responses/TooManyRequests'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
 
 components:
   schemas:
-
-###########################################################################################################
-# Generic reusable schemas                                                                                #
-###########################################################################################################
 
     user_id:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
@@ -2072,10 +1600,6 @@ components:
             - $ref: "#/components/schemas/tournament_status"
             - $ref: "#/components/schemas/player_leaderboard_position"
 
-############################################################################################################
-# Call specific schemas                                                                                    #
-############################################################################################################
-
     UpdateUserProfile:
       type: object
       properties:
@@ -2106,7 +1630,39 @@ components:
           $ref: "#/components/schemas/user_display_name"
       required: [email, password, display_name]
 
+  parameters:
+      
+    Content-Length:
+      name: Content-Length
+      in: header
+      description: The length of the request body in octets (8-bit bytes).
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+      example: 12345
+      required: true
+    
+    If-None-Match:
+      name: If-None-Match
+      in: header
+      description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
+      schema:
+        type: string
+      example: "W/\"67ab43\""
+      required: false
+    
+    Cache-Control:
+      name: Cache-Control
+      in: header
+      description: Cache control directives to influence caching behavior.
+      schema:
+        type: string
+      example: "public, max-age=3600"
+      required: false
+
   headers:
+
     X-Rate-Limit-Limit:
       description: Maximum number of requests allowed in the current window.
       schema:
@@ -2142,6 +1698,17 @@ components:
         format: int32
         minimum: 0
       example: 60
+    
+    ETag:
+      description: An identifier for a specific version of a resource.
+      schema:
+        type: string
+      example: "W/\"67ab43\""
+    Cache-Control:
+      description: Cache control directives for the response.
+      schema:
+        type: string
+      example: "public, max-age=3600"
 
     Content-Length:
       description: The length of the request body in octets (8-bit bytes).
@@ -2151,16 +1718,9 @@ components:
         minimum: 0
       example: 12345
 
-    X-Callback-Url:
-      description: The URL to which the server will send the callback request.
-      schema:
-        type: string
-        format: uri
-      example: "https://example.com/callback"
-  
   responses:
 
-    NoContent:
+    NoContent: #HTTP 204
       description: No content to return. The request was successful but there is no content to return.
       headers:
         X-Rate-Limit-Limit:
@@ -2172,7 +1732,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
     
-    NotModified:
+    NotModified: #HTTP 304
       description: Not modified. The resource has not changed since the last request.
       headers:
         X-Rate-Limit-Limit:
@@ -2183,20 +1743,8 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Reset'
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
-    
-    BadRequest:
-      description: Bad request. The request was invalid or cannot be served.
-      headers:
-        X-Rate-Limit-Limit:
-          $ref: '#/components/headers/X-Rate-Limit-Limit'
-        X-Rate-Limit-Remaining:
-          $ref: '#/components/headers/X-Rate-Limit-Remaining'
-        X-Rate-Limit-Reset:
-          $ref: '#/components/headers/X-Rate-Limit-Reset'
-        X-Rate-Limit-Interval:
-          $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    Unauthorized:
+    Unauthorized: #HTTP 401
       description: Unauthorized. JWT token is missing or invalid.
       headers:
         X-Rate-Limit-Limit:
@@ -2208,7 +1756,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
     
-    Forbidden:
+    Forbidden: #HTTP 403
       description: Forbidden. The user does not have permission to perform the action.
       headers:
         X-Rate-Limit-Limit:
@@ -2219,9 +1767,9 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Reset'
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
-    
-    RequestTimeout:
-      description: Request timeout. Idle time exceeded the server's limit.
+
+    Conflict: #HTTP 409
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource.
       headers:
         X-Rate-Limit-Limit:
           $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -2232,19 +1780,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
     
-    Conflict:
-      description: Conflict. The request could not be complteed due to a conflict with the current state of the resource.
-      headers:
-        X-Rate-Limit-Limit:
-          $ref: '#/components/headers/X-Rate-Limit-Limit'
-        X-Rate-Limit-Remaining:
-          $ref: '#/components/headers/X-Rate-Limit-Remaining'
-        X-Rate-Limit-Reset:
-          $ref: '#/components/headers/X-Rate-Limit-Reset'
-        X-Rate-Limit-Interval:
-          $ref: '#/components/headers/X-Rate-Limit-Interval'
-    
-    LenghtRequired:
+    LengthRequired: #HTTP 411
       description: Length required. The request did not specify the length of its content, which is required by the requested resource.
       headers:
         X-Rate-Limit-Limit:
@@ -2256,7 +1792,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
       
-    PreconditionFailed:
+    PreconditionFailed: #HTTP 412
       description: Precondition failed. The server does not meet one of the preconditions that the requester put on the request.
       headers:
         X-Rate-Limit-Limit:
@@ -2268,7 +1804,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
     
-    ContentTooLarge:
+    ContentTooLarge: #HTTP 413
       description: Content too large. The request is larger than the server is willing or able to process.
       headers:
         X-Rate-Limit-Limit:
@@ -2280,6 +1816,66 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
     
+    RequestHeaderFieldsTooLarge: #HTTP 431
+      description: Header fields too large. The server is unwilling to process the request because its header fields are too large.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+
+    BadRequest:
+      description: Bad request. The request was invalid or cannot be served.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    NotFound:
+      description: Not found. The requested resource could not be found.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    MethodNotAllowed:
+      description: Method not allowed. The request method is known but not supported by the target resource.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+
+    RequestTimeout:
+      description: Request timeout. Idle time has passed without any data being sent or received.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+
     UriTooLong:
       description: URI too long. The URI provided was too long for the server to process.
       headers:
@@ -2291,7 +1887,7 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Reset'
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
-
+    
     TooManyRequests:
       description: Rate limit exceeded. Too many requests in a given time window.
       headers:
@@ -2304,8 +1900,56 @@ components:
         Retry-After:
           $ref: '#/components/headers/Retry-After'
     
-    HeaderFieldsTooLarge:
-      description: Header fields too large. The server is unwilling to process the request because its header fields are too large.
+    InternalServerError:
+      description: Internal server error. The server encountered an unexpected condition that prevented it from fulfilling the request.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    NotImplemented:
+      description: Not implemented. The server does not support the method or functionality required to fulfill the request.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    BadGateway:
+      description: Bad gateway. The server received an invalid response from an upstream server.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    ServiceUnavailable:
+      description: Service unavailable. The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/X-Rate-Limit-Interval'
+    
+    GatewayTimeout:
+      description: Gateway timeout. The server did not receive a timely response from an upstream server it needed to access in order to complete the request.
       headers:
         X-Rate-Limit-Limit:
           $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -2316,12 +1960,12 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
+    ImATeaPot:
+      description: I'm a teapot. The server is a teapot, not a coffee machine.
+
   securitySchemes:
     jwtAuth:
       description: JWT used for authorization. Send the token in the `Authorization` header with the format `Bearer {token}`.
       type: http
       scheme: bearer
       bearerFormat: JWT
-
-security:
-  - jwtAuth: []
