@@ -69,6 +69,7 @@ class Server
     broken.each do |socket|
       @clients.delete(socket)
       socket.close
+      @responses.delete(socket)
       _handle_socket_error(socket)
     end
   end
