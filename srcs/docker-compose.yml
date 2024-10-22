@@ -207,6 +207,7 @@ services:
       - matchmaking_cert:/etc/ssl/certs/matchmaking.crt:ro
       - ai_cert:/etc/ssl/certs/ai.crt:ro
       - query_cert:/etc/ssl/certs/query.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
     secrets:
       - source: matchmaking_key
         target: /etc/ssl/certs/matchmaking.key
@@ -231,6 +232,7 @@ services:
     volumes:
       - ai_cert:/etc/ssl/certs/ai.crt:ro
       - nginx_cert:/etc/ssl/certs/nginx.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
     secrets:
       - source: game-state_key
         target: /etc/ssl/certs/game-state.key
@@ -255,6 +257,7 @@ services:
     volumes:
       - ai_cert:/etc/ssl/certs/ai.crt:ro
       - game-state_cert:/etc/ssl/certs/game-state.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
     secrets: 
       - source: ai_key
         target: /etc/ssl/certs/ai.key
@@ -279,6 +282,7 @@ services:
     volumes:
       - query_cert:/etc/ssl/certs/query.crt:ro
       - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
     secrets:
       - source: query_key
         target: /etc/ssl/certs/query.key
@@ -303,6 +307,7 @@ services:
       - DB_NAME=${DB_NAME}
     volumes:
       - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
     secrets:
       - source: postgresql_key
         target: /etc/ssl/certs/postgresql.key
@@ -325,7 +330,14 @@ services:
     container_name: blockchain
     environment:
     volumes:
-    
+      - blockchain_cert:/etc/ssl/certs/blockchain.crt:ro
+      - geth_cert:/etc/ssl/certs/geth.crt:ro
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
+    secrets:
+      - source: blockchain_key
+        target: /etc/ssl/certs/blockchain.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -343,7 +355,12 @@ services:
     container_name: redis
     environment:
     volumes:
-    
+      - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
+    secrets:
+      - source: redis-core_key
+        target: /etc/ssl/private/redis-core.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "6379:6379"
     networks:
@@ -361,7 +378,12 @@ services:
     container_name: geth
     environment:
     volumes:
-    
+      - geth_cert:/etc/ssl/certs/geth.crt:ro
+    secrets:
+      - source: geth_key
+        target: /etc/ssl/private/geth.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -379,7 +401,13 @@ services:
     container_name: prometheus
     environment:
     volumes:
-    
+      - prometheus_cert:/etc/ssl/certs/prometheus.crt:ro
+      - grafana_cert:/etc/ssl/certs/grafana.crt:ro
+    secrets:
+      - source: prometheus_key
+        target: /etc/ssl/private/prometheus.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "9090:9090"
     networks:
@@ -397,7 +425,12 @@ services:
     container_name: grafana
     environment:
     volumes:
-    
+      - grafana_cert:/etc/ssl/certs/grafana.crt:ro
+    secrets:
+      - source: grafana_key
+        target: /etc/ssl/private/grafana.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "3000:3000"
     networks:
@@ -415,7 +448,13 @@ services:
     container_name: logstash
     environment:
     volumes:
-    
+      - logstash_cert:/etc/ssl/certs/logstash.crt:ro
+      - elasticsearch_cert:/etc/ssl/certs/elasticsearch.crt:ro
+    secrets:
+      - source: logstash_key
+        target: /etc/ssl/private/logstash.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -433,7 +472,13 @@ services:
     container_name: elasticsearch
     environment:
     volumes:
-    
+      - elasticsearch_cert:/etc/ssl/certs/elasticsearch.crt:ro
+      - kibana_cert:/etc/ssl/certs/kibana.crt:ro
+    secrets:
+      - source: elasticsearch_key
+        target: /etc/ssl/private/elasticsearch.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - 
     networks:
@@ -451,7 +496,12 @@ services:
     container_name: kibana
     environment:
     volumes:
-    
+      - kibana_cert:/etc/ssl/certs/kibana.crt:ro
+    secrets:
+      - source: kibana_key
+        target: /etc/ssl/private/kibana.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "5601:5601"
     networks:
@@ -463,15 +513,47 @@ services:
 #TODO add certs
 volumes:
   nginx-cert:
+  redis-edge_cert:
+  api-gateway_cert:
   user_cert:
   match_cert:
   tournament_cert:
+  keycloak_cert:
+  matchmaking_cert:
+  game-state_cert:
+  ai_cert:
+  query_cert:
+  postgresql_cert:
+  blockchain_cert:
+  redis-core_cert:
+  geth_cert:
+  prometheus_cert:
+  grafana_cert:
+  logstash_cert:
+  elasticsearch_cert:
+  kibana_cert:
 
 secrets:
   nginx-key:        #real
-  user_key:         #self-signed internal
-  match_key:        #self-signed internal
-  tournament_key:   #self-signed internal
+  redis-edge_key:   #self-signed
+  api-gateway_key:  #self-signed
+  user_key:         #self-signed
+  match_key:        #self-signed
+  tournament_key:   #self-signed
+  keycloak_key:     #self-signed
+  matchmaking_key:  #self-signed
+  game-state_key:   #self-signed
+  ai_key:           #self-signed
+  query_key:        #self-signed
+  postgresql_key:   #self-signed
+  blockchain_key:   #self-signed
+  redis-core_key:   #self-signed
+  geth_key:         #self-signed
+  prometheus_key:   #self-signed
+  grafana_key:      #self-signed
+  logstash_key:     #self-signed
+  elasticsearch_key: #self-signed
+  kibana_key:       #self-signed
 
 networks:
   edgenet:
