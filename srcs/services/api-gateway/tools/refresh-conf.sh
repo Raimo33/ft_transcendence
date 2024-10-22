@@ -1,7 +1,10 @@
 #!/bin/ash
 
-PID_FILE=/run/api-gateway.pid
-PID= $(cat "$PID_FILE")
+echo "Reloading configuration"
 
-echo "Reloading api-gateway configuration"
-kill -HUP $PID
+if api-gateway -t; then
+    echo "Configuration is valid. Reloading service..."
+    api-gateway -s reload
+else
+    echo "Configuration is invalid. Not reloading service."
+fi

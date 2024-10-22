@@ -7,3 +7,7 @@ keycloak_certs   = ${KEYCLOAK_CERTS}
 
 jwt_cache_expiry = ${JWT_CACHE_EXPIRY}
 jwt_algorithm    = ${JWT_ALGORITHM}
+
+user_server_cert = /etc/ssl/certs/user.crt
+match_server_cert = /etc/ssl/certs/match.crt
+tournament_server_cert = /etc/ssl/certs/tournament.crt
