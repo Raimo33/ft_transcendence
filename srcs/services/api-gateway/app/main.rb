@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:13 by craimond          #+#    #+#              #
-#    Updated: 2024/10/22 16:53:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/22 17:21:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ require_relative 'lib/server'
 require_relative 'lib/config_loader'
 
 begin
-  config_dir = '/etc/api-gateway'
+  config_dir = '/shared/conf'
   pid_file = '/run/api-gateway.pid'
 
   File.write(pid_file, Process.pid)

@@ -5,8 +5,8 @@
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/10/22 17:31:05 by craimond         ###   ########.fr        #
+#    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
+#    Updated: 2024/10/22 17:30:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,23 +14,16 @@ FROM alpine:3.19
 
 SHELL ["/bin/ash", "-c"]
 
-RUN apk add --no-cache ruby ruby-json ruby-dev build-base libffi-dev
+RUN apk add --no-cache nginx
 
-COPY ./app    /app
-COPY ./tools/ /usr/local/bin/
+COPY --chmod=755 ./tools/ /usr/local/bin/
 
-RUN mkdir -p /shared
+WORKDIR /etc/nginx/http.d
+VOLUME ["/etc/nginx/http.d"]
+USER nginx
+EXPOSE 80 443
 
-RUN adduser -DHS api-gateway
-RUN chown -R api-gateway:api-gateway /app
-RUN chmod +x /usr/local/bin/
+ENTRYPOINT ["parse-conf", "default.conf.template"]
+CMD ["nginx", "-g", "daemon off;"]
 
-WORKDIR /shared
-VOLUME ["/etc/api-gateway"]
-USER api-gateway
-EXPOSE 3000
-
-ENTRYPOINT ["parse-conf", "conf/default.conf.template"]
-CMD ["ruby", "main.rb"]
-
-# HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD 
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-fks", "nginx.edgenet:443"]

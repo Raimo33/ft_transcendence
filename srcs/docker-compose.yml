@@ -58,7 +58,6 @@ services:
       context: ./services/api-gateway
       dockerfile: Dockerfile
       args:
-
     container_name: api-gateway
     environment:
       - API_GATEWAY_HOST=${API_GATEWAY_HOST}
@@ -301,6 +300,7 @@ services:
 
     container_name: postgresql
     environment:
+      - DB_NAME=${DB_NAME}
     volumes:
       - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
     secrets:
