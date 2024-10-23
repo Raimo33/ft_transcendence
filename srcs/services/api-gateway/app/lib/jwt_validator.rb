@@ -22,14 +22,6 @@ class JwtValidator
     @last_fetched = Time.now
     @public_key
 
-  rescue Net::HTTPError => e
-    STDERR.puts "Error fetching public key: #{e.message}"
-  rescue JSON::ParserError => e
-    STDERR.puts "Error parsing public key: #{e.message}"
-  rescue StandardError => e
-    STDERR.puts "Unexpected error: #{e.message}"
-
-    nil
   end
 
   def validate_token(token)
@@ -45,11 +37,6 @@ class JwtValidator
     public_key = fetch_public_key
     decoded_token = JWT.decode(token, public_key, true, { algorithm: $JWT_ALGORITHM })
     decoded_token
-
-  rescue JWT::DecodeError => e
-    STDERR.puts "Error decoding token: #{e.message}"
-  rescue StandardError => e
-    STDERR.puts "Unexpected error: #{e.message}"
 
     nil
   end

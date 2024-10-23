@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/22 14:30:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/23 21:53:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,30 +23,21 @@ class ConfigLoader
     max_concurrent_tasks
   ].freeze
 
-  def initialize
+  def initialize(config_file)
+    @config_file = config_file
     @config = {}
   end
 
-  def load_configs(config_dir)
-    needs_restart = false
+  def load_config
+    validate_config_file(config_file)
+    @config = parse_config_file(config_file)
 
-    Dir.glob("#{config_dir}/*.conf").each do |config_file|
-      begin
-        validate_config_file(config_file)
-        new_config = parse_config_file(config_file)
-        needs_restart ||= (new_config['bind_address'] != @config['bind_address'] || new_config['bind_port'] != @config['bind_port'])
-        @config.merge!(new_config)
-      rescue StandardError => e
-        STDERR.puts "Error loading config from file '#{config_file}': #{e.message}. Skipping."
-      end
-    end
-    
     apply_config
-    needs_restart
   end
 
   private
 
+  #TODO better config validation, account for comments and empty lines
   def validate_config_file(file_path)
     raise "Invalid file extension" unless File.extname(file_path) == '.conf'
 

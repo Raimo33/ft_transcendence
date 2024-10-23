@@ -5,50 +5,16 @@
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/20 08:33:13 by craimond          #+#    #+#              #
-#    Updated: 2024/10/22 17:21:33 by craimond         ###   ########.fr        #
+#    Created: 2024/10/23 20:40:44 by craimond          #+#    #+#              #
+#    Updated: 2024/10/23 21:30:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative 'lib/server'
-require_relative 'lib/config_loader'
+require_relative 'lib/api_gateway'
 
 begin
-  config_dir = '/shared/conf'
-  pid_file = '/run/api-gateway.pid'
-
-  File.write(pid_file, Process.pid)
-  config_loader = ConfigLoader.new
-  config_loader.load_configs(config_dir)
-
-  grpc_client = GrpcClient.new
-  server = Server.new(grpc_client)
-
-  Signal.trap('SIGHUP') do
-    begin
-      if config_loader.load_configs(config_dir)
-        server.stop
-        server = Server.new
-        server.run
-      end
-    rescue StandardError => e
-      STDERR.puts "Error reloading configuration: #{e.message}"
-    end
-  end
-
-  Signal.trap('SIGTERM') do
-    begin
-      server.stop
-      exit 0
-    rescue StandardError => e
-      STDERR.puts "Error during shutdown: #{e.message}"
-      exit 1
-    end
-  end
-
-  server.run
-
-rescue => e
-  STDERR.puts "Fatal Error: #{e.message}"
-  exit 1
-end
+  config_file = ARGV[0] || '/etc/api-gateway/conf.d/default.conf'
+  api_gateway = APIGateway.new(config_file)
+  api_gateway.start_master
+rescue StandardError => e
+  STDERR.puts "Fatal error: #{e.message}"
