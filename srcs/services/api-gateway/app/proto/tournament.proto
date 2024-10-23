@@ -37,7 +37,7 @@ message GetUserTournamentsRequest
     string                                              user_id = 1;
     optional uint32                                     page = 2;
     optional uint32                                     results_per_page = 3;
-    optional repeated player_tournament_sorting_options sorting_options = 4;
+    optional repeated player_tournament_sorting_options sorting = 4;
     optional player_tournament_filters                  filters = 5;
 }
 message GetUserTournamentsResponse

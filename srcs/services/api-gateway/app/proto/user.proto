@@ -81,12 +81,12 @@ message DeleteUserResponse
 // v1/users/{user_id}/profile GET
 message GetUserProfileRequest
 {
-    string user_id = 1;
+    repeated string user_ids = 1;
 }
 message GetUserProfileResponse
 {
-    response_outcome      outcome = 1;
-    optional user_profile  user = 2;
+    response_outcome                outcome = 1;
+    optional repeated user_profile  user_profiles = 2;
 }
 
 // v1/users/{user_id}/profile PATCH
