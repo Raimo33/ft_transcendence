@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/23 16:38:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/23 17:52:14 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterUser'
+              type: object
+              properties:
+                email:
+                  $ref: "#/components/schemas/user_email"
+                password:
+                  $ref: "#/components/schemas/user_psw"
+                display_name:
+                  $ref: "#/components/schemas/user_display_name"
+              required: [email, password, display_name]
         required: true
       responses:
         "201":
@@ -62,12 +70,7 @@ paths:
       summary: Get public and private user data by user_id
       description: Retrieve detailed information of a specific user using their unique user_id.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to retrieve.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
@@ -106,12 +109,7 @@ paths:
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to delete.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:
@@ -128,19 +126,14 @@ paths:
       summary: Get user profile
       description: Retrieve the public profile of a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to retrieve profile from.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id_serialized'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
         "200":
-          description: Returns the Public User object of the specified user.
+          description: Returns an array of public user profiles.
           headers:
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
@@ -157,7 +150,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserProfile"
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProfile"
         "304":
           $ref: '#/components/responses/NotModified'
         "412":
@@ -170,18 +165,19 @@ paths:
       summary: Update user profile
       description: Update the public profile of a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to update profile for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateUserProfile"
+              type: object
+              properties:
+                display_name:
+                  $ref: "#/components/schemas/user_display_name"
+                avatar:
+                  $ref: "#/components/schemas/user_avatar"
+              required: []
         required: true
       security:
         - jwtAuth: []
@@ -203,18 +199,19 @@ paths:
       summary: Update user password
       description: Update the password of a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to update password for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateUserPassword"
+              type: object
+              properties:
+                current_password:
+                  $ref: "#/components/schemas/user_psw"
+                new_password:
+                  $ref: "#/components/schemas/user_psw"
+              required: [current_password, new_password]
         required: true
       security:
         - jwtAuth: []
@@ -236,12 +233,7 @@ paths:
       summary: Generate password recovery token
       description: Generate and send a password recovery token to the user via email.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to recover password for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
@@ -267,18 +259,8 @@ paths:
       summary: Verify password recovery token
       description: Verify the password recovery token provided by the user.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to verify password recovery token for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: token
-          in: path
-          description: Password recovery token provided by the user.
-          schema:
-            type: string
-          required: true
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/token'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
@@ -300,12 +282,7 @@ paths:
       summary: Get user email
       description: Retrieve the email address of a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to retrieve email from.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
@@ -338,12 +315,7 @@ paths:
       summary: Update user email
       description: Update the email address of a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to update email for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
@@ -370,15 +342,10 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification:
     post:
-      summary: Verify email address
-      description: Verify the email address of a user account.
+      summary: Generate email verification token
+      description: Receive via email the verification token to be provided in the next request.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to verify email for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
       responses:
         "204":
           $ref: '#/components/responses/NoContent'
@@ -390,23 +357,13 @@ paths:
           $ref: '#/components/responses/Conflict'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-  /users/{user_id}/email/verify/{token}:
+  /users/{user_id}/email/verification/{token}:
     post:
       summary: Verify email verification token
       description: Verify the email verification token provided by the user.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to verify email verification token for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: token
-          in: path
-          description: Email verification token provided by the user.
-          schema:
-            type: string
-          required: true
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/token'
       responses:
         "204":
           $ref: '#/components/responses/NoContent'
@@ -419,12 +376,7 @@ paths:
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to enable 2fa.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:
@@ -455,12 +407,7 @@ paths:
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to retrieve 2fa status from.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:
@@ -491,12 +438,7 @@ paths:
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to disable 2fa.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:
@@ -510,17 +452,12 @@ paths:
           $ref: '#/components/responses/Conflict'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-  /users/{user_id}/2fa/verify:
+  /users/{user_id}/2fa/verification:
     post:
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to verify 2fa code for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:
@@ -537,14 +474,9 @@ paths:
   /users/{user_id}/2fa/recovery:
     post:
       summary: Generate 2fa recovery token
-      description: Generate and send 2fa recovery token to the user via email.
+      description: Generate and send via email the recovery token to be provided in the next request.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to recover 2fa for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
@@ -572,18 +504,8 @@ paths:
       summary: Verify 2fa recovery token
       description: Verify the 2fa recovery token provided by the user.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to verify 2fa recovery token for.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: token
-          in: path
-          description: 2fa recovery token provided by the user.
-          schema:
-            type: string
-          required: true
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/token'
       responses:
         "204":
           $ref: '#/components/responses/NoContent'
@@ -596,28 +518,9 @@ paths:
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to retrieve data from.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: page
-          in: query
-          description: Page number of the results to retrieve.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
-        - name: results_per_page
-          in: query
-          description: Number of matches to retrieve per page.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
         - $ref: '#/components/parameters/player_match_sorting_options'
         - $ref: '#/components/parameters/player_match_filter_options'
         - $ref: '#/components/parameters/Cache-Control'
@@ -660,28 +563,9 @@ paths:
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to retrieve data from.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: page
-          in: query
-          description: Page number of the results to retrieve.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
-        - name: results_per_page
-          in: query
-          description: Number of tournaments to retrieve per page.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
         - $ref: '#/components/parameters/player_tournament_sorting_options'
         - $ref: '#/components/parameters/player_tournament_filter_options'
         - $ref: '#/components/parameters/Cache-Control'
@@ -723,12 +607,7 @@ paths:
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user adding a friend.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         required: true
@@ -757,28 +636,9 @@ paths:
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to retrieve friends from.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: page
-          in: query
-          description: Page number of the results to retrieve.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
-        - name: results_per_page
-          in: query
-          description: Number of friends to retrieve per page.
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          required: true
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
         - $ref: '#/components/parameters/profile_sorting_options'
         - $ref: '#/components/parameters/profile_filter_options'
         - $ref: '#/components/parameters/Cache-Control'
@@ -822,18 +682,8 @@ paths:
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user removing a friend.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
-        - name: friend_id
-          in: path
-          description: Unique identifier of the friend to remove.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/friend_id'
       security:
         - jwtAuth: []
       responses:
@@ -853,12 +703,7 @@ paths:
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user attempting to log in.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
@@ -898,12 +743,7 @@ paths:
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to check.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
@@ -936,12 +776,7 @@ paths:
       summary: User logout
       description: Logs out a specific user from the system.
       parameters:
-        - name: user_id
-          in: path
-          description: Unique identifier of the user to log out.
-          schema:
-            $ref: "#/components/schemas/user_id"
-          required: true
+        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:
@@ -1012,12 +847,7 @@ paths:
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
       parameters:
-        - name: match_id
-          in: path
-          description: Unique identifier of the match to join.
-          schema:
-            $ref: "#/components/schemas/match_id"
-          required: true
+        - $ref: '#/components/parameters/match_id'
         - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
@@ -1036,12 +866,7 @@ paths:
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
       parameters:
-        - name: match_id
-          in: path
-          description: Unique identifier of the match to retrieve information for.
-          schema:
-            $ref: "#/components/schemas/match_id"
-          required: true
+        - $ref: '#/components/parameters/match_id'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       responses:
@@ -1076,12 +901,7 @@ paths:
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
       parameters:
-        - name: match_id
-          in: path
-          description: Unique identifier of the match to abandon.
-          schema:
-            $ref: "#/components/schemas/match_id"
-          required: true
+        - $ref: '#/components/parameters/match_id'
         - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
@@ -1151,12 +971,7 @@ paths:
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       parameters:
-        - name: tournament_id
-          in: path
-          description: Unique identifier of the tournament to join.
-          schema:
-            $ref: "#/components/schemas/tournament_id"
-          required: true
+        - $ref: '#/components/parameters/tournament_id'
         - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
@@ -1175,12 +990,7 @@ paths:
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
       parameters:
-        - name: tournament_id
-          in: path
-          description: Unique identifier of the tournament to retrieve information for.
-          schema:
-            $ref: "#/components/schemas/tournament_id"
-          required: true
+        - $ref: '#/components/parameters/tournament_id'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       responses:
@@ -1215,12 +1025,7 @@ paths:
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
       parameters:
-        - name: tournament_id
-          in: path
-          description: Unique identifier of the tournament to start.
-          schema:
-            $ref: "#/components/schemas/tournament_id"
-          required: true
+        - $ref: '#/components/parameters/tournament_id'
       security:
         - jwtAuth: []
       responses:
@@ -1238,12 +1043,7 @@ paths:
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:
-        - name: tournament_id
-          in: path
-          description: Unique identifier of the tournament to abandon.
-          schema:
-            $ref: "#/components/schemas/tournament_id"
-          required: true
+        - $ref: '#/components/parameters/tournament_id'
       security:
         - jwtAuth: []
       responses:
@@ -1522,39 +1322,64 @@ components:
             $ref: "#/components/schemas/user_id"
       required: [tournament_id, tournament_mode, matches, status, started_timestamp]
 
-    # Call-specific schemas
-
-    UpdateUserProfile:
-      type: object
-      properties:
-        display_name:
-          $ref: "#/components/schemas/user_display_name"
-        avatar:
-          $ref: "#/components/schemas/user_avatar"
-      required: []
-
-    UpdateUserPassword:
-      type: object
-      properties:
-        current_password:
-          $ref: "#/components/schemas/user_psw"
-        new_password:
-          $ref: "#/components/schemas/user_psw"
-      required: [current_password, new_password]
-
-    RegisterUser:
-      type: object
-      properties:
-        email:
-          $ref: "#/components/schemas/user_email"
-        password:
-          $ref: "#/components/schemas/user_psw"
-        display_name:
-          $ref: "#/components/schemas/user_display_name"
-      required: [email, password, display_name]
-
   parameters:
-      
+
+    #######################################################
+    #                   Path Parameters                   #
+    #######################################################
+
+    user_id:
+      description: Unique identifier of the user.
+      name: user_id
+      in: path
+      schema:
+        $ref: "#/components/schemas/user_id"
+      required: true
+    user_id_serialized:
+      description: comma separated list of user ids
+      name: user_id
+      in: path
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/user_id"
+      style: simple
+      explode: false
+      required: true
+    match_id:
+      description: Unique identifier of the match.
+      name: match_id
+      in: path
+      schema:
+        $ref: "#/components/schemas/match_id"
+      required: true
+    tournament_id:
+      description: Unique identifier of the tournament.
+      name: tournament_id
+      in: path
+      schema:
+        $ref: "#/components/schemas/tournament_id"
+      required: true
+    friend_id:
+      description: Unique identifier of the friend.
+      name: friend_id
+      in: path
+      schema:
+        $ref: "#/components/schemas/user_id"
+      required: true
+    
+    token:
+      description: verification token for credentials recovery/validation
+      name: token
+      in: path
+      schema:
+        type: string
+      required: true
+
+    #######################################################
+    #                     Headers                         #
+    #######################################################
+
     Content-Length:
       description: The length of the request body in octets (8-bit bytes).
       name: Content-Length
@@ -1583,6 +1408,10 @@ components:
         type: string
       example: "public, max-age=3600"
       required: false
+
+    #######################################################
+    #                   Query Parameters                  #
+    #######################################################
 
     profile_sorting_options:
       description: Options to sort the user profiles list.
@@ -1648,7 +1477,6 @@ components:
       style: form
       explode: false
       required: false
-
     player_tournament_filter_options:
       description: Options to filter the player's tournaments list.
       name: filters
@@ -1662,6 +1490,25 @@ components:
             $ref: "#/components/schemas/tournament_status"
           leaderboard_position:
             $ref: "#/components/schemas/player_leaderboard_position"
+    
+    limit:
+      description: Maximum number of items to return.
+      name: limit
+      in: query
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+      required: false
+    offset:
+      description: Number of items to skip.
+      name: offset
+      in: query
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+      required: false
 
   headers:
 
@@ -1842,7 +1689,9 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    #Generic responses that could be used for any endpoint
+    #######################################################
+    #                 Generic Responses                   #
+    #######################################################
 
     NotFound:
       description: Not found. The requested resource could not be found.
