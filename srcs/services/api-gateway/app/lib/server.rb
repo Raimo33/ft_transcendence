@@ -109,6 +109,8 @@ class Server
     headers = extract_headers(socket)
     _check_auth(socket, api_method, headers['authorization']) if api_method.needs_auth
   
+    #TODO gestire serialization di path_params e query_params
+
     grpc_request = # TODO transform to gRPC request
   
     # Use an asynchronous block to handle the gRPC request

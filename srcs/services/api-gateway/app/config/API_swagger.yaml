@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/22 22:29:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/23 16:38:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -618,18 +618,8 @@ paths:
             format: int32
             minimum: 1
           required: true
-        - name: sorting_options
-          in: query
-          description: Sort the matches list by age, duration or number of players.
-          schema:
-            $ref: "#/components/schemas/player_match_sorting_options"
-          required: false
-        - name: filter_options
-          in: query
-          description: Filter the matches list by status or leaderboard position.
-          schema:
-            $ref: "#/components/schemas/player_match_filter_options"
-          required: false
+        - $ref: '#/components/parameters/player_match_sorting_options'
+        - $ref: '#/components/parameters/player_match_filter_options'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
@@ -692,18 +682,8 @@ paths:
             format: int32
             minimum: 1
           required: true
-        - name: sorting_options
-          in: query
-          description: Sort the tournaments list by age, duration, or number of players.
-          schema:
-            $ref: "#/components/schemas/player_tournament_sorting_options"
-          required: false
-        - name: filter_options
-          in: query
-          description: Filter the tournaments list by status or mode.
-          schema:
-            $ref: "#/components/schemas/player_tournament_filter_options"
-          required: false
+        - $ref: '#/components/parameters/player_tournament_sorting_options'
+        - $ref: '#/components/parameters/player_tournament_filter_options'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
@@ -799,18 +779,8 @@ paths:
             format: int32
             minimum: 1
           required: true
-        - name: sorting_options
-          in: query
-          description: Sort the users list by display name, registered_timestamp, last active.
-          schema:
-            $ref: "#/components/schemas/profile_sorting_options"
-          required: false
-        - name: filter_options
-          in: query
-          description: Filter the users list by status.
-          schema:
-            $ref: "#/components/schemas/profile_filter_options"
-          required: false
+        - $ref: '#/components/parameters/profile_sorting_options'
+        - $ref: '#/components/parameters/profile_filter_options'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
@@ -1552,53 +1522,7 @@ components:
             $ref: "#/components/schemas/user_id"
       required: [tournament_id, tournament_mode, matches, status, started_timestamp]
 
-    profile_sorting_options:
-      description: Options to sort the user profiles list.
-      type: string
-      enum: [display_name, registered_timestamp, last_active]
-    profile_filter_options:
-      description: Options to filter the user profiles list.
-      type: object
-      properties:
-        key:
-          type: string
-          enum: [status]
-        value:
-          oneOf:
-            - $ref: "#/components/schemas/user_status"
-
-    player_match_sorting_options:
-      description: Options to sort the player's matches list.
-      type: string
-      enum: [age, duration, number_of_players, leaderboard_position]
-    player_match_filter_options:
-      description: Options to filter the player's matches list.
-      type: object
-      properties:
-        key:
-          type: string
-          enum: [status, leaderboard_position]
-        value:
-          oneOf:
-            - $ref: "#/components/schemas/match_status"
-            - $ref: "#/components/schemas/player_leaderboard_position"
-
-    player_tournament_sorting_options:
-      description: Options to sort the player's tournaments list.
-      type: string
-      enum: [age, duration, number_of_players, leaderboard_position]
-    player_tournament_filter_options:
-      description: Options to filter the player's tournaments list.
-      type: object
-      properties:
-        key:
-          type: string
-          enum: [mode, status, leaderboard_position]
-        value:
-          oneOf:
-            - $ref: "#/components/schemas/tournament_mode"
-            - $ref: "#/components/schemas/tournament_status"
-            - $ref: "#/components/schemas/player_leaderboard_position"
+    # Call-specific schemas
 
     UpdateUserProfile:
       type: object
@@ -1620,7 +1544,6 @@ components:
 
     RegisterUser:
       type: object
-      description: Data for registering a new user.
       properties:
         email:
           $ref: "#/components/schemas/user_email"
@@ -1633,9 +1556,9 @@ components:
   parameters:
       
     Content-Length:
+      description: The length of the request body in octets (8-bit bytes).
       name: Content-Length
       in: header
-      description: The length of the request body in octets (8-bit bytes).
       schema:
         type: integer
         format: int32
@@ -1644,22 +1567,101 @@ components:
       required: true
     
     If-None-Match:
+      description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
       name: If-None-Match
       in: header
-      description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
       schema:
         type: string
       example: "W/\"67ab43\""
       required: false
     
     Cache-Control:
+      description: Cache control directives to influence caching behavior.
       name: Cache-Control
       in: header
-      description: Cache control directives to influence caching behavior.
       schema:
         type: string
       example: "public, max-age=3600"
       required: false
+
+    profile_sorting_options:
+      description: Options to sort the user profiles list.
+      name: sort
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [display_name, registered_timestamp, last_active]
+      style: form
+      explode: false
+      required: false
+    profile_filter_options:
+      description: Options to filter the user profiles list.
+      name: filters
+      in: query
+      schema:
+        type: object
+        properties:
+          status:
+            $ref: "#/components/schemas/user_status"
+      style: deepObject
+      explode: true
+      required: false
+      
+    player_match_sorting_options:
+      description: Options to sort the player's matches list.
+      name: sort
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [age, duration, number_of_players, leaderboard_position]
+      style: form
+      explode: false
+      required: false
+    player_match_filter_options:
+      description: Options to filter the player's matches list.
+      name: filters
+      in: query
+      schema:
+        type: object
+        properties:
+          status:
+            $ref: "#/components/schemas/match_status"
+          leaderboard_position:
+            $ref: "#/components/schemas/player_leaderboard_position"
+      style: deepObject
+      explode: true
+      required: false
+    
+    player_tournament_sorting_options:
+      description: Options to sort the player's tournaments list.
+      name: sort
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [age, duration, number_of_players, leaderboard_position]
+      style: form
+      explode: false
+      required: false
+
+    player_tournament_filter_options:
+      description: Options to filter the player's tournaments list.
+      name: filters
+      in: query
+      schema:
+        type: object
+        properties:
+          mode:
+            $ref: "#/components/schemas/tournament_mode"
+          status:
+            $ref: "#/components/schemas/tournament_status"
+          leaderboard_position:
+            $ref: "#/components/schemas/player_leaderboard_position"
 
   headers:
 
@@ -1839,7 +1841,9 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Reset'
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
-    
+
+    #Generic responses that could be used for any endpoint
+
     NotFound:
       description: Not found. The requested resource could not be found.
       headers:
