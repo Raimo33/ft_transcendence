@@ -8,12 +8,6 @@ services:
     
     container_name: nginx
     environment:
-      - DOMAIN_NAME=${DOMAIN_NAME}
-      - NGINX_PORT=${NGINX_PORT}
-      - API_GATEWAY_HOST=${API_GATEWAY_HOST}
-      - API_GATEWAY_PORT=${API_GATEWAY_PORT}
-      - LIMITER_MEM_SIZE=${LIMITER_MEM_SIZE}
-      - LIMITER_RATE=${LIMITER_RATE}
     volumes:
       - nginx-cert:/etc/ssl/certs
     secrets:
@@ -60,13 +54,6 @@ services:
       args:
     container_name: api-gateway
     environment:
-      - API_GATEWAY_HOST=${API_GATEWAY_HOST}
-      - API_GATEWAY_PORT=${API_GATEWAY_PORT}
-      - KEYCLOAK_HOST=${KEYCLOAK_HOST}
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
-      - KEYCLOAK_CERTS=${KEYCLOAK_CERTS}
-      - JWT_CACHE_EXPIRY=${JWT_CACHE_EXPIRY}
-      - JWT_ALGORITHM=${JWT_ALGORITHM}
     volumes:
       - ./services/api-gateway/shared/:/shared/:ro
       - api-gateway_cert:/etc/ssl/certs/api-gateway.crt:ro

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/10/23 21:52:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/23 22:00:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache ruby ruby-json ruby-dev build-base libffi-dev
 
-RUN mkdir -p /shared /etc/api-gateway/conf.d
+RUN mkdir -p /etc/api-gateway/conf.d
 
 COPY ./app                   /app
 COPY ./build/default.conf    /etc/api-gateway/conf.d/
@@ -27,8 +27,7 @@ RUN adduser -DHS api-gateway
 RUN chown -R api-gateway:api-gateway /app
 RUN chmod +x /usr/local/bin/
 
-WORKDIR /shared
-VOLUME ["/shared"]
+WORKDIR /etc/api-gateway/conf.d/
 USER api-gateway
 EXPOSE 3000
 
@@ -37,7 +36,9 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["cur
 
 FROM official as pongfumasters
 
-RUN envsubst < ./conf/api-gateway.conf.template > ./conf/api-gateway.conf
-RUN rm -f ./conf/api-gateway.conf.template
+RUN mkdir -p /shared
 
-CMD ["-c", "./conf/api-gateway.conf"]
+WORKDIR /shared
+VOLUME ["/shared"]
+
+CMD ["-c", "/shared/conf/api-gateway.conf"]
