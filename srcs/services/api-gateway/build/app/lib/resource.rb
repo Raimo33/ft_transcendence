@@ -1,24 +1,25 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    api_request.rb                                     :+:      :+:    :+:    #
+#    resource.rb                                        :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 16:22:25 by craimond          #+#    #+#              #
-#    Updated: 2024/10/24 16:41:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/24 20:50:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 #acts as a Blueprint for API requests
 class APIRequest
   attr_accessor :http_method,             # (e.g., :get, :post)
-                :auth_required,              # boolean
+                :auth_required,           # boolean
                 :grpc_service,            # identical to service name in proto file (e.g., "UserService") 
                 :grpc_call,               # identical to method name in proto file (e.g., "GetUser")
                 :path_template,           # Original path with parameters (e.g., "/users/{id}/posts")
                 :path_params,             # Array of parameter names from path (e.g., ["id"])
-                :query_params,            # Hash of query parameters
+                :allowed_query_params,    # Hash of query parameters
+                :allowed_headers,         # Array of allowed headers
                 :request_body_type,       # Hash of request body type
                 :response_body_type,      # Hash of response body type
                 :grpc_request_type,       # Hash of gRPC request message type

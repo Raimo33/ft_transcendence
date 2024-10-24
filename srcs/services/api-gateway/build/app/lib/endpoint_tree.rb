@@ -6,20 +6,20 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/10/24 16:41:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/24 19:23:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 class EndpointTreeNode
-  attr_accessor :part, :children, :api_requests
+  attr_accessor :part, :children, :resources
 
   def initialize(part)
     @part = part
     @children = {}
-    @api_requests = {}
+    @resources = {}
   end
 
-  def add_path(path, api_requests)
+  def add_path(path, resources)
     parts = path.split('/').reject(&:empty?)
     current_node = self
 
@@ -28,8 +28,8 @@ class EndpointTreeNode
       current_node = current_node.children[part]
     end
 
-    api_requests.each do |endpoint|
-      current_node.api_requests[endpoint.http_method] = endpoint
+    resources.each do |endpoint|
+      current_node.resources[endpoint.http_method] = endpoint
     end
   end
 
@@ -55,12 +55,12 @@ class EndpointTreeNode
     require 'yaml'
 
     swagger_data = YAML.load_file(file_path)
-    swagger_data['paths'].each do |path, api_requests|
-      api_requests = api_requests.map do |http_method, details|
+    swagger_data['paths'].each do |path, resources|
+      resources = resources.map do |http_method, details|
         auth_required = details['security']
         APIRequest.new(http_method.to_sym, auth_required)
       end
-      add_path(path, api_requests)
+      add_path(path, resources)
     end
 
   rescue ERRNO::ENOENT => e

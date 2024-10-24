@@ -1,12 +1,12 @@
 #TODO add requires
 
-class AsyncServer
+class Server
   def initialize(grpc_client)
     @endpoint_tree = EndpointTreeNode.new('v1')
     @endpoint_tree.parse_swagger_file('app/config/API_swagger.yaml')
     @jwt_validator = JwtValidator.new
     @grpc_client = grpc_client
-    @connection_limit = Async::Semaphore.new($CONNECTION_LIMIT)
+    @connection_limit = Async::Semaphore.new($MAX_CONNECTIONS)
     @request_queue = Async::Queue.new
   end
 
@@ -17,7 +17,7 @@ class AsyncServer
       task.async do
         process_requests
       end
-      
+
       endpoint.accept do |client|
         handle_client(client)
       end
@@ -26,51 +26,18 @@ class AsyncServer
 
   private
 
-    def handle_client(client)
+    def _handle_client(client)
       Async do |subtask|
         @connection_limit.acquire do
-          stream = Async::IO::Stream.new(client)
-          
-          while request = read_request(stream)
-            method, full_path, headers = parse_request(request)
+          socket_stream = Async::IO::Stream.new(client)
+          buffer = Async::IO::Buffer.new
 
-            path, query_string = full_path.split('?')
-            endpoint_node = @endpoint_tree.find_path(path)
-            if !endpoint_node
-              send_error(stream, 404)
-              next
-            end
-
-            api_request = endpoint_node&.endpoint_data&.[](method)
-            if !api_request
-              send_error(stream, 405)
-              next
-            end
-
-            if api_request.auth_required
-              #TODO: Implement JWT validation
-
-            content_length = headers['content-length']&.to_i
-            if content_length.nil? || content_length < 0
-              send_error(stream, 411)
-              next
-            end
-
-            if content_length > $MAX_BODY_SIZE
-              send_error(stream, 413)
-              next
-            end
-
-            @request_queue << {
-              stream: stream,
-              api_request: api_request, 
-              path: path,
-              query_string: query_string,
-              headers: headers
-            }
-
+          loop do #TODO blocking operation, capire se si puo rendere async anche se legge dallo stesso stream
+            request, buffer = _read_request(socket_stream, buffer)
+            @request_queue.enqueue(request)
           end
         end
+
       rescue EOFError, Async::Wrapper::Cancelled
         # TODO Handle client disconnection
       ensure
@@ -78,62 +45,77 @@ class AsyncServer
       end
     end
 
-  def process_requests
+  def _process_requests
     loop do
       Async do
         request = @request_queue.dequeue
-        process_single_request(request)
+        _process_single_request(request)
       end
     end
   end
 
-  def process_single_request(request)
+  def _process_single_request(request)
     Async do
-      stream = request[:stream]
-      api_request = request[:api_request]
-
-      
       begin
-        
-        body_task = subtask.async do
-            extract_body(stream, content_length)
-          end
+        method, path, query, headers_raw, body_raw = _parse_request(request)
+
+        endpoint_node = @endpoint_tree.find_path(path)
+        return _send_error(socket_stream, 404) unless endpoint_node
+
+        resource = endpoint_node&.endpoint_data&.[](method)
+        return _send_error(socket_stream, 405) unless resource
+
+        headers = parse_headers(resource.allowed_headers, headers_raw)
+        if resource.auth_required
+          auth_header = headers['authorization']
+          return _send_error(socket_stream, 400) unless auth_header&.start_with?('Bearer ')
+          token = auth_header.split(' ')[1]
+          return _send_error(socket_stream, 401) unless jwt_validator.validate(token)
+        end
+        if resource.request_body_type
+          content_length = headers['content-length']&.to_i
+          return _send_error(socket_stream, 411) unless content_length
+          return _send_error(socket_stream, 413) unless content_length.between?(0, $MAX_BODY_SIZE)
+          body = parse_body(resource.request_body_type, body_raw, content_length)
+        end
+        else
+          body = nil
         end
 
-        path_params = parse_path_params(api_request.path_template, request[:path]) #TODO, valutare se includerla in qualche classe
-        query_params = parse_query_params(api_request.query_params, request[:query_string]) #TODO, valutare se includerla in qualche classe
-        body = body_task.wait
+        path_params = _parse_path_params(resource.path_params, path)
+        query_params = _parse_query_params(resource.query_params, query)
 
-        grpc_request = api_request.map_to_grpc_request(
+        grpc_request = resource.map_to_grpc_request(path_params, query_params, body)
         grpc_response = await_grpc_call(api_method, grpc_request)
-        rest_response = api_request.map_to_rest_response(grpc_response)
+        rest_response = resource.map_to_rest_response(grpc_response)
 
-        send_response(stream, rest_response)
+        _send_response(socket_stream, rest_response)
       rescue StandardError => e
-        send_error(stream, 500, e.message)
+        _send_error(socket_stream, 500, e.message)
       end
     end
   end
 
-  def await_grpc_call(api_method, grpc_request)
-    # Wrap gRPC call in Promise for async handling
+  def _read_request(socket_stream, buffer)
+
+
+  def _parse_request(request)
+  
+    #TODO: Implement
+  end
+
+  def _await_grpc_call(api_method, grpc_request)
     Async do
       api_method.service.send(api_method.method, grpc_request)
     end
   end
 
-  def read_request(stream)
-    request_line = stream.gets
-    return nil unless request_line
-
+  def _send_response(socket_stream, response)
     #TODO: Implement
   end
 
-  def send_response(stream, response)
-    #TODO: Implement
-  end
-
-  def send_error(stream, code, message = nil)
+  def _send_error(socket_stream, code, message = nil)
     #TODO: implement
   end
+
 end

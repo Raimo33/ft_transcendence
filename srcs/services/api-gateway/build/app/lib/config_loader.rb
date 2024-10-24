@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/23 21:53:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/24 19:21:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-
+#TODO reduce redundancy, error possibilities with keeping arrays of valid keys
 class ConfigLoader
   VALID_KEYS = %i[
     bind_address
@@ -20,7 +20,12 @@ class ConfigLoader
     keycloak_certs
     jwt_cache_expiry
     jwt_algorithm
-    max_concurrent_tasks
+    jwt_expiry_leeway
+    max_connections
+    max_body_size
+    user_server_cert
+    match_server_cert
+    tournament_server_cert
   ].freeze
 
   def initialize(config_file)
@@ -71,11 +76,21 @@ class ConfigLoader
       when 'keycloak_certs'
         $KEYCLOAK_CERTS = value
       when 'jwt_cache_expiry'
-        $JWT_CACHE_EXPIRY = clamp(value.to_i, 1, Float::INFINITY)
+        $JWT_CACHE_EXPIRY = value.to_i
       when 'jwt_algorithm'
         $JWT_ALGORITHM = value
-      when 'max_concurrent_tasks'
-        $MAX_CONCURRENT_TASKS = clamp(value.to_i, 1, Float::INFINITY)
+      when 'jwt_expiry_leeway'
+        $JWT_EXPIRY_LEEWAY = value.to_i
+      when 'max_connections'
+        $MAX_CONNECTIONS = value.to_i
+      when 'max_body_size'
+        $MAX_BODY_SIZE = value.to_i
+      when 'user_server_cert'
+        $USER_SERVER_CERT = value
+      when 'match_server_cert'
+        $MATCH_SERVER_CERT = value
+      when 'tournament_server_cert'
+        $TOURNAMENT_SERVER_CERT = value
       end
     end
   end
