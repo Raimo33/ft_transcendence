@@ -1,15 +1,4 @@
-require 'async'
-require 'socket'
-require 'json'
-require_relative 'endpoint_tree'
-require_relative 'jwt_validator'
-require_relative 'grpc_client'
-require_relative 'response_formatter'
-require_relative 'helpers'
-require 'async'
-require 'async/io'
-require 'async/queue'
-require 'async/semaphore'
+#TODO add requires
 
 class AsyncServer
   def initialize(grpc_client)
@@ -17,7 +6,7 @@ class AsyncServer
     @endpoint_tree.parse_swagger_file('app/config/API_swagger.yaml')
     @jwt_validator = JwtValidator.new
     @grpc_client = grpc_client
-    @connection_limit = Async::Semaphore.new($MAX_CONCURRENT_TASKS)
+    @connection_limit = Async::Semaphore.new($CONNECTION_LIMIT)
     @request_queue = Async::Queue.new
   end
 
@@ -25,12 +14,10 @@ class AsyncServer
     Async do |task|
       endpoint = Async::IO::Endpoint.tcp($BIND_ADDRESS, $BIND_PORT)
       
-      # Start the request processor
       task.async do
         process_requests
       end
       
-      # Accept connections
       endpoint.accept do |client|
         handle_client(client)
       end
@@ -39,44 +26,62 @@ class AsyncServer
 
   private
 
-  def handle_client(client)
-    Async do |subtask|
-      # Limit concurrent connections
-      @connection_limit.acquire do
-        stream = Async::IO::Stream.new(client)
-        
-        while request = read_request(stream)
-          method, path, headers = parse_request(request)
+    def handle_client(client)
+      Async do |subtask|
+        @connection_limit.acquire do
+          stream = Async::IO::Stream.new(client)
           
-          endpoint_node, path_params, query_params = @endpoint_tree.find_path(path)
-          api_method = endpoint_node&.endpoint_data&.[](method)
-          
-          if !api_method
-            send_error(stream, 405)
-            next
+          while request = read_request(stream)
+            method, full_path, headers = parse_request(request)
+
+            path, query_string = full_path.split('?')
+            endpoint_node = @endpoint_tree.find_path(path)
+            if !endpoint_node
+              send_error(stream, 404)
+              next
+            end
+
+            api_request = endpoint_node&.endpoint_data&.[](method)
+            if !api_request
+              send_error(stream, 405)
+              next
+            end
+
+            if api_request.auth_required
+              #TODO: Implement JWT validation
+
+            content_length = headers['content-length']&.to_i
+            if content_length.nil? || content_length < 0
+              send_error(stream, 411)
+              next
+            end
+
+            if content_length > $MAX_BODY_SIZE
+              send_error(stream, 413)
+              next
+            end
+
+            @request_queue << {
+              stream: stream,
+              api_request: api_request, 
+              path: path,
+              query_string: query_string,
+              headers: headers
+            }
+
           end
-          
-          # Queue the request for processing
-          @request_queue << {
-            stream: stream,
-            api_method: api_method,
-            path_params: path_params,
-            query_params: query_params,
-            headers: headers
-          }
         end
+      rescue EOFError, Async::Wrapper::Cancelled
+        # TODO Handle client disconnection
+      ensure
+        client.close
       end
-    rescue EOFError, Async::Wrapper::Cancelled
-      # Handle client disconnection
-    ensure
-      client.close
     end
-  end
 
   def process_requests
     loop do
       Async do
-        request = @request_queue.dequeue  # Needs async context to be non-blocking
+        request = @request_queue.dequeue
         process_single_request(request)
       end
     end
@@ -85,28 +90,25 @@ class AsyncServer
   def process_single_request(request)
     Async do
       stream = request[:stream]
-      api_method = request[:api_method]
-      
-      if api_method.needs_auth
-        unless check_auth_header(request[:headers]['authorization'], @jwt_validator)
-          send_error(stream, 401, 'Invalid or missing JWT token')
-          return
-        end
-      end
+      api_request = request[:api_request]
 
+      
       begin
-        # Transform parameters to gRPC request
-        grpc_request = transform_to_grpc_request(
-          request[:path_params],
-          request[:query_params]
-        )
         
-        # Make async gRPC call
+        body_task = subtask.async do
+            extract_body(stream, content_length)
+          end
+        end
+
+        path_params = parse_path_params(api_request.path_template, request[:path]) #TODO, valutare se includerla in qualche classe
+        query_params = parse_query_params(api_request.query_params, request[:query_string]) #TODO, valutare se includerla in qualche classe
+        body = body_task.wait
+
+        grpc_request = api_request.map_to_grpc_request(
         grpc_response = await_grpc_call(api_method, grpc_request)
-        
-        # Transform and send response
-        response = transform_grpc_response(grpc_response)
-        send_response(stream, response)
+        rest_response = api_request.map_to_rest_response(grpc_response)
+
+        send_response(stream, rest_response)
       rescue StandardError => e
         send_error(stream, 500, e.message)
       end
@@ -123,53 +125,15 @@ class AsyncServer
   def read_request(stream)
     request_line = stream.gets
     return nil unless request_line
-    
-    headers = {}
-    while line = stream.gets.strip
-      break if line.empty?
-      key, value = line.split(': ', 2)
-      headers[key.downcase] = value
-    end
-    
-    [request_line, headers]
-  end
 
-  def transform_to_grpc_request(path_params, query_params)
-    # TODO: Implement transformation logic
-    # This should create the appropriate gRPC request object
-  end
-
-  def transform_grpc_response(grpc_response)
-    # TODO: Implement transformation logic
-    # This should transform the gRPC response to HTTP response
+    #TODO: Implement
   end
 
   def send_response(stream, response)
-    stream.write("HTTP/1.1 200 OK\r\n")
-    stream.write("Content-Type: application/json\r\n")
-    stream.write("Content-Length: #{response.bytesize}\r\n")
-    stream.write("\r\n")
-    stream.write(response)
-    stream.flush
+    #TODO: Implement
   end
 
   def send_error(stream, code, message = nil)
-    status = {
-      405 => 'Method Not Allowed',
-      401 => 'Unauthorized',
-      500 => 'Internal Server Error'
-    }[code]
-    
-    body = JSON.generate({
-      error: status,
-      message: message
-    })
-
-    stream.write("HTTP/1.1 #{code} #{status}\r\n")
-    stream.write("Content-Type: application/json\r\n")
-    stream.write("Content-Length: #{body.bytesize}\r\n")
-    stream.write("\r\n")
-    stream.write(body)
-    stream.flush
+    #TODO: implement
   end
 end

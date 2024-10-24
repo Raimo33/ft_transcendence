@@ -1,22 +1,25 @@
-class ApiMethod
-  attr_accessor :http_method, :needs_auth
-
-  def initialize(http_method, needs_auth)
-    @http_method = http_method
-    @needs_auth = needs_auth
-  end
-end
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    endpoint_tree.rb                                   :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
+#    Updated: 2024/10/24 16:41:52 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
 class EndpointTreeNode
-  attr_accessor :part, :children, :endpoint_methods
+  attr_accessor :part, :children, :api_requests
 
   def initialize(part)
     @part = part
     @children = {}
-    @endpoint_methods = {}
+    @api_requests = {}
   end
 
-  def add_path(path, api_methods)
+  def add_path(path, api_requests)
     parts = path.split('/').reject(&:empty?)
     current_node = self
 
@@ -25,60 +28,39 @@ class EndpointTreeNode
       current_node = current_node.children[part]
     end
 
-    api_methods.each do |api_method|
-      current_node.endpoint_methods[api_method.http_method] = api_method
+    api_requests.each do |endpoint|
+      current_node.api_requests[endpoint.http_method] = endpoint
     end
   end
 
-  def find_path(path)
-    path, query_string = path.split('?', 2)
+  def find_endpoint(path)
     parts = path.split('/').reject(&:empty?)
-    current_node = self
-    path_params = {}
-    query_params = {}
-
+  
     parts.each do |part|
-      if current_node.children[part]
-        # Exact match (literal segment)
+      if current_node.children.key?(part)
         current_node = current_node.children[part]
       else
-        variable_node = current_node.children.find do |key, _|
-          key.start_with?('{') && key.end_with?('}')
+        current_node = current_node.children.each_value.find do |child|
+          child.key.start_with?('{') && child.key.end_with?('}')
         end
-
-        if variable_node
-          # Matched a variable segment
-          variable_name = variable_node[0][1..-2]
-          path_params[variable_name] = part
-          current_node = variable_node[1]
-        else
-          # No match
-          return nil
-        end
+  
+        return nil unless current_node
       end
     end
-
-    if query_string
-      query_string.split('&').each do |param|
-        key, value = param.split('=', 2)
-        query_params[key] = value
-      end
-    end
-
-    # Return the current node along with matched variables and query parameters
-    return current_node, path_params, query_params
+  
+    current_node
   end
 
   def parse_swagger_file(file_path)
     require 'yaml'
 
     swagger_data = YAML.load_file(file_path)
-    swagger_data['paths'].each do |path, methods|
-      api_methods = methods.map do |http_method, details|
-        needs_auth = details['security']
-        ApiMethod.new(http_method.to_sym, needs_auth)
+    swagger_data['paths'].each do |path, api_requests|
+      api_requests = api_requests.map do |http_method, details|
+        auth_required = details['security']
+        APIRequest.new(http_method.to_sym, auth_required)
       end
-      add_path(path, api_methods)
+      add_path(path, api_requests)
     end
 
   rescue ERRNO::ENOENT => e
