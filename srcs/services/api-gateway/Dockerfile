@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/10/23 22:00:15 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/24 10:44:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ RUN apk add --no-cache ruby ruby-json ruby-dev build-base libffi-dev
 
 RUN mkdir -p /etc/api-gateway/conf.d
 
-COPY ./app                   /app
+COPY ./build/app/            /app
 COPY ./build/default.conf    /etc/api-gateway/conf.d/
 #TODO: aggiungere il comando tipo nginx -t per verificare la correttezza del file di configurazione
 COPY ./build/.sh             /usr/local/bin/

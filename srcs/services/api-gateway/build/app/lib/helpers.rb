@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:36 by craimond          #+#    #+#              #
-#    Updated: 2024/10/22 17:02:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/24 10:53:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,23 +34,4 @@ def check_auth_header(auth_header, jwt_validator)
   token = auth_header.split(' ')[1]
   return false unless token && jwt_validator.validate_token(token)
   true
-end
-
-def send_success(socket, status_code, body)
-  #TODO check socket is still open
-  socket.puts "HTTP/1.1 #{status_code}"
-  socket.puts "Content-Type: application/json"
-  socket.puts body.to_json if body
-  socket.close
-end
-
-def send_error(socket, status_code)
-  #TODO check socket is still open
-  socket.puts "HTTP/1.1 #{status_code}"
-  socket.close
-end
-
-def send_response(socket, response)
-  if #TODO calls send_success or send_error based on the response
-  end
 end
