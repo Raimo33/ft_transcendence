@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/23 18:12:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/25 20:18:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -360,6 +360,7 @@ paths:
       description: Receive via email the verification token to be provided in the next request.
       parameters:
         - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/Content-Length'
       responses:
         "204":
           $ref: '#/components/responses/NoContent'
@@ -369,6 +370,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
         "409":
           $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification/{token}:
@@ -378,11 +383,16 @@ paths:
       parameters:
         - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/token'
+        - $ref: '#/components/parameters/Content-Length'
       responses:
         "204":
           $ref: '#/components/responses/NoContent'
         "409":
           $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa:
@@ -391,6 +401,7 @@ paths:
       description: Enable two-factor authentication for a user account.
       parameters:
         - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
       responses:
@@ -415,6 +426,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
         "409":
           $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
@@ -472,6 +487,7 @@ paths:
       description: Verify the two-factor authentication code provided by the user.
       parameters:
         - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
       responses:
@@ -483,6 +499,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
         "409":
           $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery:
@@ -520,11 +540,16 @@ paths:
       parameters:
         - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/token'
+        - $ref: '#/components/parameters/Content-Length'
       responses:
         "204":
           $ref: '#/components/responses/NoContent'
         "409":
           $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/matches:
@@ -998,6 +1023,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
         "409":
           $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
@@ -1040,6 +1069,7 @@ paths:
       description: Force start the tournament (even if not all players have accepted the invitation).
       parameters:
         - $ref: '#/components/parameters/tournament_id'
+        - $ref: '#/components/parameters/Content-Length'
       security:
         - jwtAuth: []
       responses:
@@ -1051,6 +1081,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
         "409":
           $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
