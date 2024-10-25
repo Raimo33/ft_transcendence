@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/10/25 20:49:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/25 22:30:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,12 +15,16 @@ require 'async'
 require 'async/io'
 require 'async/queue'
 require 'async/io/tcp_socket'
+require_relative 'endpoint_tree'
 
 class Server
   HTTP_METHODS_REQUIRING_BODY = %w[POST PUT PATCH].to_set
+  REQUEST_START_REGEX = /^(GET|POST|PUT|PATCH|DELETE)/
 
   def initialize(grpc_client)
     @grpc_client = grpc_client
+    @endpoint_tree = EndpointTreeNode.new('v1')
+    @endpoint_tree.parse_swagger_file('/app/config/swagger.yaml')
     @clients = {}
     @request_queue = Async::Queue.new
   end
@@ -44,8 +48,8 @@ class Server
 
     Async do |task|
       loop do
-        client, request = @request_queue.dequeue
-        semaphore.async { _handle_request(client, request) }
+        stream, request = @request_queue.dequeue
+        semaphore.async { _handle_request(stream, request) }
       end
     end
   end
@@ -58,8 +62,19 @@ class Server
       buffer << chunk
 
       while request = _extract_request(buffer)
-        @request_queue.enqueue([client, request])
+        @request_queue.enqueue([stream, request])
+      rescue LengthRequired #TODO accorciare
+        _send_error(stream, 411)
+        _skip_malformed_request(buffer, stream)
+      rescue ContentTooLarge
+        _send_error(stream, 413)
+        _skip_malformed_request(buffer, stream)
+      rescue StandardError
+        _send_error(stream, 400)
+        _skip_malformed_request(buffer, stream)
       end
+    rescue => e
+      _send_error(stream, 400)
     end
   end
 
@@ -84,10 +99,10 @@ class Server
     method = request_line.split(" ")[0].upcase
   
     if HTTP_METHODS_REQUIRING_BODY.include?(method)
-      return send_error(411) unless content_length
-      return send_error(413) if content_length > $MAX_BODY_SIZE
+      raise LengthRequired unless content_length
+      raise ContentTooLarge if content_length > $MAX_BODY_SIZE
     end
-  
+
     total_request_size = body_start_index + content_length
     return nil if buffer.size < total_request_size
 
@@ -95,6 +110,80 @@ class Server
     { request_line: request_line, headers: headers, body: body }
   end
 
-  def _handle_request(client, request)
-    #TODO: Implement this method
-  
+  def _skip_malformed_request(buffer, stream)
+    until next_request_index = buffer.index(REQUEST_START_REGEX)
+      buffer.clear
+      more_data = stream.read(4096)
+      break unless more_data
+      buffer << more_data
+    end
+    
+    buffer.slice!(0, next_request_index) if next_request_index
+  end
+
+  def _handle_request(stream, request)
+    method, path, query = _parse_request_line(request[:request_line])
+
+    endpoint = @endpoint_tree.find_endpoint(path)
+    return _send_error(stream, 404) unless endpoint
+
+    resource = endpoint.resources[method]
+    return _send_error(stream, 405) unless resource
+
+    Async do |task|
+
+      path_params_task = task.async { _parse_path_params(resource.path_params, path) }
+      query_params_task = task.async { _parse_query_params(resource.allowed_query_params, query) }
+      headers_task = task.async { _parse_headers(resource.allowed_headers, request[:headers]) }
+      body_task = task.async { _parse_body(resource.request_body_type, request[:body]) }
+
+      path_params = path_params.wait
+      query_params = query_params.wait
+      body = body.wait
+      headers = headers.wait
+
+      _check_auth(resource, headers)
+
+      grpc_response @grpc_client.call(resource.grpc_service, resource.grpc_call, grpc_request)
+      response = resource.map_to_rest_response(grpc_response)
+      _send_response(stream, response)
+
+    end
+  end
+
+  def _parse_request_line(request_line)
+    #TODO
+  end
+
+  def _parse_path_params(path_params, path)
+    #TODO
+  end
+
+  def _parse_query_params(allowed_query_params, query)
+    #TODO
+  end
+
+  def _parse_headers(allowed_headers, headers)
+    #TODO
+  end
+
+  def _parse_body(request_body_type, body)
+    #TODO
+  end
+
+  def _check_auth(resource, headers)
+    #TODO
+  end
+
+  def _send(stream, data)
+    stream.write(data)
+    stream.close
+  end
+
+  def _send_response(stream, response)
+    #TODO
+  end
+
+  def _send_error(stream, status_code)
+    #TODO
+  end
