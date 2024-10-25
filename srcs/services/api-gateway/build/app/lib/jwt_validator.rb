@@ -4,15 +4,16 @@ require 'uri'
 require 'json'
 
 class JwtValidator
-  def initialize
+  def initialize(config)
+    @config = config
     @public_key = nil
     @last_fetched = nil
   end
 
   def fetch_public_key
-    return @public_key if @public_key && (Time.now - @last_fetched < $JWT_CACHE_EXPIRY)
+    return @public_key if @public_key && (Time.now - @last_fetched < $JWT_PUB_KEY_TTL)
 
-    uri = URI("#{$KEYCLOAK_HOST}#{$KEYCLOAK_REALM}#{$KEYCLOAK_CERTS}")
+    uri = URI($JWT_PUB_KEY_URI)
     response = Net::HTTP.get(uri)
     jwks = JSON.parse(response)
 

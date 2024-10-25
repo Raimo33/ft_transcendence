@@ -4,7 +4,8 @@ require_relative '../proto/match_services_pb'
 require_relative '../proto/tournament_services_pb'
 
 class GrpcClient
-  def initialize
+  def initialize(config)
+    @config = config
     @user_stub = create_stub($USER_SERVER_CERT, 'user.corenet:50051', User::UserService::Stub)
     @match_stub = create_stub($MATCH_SERVER_CERT, 'match.corenet:50051', Match::MatchService::Stub)
     @tournament_stub = create_stub($TOURNAMENT_SERVER_CERT, 'tournament.corenet:50051', Tournament::TournamentService::Stub)

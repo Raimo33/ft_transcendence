@@ -1,121 +1,100 @@
-#TODO add requires
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    server.rb                                          :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
+#    Updated: 2024/10/25 20:49:38 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+require 'set'
+require 'async'
+require 'async/io'
+require 'async/queue'
+require 'async/io/tcp_socket'
 
 class Server
+  HTTP_METHODS_REQUIRING_BODY = %w[POST PUT PATCH].to_set
+
   def initialize(grpc_client)
-    @endpoint_tree = EndpointTreeNode.new('v1')
-    @endpoint_tree.parse_swagger_file('app/config/API_swagger.yaml')
-    @jwt_validator = JwtValidator.new
     @grpc_client = grpc_client
-    @connection_limit = Async::Semaphore.new($MAX_CONNECTIONS)
+    @clients = {}
     @request_queue = Async::Queue.new
   end
 
   def run
     Async do |task|
-      endpoint = Async::IO::Endpoint.tcp($BIND_ADDRESS, $BIND_PORT)
+      endpoint = Async::IO::Endpoint.tcp($BIND_ADDRESS, $PORT)
       
-      task.async do
-        process_requests
-      end
+      task.async { _process_requests }
 
       endpoint.accept do |client|
-        handle_client(client)
+        task.async { _handle_client(client) }
       end
     end
   end
 
   private
 
-    def _handle_client(client)
-      Async do |subtask|
-        @connection_limit.acquire do
-          socket_stream = Async::IO::Stream.new(client)
-          buffer = Async::IO::Buffer.new
-
-          loop do #TODO blocking operation, capire se si puo rendere async anche se legge dallo stesso stream
-            request, buffer = _read_request(socket_stream, buffer)
-            @request_queue.enqueue(request)
-          end
-        end
-
-      rescue EOFError, Async::Wrapper::Cancelled
-        # TODO Handle client disconnection
-      ensure
-        client.close
-      end
-    end
-
   def _process_requests
-    loop do
-      Async do
-        request = @request_queue.dequeue
-        _process_single_request(request)
+    semaphore = Async::Semaphore.new($MAX_CONNECTIONS)
+
+    Async do |task|
+      loop do
+        client, request = @request_queue.dequeue
+        semaphore.async { _handle_request(client, request) }
       end
     end
   end
 
-  def _process_single_request(request)
-    Async do
-      begin
-        method, path, query, headers_raw, body_raw = _parse_request(request)
+  def _handle_client(client)
+    buffer = String.new
+    stream = Async::IO::Stream.new(client)
 
-        endpoint_node = @endpoint_tree.find_path(path)
-        return _send_error(socket_stream, 404) unless endpoint_node
+    while chunk = stream.read(4096)
+      buffer << chunk
 
-        resource = endpoint_node&.endpoint_data&.[](method)
-        return _send_error(socket_stream, 405) unless resource
-
-        headers = parse_headers(resource.allowed_headers, headers_raw)
-        if resource.auth_required
-          auth_header = headers['authorization']
-          return _send_error(socket_stream, 400) unless auth_header&.start_with?('Bearer ')
-          token = auth_header.split(' ')[1]
-          return _send_error(socket_stream, 401) unless jwt_validator.validate(token)
-        end
-        if resource.request_body_type
-          content_length = headers['content-length']&.to_i
-          return _send_error(socket_stream, 411) unless content_length
-          return _send_error(socket_stream, 413) unless content_length.between?(0, $MAX_BODY_SIZE)
-          body = parse_body(resource.request_body_type, body_raw, content_length)
-        end
-        else
-          body = nil
-        end
-
-        path_params = _parse_path_params(resource.path_params, path)
-        query_params = _parse_query_params(resource.query_params, query)
-
-        grpc_request = resource.map_to_grpc_request(path_params, query_params, body)
-        grpc_response = await_grpc_call(api_method, grpc_request)
-        rest_response = resource.map_to_rest_response(grpc_response)
-
-        _send_response(socket_stream, rest_response)
-      rescue StandardError => e
-        _send_error(socket_stream, 500, e.message)
+      while request = _extract_request(buffer)
+        @request_queue.enqueue([client, request])
       end
     end
   end
 
-  def _read_request(socket_stream, buffer)
+  def _extract_request(buffer)
 
-
-  def _parse_request(request)
+    header_end = buffer.index("\r\n\r\n")
+    return nil unless header_end
+    
+    headers_part = buffer.slice!(0, header_end)
+    body_start_index = header_end + 4
   
-    #TODO: Implement
-  end
-
-  def _await_grpc_call(api_method, grpc_request)
-    Async do
-      api_method.service.send(api_method.method, grpc_request)
+    headers_lines = headers_part.split("\r\n")
+    request_line = headers_lines.shift
+    headers = {}
+  
+    headers_lines.each do |line|
+      key, value = line.split(": ", 2)
+      headers[key.downcase] = value
     end
+
+    content_length = headers["content-length"]&.to_i
+    method = request_line.split(" ")[0].upcase
+  
+    if HTTP_METHODS_REQUIRING_BODY.include?(method)
+      return send_error(411) unless content_length
+      return send_error(413) if content_length > $MAX_BODY_SIZE
+    end
+  
+    total_request_size = body_start_index + content_length
+    return nil if buffer.size < total_request_size
+
+    body = buffer.slice!(body_start_index, content_length) if content_length > 0
+    { request_line: request_line, headers: headers, body: body }
   end
 
-  def _send_response(socket_stream, response)
-    #TODO: Implement
-  end
-
-  def _send_error(socket_stream, code, message = nil)
-    #TODO: implement
-  end
-
-end
+  def _handle_request(client, request)
+    #TODO: Implement this method
+  

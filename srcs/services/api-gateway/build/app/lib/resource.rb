@@ -6,12 +6,12 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 16:22:25 by craimond          #+#    #+#              #
-#    Updated: 2024/10/24 20:50:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/25 20:09:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 #acts as a Blueprint for API requests
-class APIRequest
+class Resource
   attr_accessor :http_method,             # (e.g., :get, :post)
                 :auth_required,           # boolean
                 :grpc_service,            # identical to service name in proto file (e.g., "UserService") 
