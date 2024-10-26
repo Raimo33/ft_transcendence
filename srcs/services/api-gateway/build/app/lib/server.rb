@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/10/25 22:30:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 08:53:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,7 @@ require 'async/io'
 require 'async/queue'
 require 'async/io/tcp_socket'
 require_relative 'endpoint_tree'
+require_relative 'server_exceptions'
 
 class Server
   HTTP_METHODS_REQUIRING_BODY = %w[POST PUT PATCH].to_set
@@ -63,31 +64,22 @@ class Server
 
       while request = _extract_request(buffer)
         @request_queue.enqueue([stream, request])
-      rescue LengthRequired #TODO accorciare
-        _send_error(stream, 411)
-        _skip_malformed_request(buffer, stream)
-      rescue ContentTooLarge
-        _send_error(stream, 413)
-        _skip_malformed_request(buffer, stream)
-      rescue StandardError
-        _send_error(stream, 400)
-        _skip_malformed_request(buffer, stream)
-      end
-    rescue => e
-      _send_error(stream, 400)
+      rescue ServerExceptions::ServerError => e
+        _send_error(stream, e.status_code)
+      rescue => e
+        _send_error(stream, 500)
     end
   end
 
   def _extract_request(buffer)
 
-    header_end = buffer.index("\r\n\r\n")
+    HEADER_END = buffer.index("\r\n\r\n")
     return nil unless header_end
-    
+
     headers_part = buffer.slice!(0, header_end)
-    body_start_index = header_end + 4
+    BODY_START_INDEX = header_end + 4
   
-    headers_lines = headers_part.split("\r\n")
-    request_line = headers_lines.shift
+    request_line, headers_lines = headers_part.split("\r\n", 2)
     headers = {}
   
     headers_lines.each do |line|
@@ -137,17 +129,16 @@ class Server
       headers_task = task.async { _parse_headers(resource.allowed_headers, request[:headers]) }
       body_task = task.async { _parse_body(resource.request_body_type, request[:body]) }
 
-      path_params = path_params.wait
-      query_params = query_params.wait
-      body = body.wait
-      headers = headers.wait
+      path_params = path_params_task.wait
+      query_params = query_params_task.wait
+      body = body_task.wait
+      headers = headers_task.wait
 
       _check_auth(resource, headers)
 
       grpc_response @grpc_client.call(resource.grpc_service, resource.grpc_call, grpc_request)
       response = resource.map_to_rest_response(grpc_response)
       _send_response(stream, response)
-
     end
   end
 
@@ -178,6 +169,8 @@ class Server
   def _send(stream, data)
     stream.write(data)
     stream.close
+  end
+    
   end
 
   def _send_response(stream, response)
