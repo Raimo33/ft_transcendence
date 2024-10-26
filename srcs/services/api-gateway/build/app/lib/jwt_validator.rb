@@ -25,12 +25,10 @@ class JwtValidator
 
   end
 
-  def validate_token(token)
+  def token_valid?(token)
     decoded_token = _decode_token(token)
-    return false unless decoded_token && _validate_claims(decoded_token)
-
-    true
-  end
+    decoded_token && _validate_claims(decoded_token)
+  end  
   
   private
 

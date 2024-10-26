@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 08:53:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 09:09:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -91,8 +91,8 @@ class Server
     method = request_line.split(" ")[0].upcase
   
     if HTTP_METHODS_REQUIRING_BODY.include?(method)
-      raise LengthRequired unless content_length
-      raise ContentTooLarge if content_length > $MAX_BODY_SIZE
+      raise ServerExceptions::LengthRequired unless content_length
+      raise ServerExceptions::ContentTooLarge if content_length > $MAX_BODY_SIZE
     end
 
     total_request_size = body_start_index + content_length
@@ -117,10 +117,10 @@ class Server
     method, path, query = _parse_request_line(request[:request_line])
 
     endpoint = @endpoint_tree.find_endpoint(path)
-    return _send_error(stream, 404) unless endpoint
+    raise ServerExceptions::NotFound unless endpoint
 
     resource = endpoint.resources[method]
-    return _send_error(stream, 405) unless resource
+    raise ServerExceptions::MethodNotAllowed unless resource
 
     Async do |task|
 
@@ -134,12 +134,16 @@ class Server
       body = body_task.wait
       headers = headers_task.wait
 
-      _check_auth(resource, headers)
+      _check_auth(resource, headers[:authorization])
 
       grpc_response @grpc_client.call(resource.grpc_service, resource.grpc_call, grpc_request)
       response = resource.map_to_rest_response(grpc_response)
       _send_response(stream, response)
     end
+  rescue ServerExceptions::ServerError => e
+    _send_error(stream, e.status_code)
+  rescue => e
+    _send_error(stream, 500)
   end
 
   def _parse_request_line(request_line)
@@ -162,13 +166,18 @@ class Server
     #TODO
   end
 
-  def _check_auth(resource, headers)
-    #TODO
+  def _check_auth(resource, authorization_header)
+    return unless resource.auth_required
+
+    raise ServerExceptions::Unauthorized unless authorization_header
+    raise ServerExceptions::BadRequest unless authorization_header.start_with?('Bearer ')
+
+    token = authorization_header.split(' ')[1]&.strip
+    raise ServerExceptions::Unauthorized unless jwt_validator.token_valid?(token)
   end
 
   def _send(stream, data)
     stream.write(data)
-    stream.close
   end
     
   end
