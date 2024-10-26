@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/25 20:18:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 19:19:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,9 @@ paths:
       responses:
         "200":
           description: API is responsive.
+          headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
           content:
             text/plain:
               schema:
@@ -59,6 +62,8 @@ paths:
         "201":
           description: User registration successful.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -93,6 +98,8 @@ paths:
         "200":
           description: Returns the Private User object of the specified user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -149,6 +156,8 @@ paths:
         "200":
           description: Returns an array of public user profiles.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -305,6 +314,8 @@ paths:
         "200":
           description: Returns the email address of the specified user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -317,6 +328,10 @@ paths:
               $ref: '#/components/headers/Cache-Control'
             ETag:
               $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user_email"
         "304":
           $ref: '#/components/responses/NotModified'
         "401":
@@ -408,6 +423,8 @@ paths:
         "200":
           description: Two-factor authentication successfully enabled.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -443,6 +460,8 @@ paths:
         "200":
           description: Returns the 2fa status of the specified user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -570,6 +589,8 @@ paths:
         "200":
           description: Matches list successfully retrieved.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -615,6 +636,8 @@ paths:
         "200":
           description: Tournaments list successfully retrieved.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -688,6 +711,8 @@ paths:
         "200":
           description: Friends list successfully retrieved.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -754,6 +779,8 @@ paths:
         "200":
           description: User successfully logged in.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -791,6 +818,8 @@ paths:
         "200":
           description: Returns the login status of the user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -803,6 +832,10 @@ paths:
               $ref: '#/components/headers/Cache-Control'
             ETag:
               $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user_status"
         "304":
           $ref: '#/components/responses/NotModified'
         "401":
@@ -853,8 +886,10 @@ paths:
         - jwtAuth: []
       responses:
         "201":
-          description: Match successfully created.
+          description: Returns the match ID of the newly created match.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -912,6 +947,8 @@ paths:
         "200":
           description: Returns match information.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -981,8 +1018,10 @@ paths:
         - jwtAuth: []
       responses:
         "201":
-          description: Tournament successfully created.
+          description: Returns the tournament ID of the newly created tournament.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -1040,6 +1079,8 @@ paths:
         "200":
           description: Returns match information.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
