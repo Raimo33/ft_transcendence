@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 16:22:25 by craimond          #+#    #+#              #
-#    Updated: 2024/10/25 20:09:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 18:15:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ class Resource
                 :grpc_service,            # identical to service name in proto file (e.g., "UserService") 
                 :grpc_call,               # identical to method name in proto file (e.g., "GetUser")
                 :path_template,           # Original path with parameters (e.g., "/users/{id}/posts")
-                :path_params,             # Array of parameter names from path (e.g., ["id"])
+                :allowed_path_params,     # Array of parameter names from path (e.g., ["id"])
                 :allowed_query_params,    # Hash of query parameters
                 :allowed_headers,         # Array of allowed headers
                 :request_body_type,       # Hash of request body type
@@ -38,6 +38,6 @@ class Resource
     path.scan(/\{([^}]+)\}/).flatten
   end
 
-  def map_to_grpc_request(path_params, query_params, body)
+  def map_to_grpc_request(request)
 
   def map_to_rest_response(grpc_response)

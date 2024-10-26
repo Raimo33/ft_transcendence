@@ -1,0 +1,184 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    client_handler.rb                                  :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
+#    Updated: 2024/10/26 18:58:30 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+class ClientHandler
+
+  Request = Struct.new(:method, :path_params, :query_params, :headers, :body)
+  Response = Struct.new(:status_code, :headers, :body)
+
+  def initialize(socket, endpoint_tree)
+    @stream = Async::IO::Stream.new(socket)
+    @endpoint_tree = endpoint_tree
+    @request_queue = Async::Queue.new
+  end
+
+  def read_requests
+    Sync do
+      buffer = String.new
+
+      while chunk = @stream.read(4096)
+        buffer << chunk
+
+        while request = _parse_request(buffer)
+          @request_queue.enqueue(request)
+        rescue => e
+          _send_error(e.status_code)
+          _skip_request(buffer)
+      end
+    end
+  end
+
+  def process_requests
+    response_queue = BlockingPriorityQueue.new
+    
+    Async do |task|
+      response_processor = task.async do
+        loop do
+          response = response_queue.dequeue
+          break if response.nil? || response == :exit_signal
+          _send_response(stream, response)
+        end
+      end
+      
+      request_processor = task.async do
+        priority = 0
+        while request = @request_queue.dequeue
+          current_priority = priority
+          priority += 1
+
+          task.async do
+            grpc_request = resource.map_to_grpc_request(request)
+            grpc_response = @grpc_client.call(resource.grpc_service, resource.grpc_call, grpc_request)
+            response = resource.map_to_rest_response(grpc_response)
+            response_queue.enqueue(current_priority, response)
+          end
+        end
+        response_queue.enqueue(priority, :exit_signal)
+      end
+      
+      [response_processor, request_processor].each(&:wait)
+    end
+  end
+
+  private
+
+  def _parse_request(buffer)
+    Sync do
+      barrier = Async::Barrier.new
+      request = Request.new
+
+      header_end = buffer.index("\r\n\r\n")
+      return nil unless header_end
+      
+      headers_part = buffer.slice!(0, header_end)
+      body_start_index = header_end + 4
+    
+      request_line, headers_lines = headers_part.split("\r\n", 2)
+      headers = parse_headers(headers_lines)
+
+      content_length = headers["content-length"]&.to_i
+      request.method, full_path, _ = request_line.split(" ", 3)
+      path, query = full_path.split("?", 2)
+      
+      endpoint = @endpoint_tree.find_endpoint(path)
+      raise ServerExceptions::NotFound unless endpoint
+
+      resource = endpoint.resources[method]
+      raise ServerExceptions::MethodNotAllowed unless resource
+
+      if resource.requires_body
+        raise ServerExceptions::LengthRequired unless content_length
+        raise ServerExceptions::ContentTooLarge if content_length > $MAX_BODY_SIZE
+      end
+      
+      check_auth(resource, headers["authorization"])
+
+      total_request_size = body_start_index + content_length
+      return nil if buffer.size < total_request_size
+
+      raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
+
+      barrier.async { request.path_params = _parse_path_params(resource.allowed_path_params, path) }
+      barrier.async { request.query_params = _parse_query_params(resource.allowed_query_params, query) }
+      barrier.async { request.body = _parse_body(resource.request_body_type, raw_body) }
+
+      barrier.wait
+
+      request
+    ensure
+      barrier.stop
+    end
+  end
+  
+  def _skip_request(buffer)
+    until next_request_index = buffer.index(REQUEST_START_REGEX)
+      buffer.clear
+      more_data = @stream.read(4096)
+      break unless more_data
+      buffer << more_data
+    end
+    
+    buffer.slice!(0, next_request_index) if next_request_index
+  end
+
+  def _parse_headers(headers_lines)
+    headers = {}
+
+    headers_lines.split("\r\n").each do |line|
+      key, value = line.split(": ", 2)
+      headers[key.downcase] = value
+    end
+
+    headers
+  end
+
+  def _parse_path_params(allowed_path_params, path)
+    #TODO
+  end
+
+  def _parse_query_params(allowed_query_params, raw_query)
+    #TODO
+  end
+
+  def _parse_body(request_body_type, raw_body)
+    #TODO
+  end
+
+  def _check_auth(resource, authorization_header)
+    return unless resource.auth_required
+
+    raise ServerExceptions::Unauthorized unless authorization_header
+    raise ServerExceptions::BadRequest unless authorization_header.start_with?('Bearer ')
+
+    token = authorization_header.split(' ')[1]&.strip
+    raise ServerExceptions::Unauthorized unless jwt_validator.token_valid?(token)
+  end
+
+  def _send(stream, data)
+    stream.write(data)
+  end
+    
+  end
+
+  def _send_response(stream, response)
+    #TODO
+  end
+
+  def _send_error(stream, status_code)
+    #TODO
+  end
+
+  def _send_error(status_code)
+    #TODO switch case? map di error codes e messaggi? type check per ServerError o errori generici?
+  end
+
+end
