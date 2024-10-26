@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 18:58:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 19:04:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,18 +22,17 @@ class ClientHandler
   end
 
   def read_requests
-    Sync do
-      buffer = String.new
+    buffer = String.new
 
-      while chunk = @stream.read(4096)
-        buffer << chunk
+    while chunk = @stream.read(4096)
+      buffer << chunk
 
-        while request = _parse_request(buffer)
-          @request_queue.enqueue(request)
-        rescue => e
-          _send_error(e.status_code)
-          _skip_request(buffer)
+      while request = _parse_request(buffer)
+        @request_queue.enqueue(request)
       end
+      rescue => e
+        _send_error(e.status_code)
+        _skip_request(buffer)
     end
   end
 
@@ -72,7 +71,7 @@ class ClientHandler
   private
 
   def _parse_request(buffer)
-    Sync do
+    Async do
       barrier = Async::Barrier.new
       request = Request.new
 
