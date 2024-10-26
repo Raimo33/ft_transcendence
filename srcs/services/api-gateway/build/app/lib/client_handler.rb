@@ -6,9 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 19:04:29 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 23:22:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+require 'async'
+require 'async/io'
+require 'async/queue'
+require 'async/barrier'
+require_relative 'blocking_priority_queue'
+require_relative 'server_exceptions'
 
 class ClientHandler
 
@@ -29,22 +36,25 @@ class ClientHandler
 
       while request = _parse_request(buffer)
         @request_queue.enqueue(request)
-      end
       rescue => e
         _send_error(e.status_code)
         _skip_request(buffer)
+      end
     end
   end
 
   def process_requests
     response_queue = BlockingPriorityQueue.new
+    barrier = Async::Barrier.new
     
     Async do |task|
       response_processor = task.async do
         loop do
           response = response_queue.dequeue
-          break if response.nil? || response == :exit_signal
+          break if response == :exit_signal
           _send_response(stream, response)
+        rescue => e
+          _send_error(e.status_code)
         end
       end
       
@@ -54,18 +64,26 @@ class ClientHandler
           current_priority = priority
           priority += 1
 
-          task.async do
+          barrier.async do
             grpc_request = resource.map_to_grpc_request(request)
             grpc_response = @grpc_client.call(resource.grpc_service, resource.grpc_call, grpc_request)
             response = resource.map_to_rest_response(grpc_response)
             response_queue.enqueue(current_priority, response)
-          end
+          rescue => e
+            _send_error(e.status_code)
+          end          
         end
+
+        barrier.wait
         response_queue.enqueue(priority, :exit_signal)
       end
-      
+
       [response_processor, request_processor].each(&:wait)
     end
+  ensure
+    barrier.stop
+    request_processor.stop
+    response_processor.stop
   end
 
   private
@@ -94,11 +112,11 @@ class ClientHandler
       resource = endpoint.resources[method]
       raise ServerExceptions::MethodNotAllowed unless resource
 
-      if resource.requires_body
+      if resource.body_required
         raise ServerExceptions::LengthRequired unless content_length
         raise ServerExceptions::ContentTooLarge if content_length > $MAX_BODY_SIZE
       end
-      
+
       check_auth(resource, headers["authorization"])
 
       total_request_size = body_start_index + content_length
@@ -162,17 +180,11 @@ class ClientHandler
     raise ServerExceptions::Unauthorized unless jwt_validator.token_valid?(token)
   end
 
-  def _send(stream, data)
+  def _send(data)
     stream.write(data)
   end
-    
-  end
 
-  def _send_response(stream, response)
-    #TODO
-  end
-
-  def _send_error(stream, status_code)
+  def _send_response(response)
     #TODO
   end
 

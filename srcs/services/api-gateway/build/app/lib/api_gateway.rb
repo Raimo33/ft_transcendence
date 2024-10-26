@@ -6,9 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/10/25 20:48:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 23:14:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+require 'config_loader'
+require 'grpc_client'
+require 'server'
 
 class APIGateway
   def initialize(config_file)
@@ -27,7 +31,9 @@ class APIGateway
     sleep
   end
 
-  def spawn_worker
+  private
+
+  def _spawn_worker
     @worker_pid = Process.fork do
       grpc_client = GrpcClient.new
       server = Server.new(grpc_client)
@@ -35,18 +41,18 @@ class APIGateway
     end
   end
 
-  def reload_config
+  def _reload_config
     begin
       @config_loader.load_configs
       if @worker_pid
         Process.kill('TERM', @worker_pid)
         Process.wait(@worker_pid)
-        spawn_worker
+        _spawn_worker
       end
     end
   end
 
-  def shutdown
+  def _shutdown
     begin
       if @worker_pid
         Process.kill('TERM', @worker_pid)

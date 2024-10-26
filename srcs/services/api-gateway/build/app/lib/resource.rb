@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 16:22:25 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 18:15:29 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 22:25:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,6 +31,7 @@ class Resource
   def initialize(http_method, auth_required, endpoint...) #TODO  capire come funziona
     @http_method = http_method
     @auth_required = auth_required
+    @body_required = body_required
     @endpoint = endpoint
   end
 

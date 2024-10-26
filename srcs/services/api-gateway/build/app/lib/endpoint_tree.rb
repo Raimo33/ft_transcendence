@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 08:21:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/26 23:28:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,8 +28,8 @@ class EndpointTreeNode
       current_node = current_node.children[part]
     end
 
-    resources.each do |endpoint|
-      current_node.resources[endpoint.http_method] = endpoint
+    resources.each do |resource|
+      current_node.resources[resource.http_method] = resource
     end
   end
 
@@ -58,20 +58,14 @@ class EndpointTreeNode
     swagger_data['paths'].each do |path, resources|
       resources = resources.map do |http_method, details|
         auth_required = details['security']
-        APIRequest.new(http_method.to_sym, auth_required)
+        body_required = details['requestBody']
+        APIRequest.new(http_method.to_sym, auth_required, body_required)
       end
       add_path(path, resources)
     end
-
-  rescue ERRNO::ENOENT => e
-    STDERR.puts "File not found: #{e.message}"
-  rescue ERRNO::EACCES => e
-    STDERR.puts "Permission denied: #{e.message}"
-  rescue Psych::SyntaxError => e
-    STDERR.puts "Error parsing YAML: #{e.message}"
-  rescue StandardError => e
-    STDERR.puts "Unexpected error: #{e.message}"
-    nil
+  rescue => e
+    #TODO log error
+    raise
   end
 
 end
