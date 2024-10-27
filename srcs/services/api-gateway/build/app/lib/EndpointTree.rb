@@ -1,16 +1,18 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    endpoint_tree.rb                                   :+:      :+:    :+:    #
+#    EndpointTree.rb                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 08:43:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/27 17:57:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-class EndpointTreeNode
+require_relative 'Resource'
+
+class EndpointTree
   attr_accessor :part, :children, :resources
 
   def initialize(part)
@@ -24,13 +26,13 @@ class EndpointTreeNode
     current_node = self
 
     parts.each do |part|
-      current_node.children[part] ||= EndpointTrieNode.new(part)
+      current_node.children[part] ||= EndpointTree.new(part)
       current_node = current_node.children[part]
     end
 
     resources.each do |resource|
       current_node.resources[resource.http_method] = resource
-    end
+    end    
   end
 
   def find_endpoint(path)
@@ -49,23 +51,6 @@ class EndpointTreeNode
     end
   
     current_node
-  end
-
-  def parse_swagger_file(file_path)
-    require 'yaml'
-
-    swagger_data = YAML.load_file(file_path)
-    swagger_data['paths'].each do |path, resources|
-      resources = resources.map do |http_method, details|
-        auth_required = details['security']
-        body_required = details['requestBody']
-        Resource.new(http_method.to_sym, auth_required, body_required)
-      end
-      add_path(path, resources)
-    end
-  rescue => e
-    #TODO log error
-    raise
   end
 
 end

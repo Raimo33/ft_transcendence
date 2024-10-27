@@ -1,24 +1,23 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    main.rb                                            :+:      :+:    :+:    #
+#    Response.rb                                        :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/23 20:40:44 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 17:55:29 by craimond         ###   ########.fr        #
+#    Created: 2024/10/27 16:55:21 by craimond          #+#    #+#              #
+#    Updated: 2024/10/27 16:56:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative 'lib/ApiGateway'
+class Response
+  attr_accessor :status_code,    # (e.g., 200)
+                :headers,        # Hash of headers
+                :body_type       # Hash of response body type
 
-begin
-  config_file = ARGV[0] || '/etc/api-gateway/conf.d/default.conf'
-  api_gateway = APIGateway.new(config_file)
-  api_gateway.start_master
-rescue StandardError => e
-  STDERR.puts "Fatal error: #{e.message}"
-ensure
-  File.delete('/run/api-gateway.pid') if File.exist?('/run/api-gateway.pid')
-  api_gateway&.shutdown
+  def initialize(status_code, headers, body_type)
+    @status_code = status_code
+    @headers = headers
+    @body_type = body_type
+  end
 end

@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    api_gateway.rb                                     :+:      :+:    :+:    #
+#    ApiGateway.rb                                      :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 23:14:54 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/27 18:02:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,7 @@ class APIGateway
 
   private
 
-  def _spawn_worker
+  def spawn_worker
     @worker_pid = Process.fork do
       grpc_client = GrpcClient.new
       server = Server.new(grpc_client)
@@ -41,18 +41,18 @@ class APIGateway
     end
   end
 
-  def _reload_config
+  def reload_config
     begin
       @config_loader.load_configs
       if @worker_pid
         Process.kill('TERM', @worker_pid)
         Process.wait(@worker_pid)
-        _spawn_worker
+        spawn_worker
       end
     end
   end
 
-  def _shutdown
+  def shutdown
     begin
       if @worker_pid
         Process.kill('TERM', @worker_pid)

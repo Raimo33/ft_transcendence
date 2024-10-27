@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    client_handler.rb                                  :+:      :+:    :+:    #
+#    ClientHandler.rb                                   :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 23:22:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/27 18:02:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,8 +14,8 @@ require 'async'
 require 'async/io'
 require 'async/queue'
 require 'async/barrier'
-require_relative 'blocking_priority_queue'
-require_relative 'server_exceptions'
+require_relative 'BlockingPriorityQueue'
+require_relative 'ServerExceptions'
 
 class ClientHandler
 
@@ -34,11 +34,11 @@ class ClientHandler
     while chunk = @stream.read(4096)
       buffer << chunk
 
-      while request = _parse_request(buffer)
+      while request = parse_request(buffer)
         @request_queue.enqueue(request)
       rescue => e
-        _send_error(e.status_code)
-        _skip_request(buffer)
+        send_error(e.status_code)
+        skip_request(buffer)
       end
     end
   end
@@ -46,15 +46,15 @@ class ClientHandler
   def process_requests
     response_queue = BlockingPriorityQueue.new
     barrier = Async::Barrier.new
-    
+
     Async do |task|
       response_processor = task.async do
         loop do
           response = response_queue.dequeue
           break if response == :exit_signal
-          _send_response(stream, response)
+          send_response(stream, response)
         rescue => e
-          _send_error(e.status_code)
+          send_error(e.status_code)
         end
       end
       
@@ -70,7 +70,7 @@ class ClientHandler
             response = resource.map_to_rest_response(grpc_response)
             response_queue.enqueue(current_priority, response)
           rescue => e
-            _send_error(e.status_code)
+            send_error(e.status_code)
           end          
         end
 
@@ -88,55 +88,48 @@ class ClientHandler
 
   private
 
-  def _parse_request(buffer)
-    Async do
-      barrier = Async::Barrier.new
-      request = Request.new
+  def parse_request(buffer)
+    request = Request.new
 
-      header_end = buffer.index("\r\n\r\n")
-      return nil unless header_end
-      
-      headers_part = buffer.slice!(0, header_end)
-      body_start_index = header_end + 4
-    
-      request_line, headers_lines = headers_part.split("\r\n", 2)
-      headers = parse_headers(headers_lines)
+    header_end = buffer.index("\r\n\r\n")
+    return nil unless header_end
 
-      content_length = headers["content-length"]&.to_i
-      request.method, full_path, _ = request_line.split(" ", 3)
-      path, query = full_path.split("?", 2)
-      
-      endpoint = @endpoint_tree.find_endpoint(path)
-      raise ServerExceptions::NotFound unless endpoint
+    headers_part = buffer.slice!(0, header_end)
+    body_start_index = header_end + 4
 
-      resource = endpoint.resources[method]
-      raise ServerExceptions::MethodNotAllowed unless resource
+    request_line, headers_lines = headers_part.split("\r\n", 2)
+    request.headers = parse_headers(headers_lines)
 
-      if resource.body_required
-        raise ServerExceptions::LengthRequired unless content_length
-        raise ServerExceptions::ContentTooLarge if content_length > $MAX_BODY_SIZE
-      end
+    content_length = headers["content-length"]&.to_i
+    request.method, full_path, _ = request_line.split(" ", 3)
+    path, query = full_path.split("?", 2)
 
-      check_auth(resource, headers["authorization"])
+    endpoint = @endpoint_tree.find_endpoint(path)
+    raise ServerExceptions::NotFound unless endpoint
 
-      total_request_size = body_start_index + content_length
-      return nil if buffer.size < total_request_size
+    resource = endpoint.resources[method]
+    raise ServerExceptions::MethodNotAllowed unless resource
 
-      raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
-
-      barrier.async { request.path_params = _parse_path_params(resource.allowed_path_params, path) }
-      barrier.async { request.query_params = _parse_query_params(resource.allowed_query_params, query) }
-      barrier.async { request.body = _parse_body(resource.request_body_type, raw_body) }
-
-      barrier.wait
-
-      request
-    ensure
-      barrier.stop
+    if resource.body_required
+      raise ServerExceptions::LengthRequired unless content_length
+      raise ServerExceptions::ContentTooLarge if content_length > $MAX_BODY_SIZE
     end
+
+    check_auth(resource, headers["authorization"])
+
+    total_request_size = body_start_index + content_length
+    return nil if buffer.size < total_request_size
+
+    raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
+
+    request.path_params  = parse_path_params(resource.allowed_path_params, path)
+    request.query_params = parse_query_params(resource.allowed_query_params, query)
+    request.body         = parse_body(resource.request_body_type, raw_body)
+
+    request
   end
   
-  def _skip_request(buffer)
+  def skip_request(buffer)
     until next_request_index = buffer.index(REQUEST_START_REGEX)
       buffer.clear
       more_data = @stream.read(4096)
@@ -147,7 +140,7 @@ class ClientHandler
     buffer.slice!(0, next_request_index) if next_request_index
   end
 
-  def _parse_headers(headers_lines)
+  def parse_headers(headers_lines)
     headers = {}
 
     headers_lines.split("\r\n").each do |line|
@@ -158,19 +151,19 @@ class ClientHandler
     headers
   end
 
-  def _parse_path_params(allowed_path_params, path)
+  def parse_path_params(allowed_path_params, path)
     #TODO
   end
 
-  def _parse_query_params(allowed_query_params, raw_query)
+  def parse_query_params(allowed_query_params, raw_query)
     #TODO
   end
 
-  def _parse_body(request_body_type, raw_body)
+  def parse_body(request_body_type, raw_body)
     #TODO
   end
 
-  def _check_auth(resource, authorization_header)
+  def check_auth(resource, authorization_header)
     return unless resource.auth_required
 
     raise ServerExceptions::Unauthorized unless authorization_header
@@ -180,15 +173,15 @@ class ClientHandler
     raise ServerExceptions::Unauthorized unless jwt_validator.token_valid?(token)
   end
 
-  def _send(data)
+  def send(data)
     stream.write(data)
   end
 
-  def _send_response(response)
+  def send_response(response)
     #TODO
   end
 
-  def _send_error(status_code)
+  def send_error(status_code)
     #TODO switch case? map di error codes e messaggi? type check per ServerError o errori generici?
   end
 

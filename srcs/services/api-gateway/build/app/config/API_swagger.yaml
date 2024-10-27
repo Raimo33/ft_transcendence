@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 09:23:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/27 16:05:17 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,6 +23,7 @@ security:
 paths:
   /ping:
     get:
+      operationId: ping
       summary: Ping the API
       description: Returns a simple pong response to check if the API is alive.
       responses:
@@ -39,6 +40,7 @@ paths:
 
   /users:
     post:
+      operationId: register
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       parameters:
@@ -85,6 +87,7 @@ paths:
           $ref: '#/components/responses/ContentTooLarge'
   /users/{user_id}:
     get:
+      operationId: getUser
       summary: Get public and private user data by user_id
       description: Retrieve detailed information of a specific user using their unique user_id.
       parameters:
@@ -126,6 +129,7 @@ paths:
         "413":
           $ref: '#/components/responses/ContentTooLarge'
     delete:
+      operationId: deleteUser
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
       parameters:
@@ -143,6 +147,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/profile:
     get:
+      operationId: getUserProfile
       summary: Get user profile
       description: Retrieve the public profile of a user account.
       parameters:
@@ -184,6 +189,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge' 
     patch:
+      operationId: updateUserProfile
       summary: Update user profile
       description: Update the public profile of a user account.
       parameters:
@@ -218,6 +224,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password:
     put:
+      operationId: updateUserPassword
       summary: Update user password
       description: Update the password of a user account.
       parameters:
@@ -252,6 +259,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password/recovery:
     post:
+      operationId: generatePasswordRecoveryToken
       summary: Generate password recovery token
       description: Generate and send a password recovery token to the user via email.
       parameters:
@@ -278,6 +286,7 @@ paths:
             $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password/recovery/{token}:
     post:
+      operationId: verifyPasswordRecoveryToken
       summary: Verify password recovery token
       description: Verify the password recovery token provided by the user.
       parameters:
@@ -301,6 +310,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email:
     get:
+      operationId: getUserEmail
       summary: Get user email
       description: Retrieve the email address of a user account.
       parameters:
@@ -340,6 +350,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     put:
+      operationId: updateUserEmail
       summary: Update user email
       description: Update the email address of a user account.
       parameters:
@@ -370,6 +381,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification:
     post:
+      operationId: generateEmailVerificationToken
       summary: Generate email verification token
       description: Receive via email the verification token to be provided in the next request.
       parameters:
@@ -392,6 +404,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification/{token}:
     post:
+      operationId: verifyEmailVerificationToken
       summary: Verify email verification token
       description: Verify the email verification token provided by the user.
       parameters:
@@ -411,6 +424,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa:
     post:
+      operationId: enableTwoFactorAuth
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
       parameters:
@@ -449,6 +463,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getTwoFactorAuthStatus
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
@@ -482,6 +497,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: disableTwoFactorAuth
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
       parameters:
@@ -501,6 +517,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/verification:
     post:
+      operationId: verifyTwoFactorAuthCode
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
       parameters:
@@ -525,6 +542,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery:
     post:
+      operationId: generate2faRecoveryToken
       summary: Generate 2fa recovery token
       description: Generate and send via email the recovery token to be provided in the next request.
       parameters:
@@ -553,6 +571,7 @@ paths:
             $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery/{token}:
     post:
+      operationId: verify2faRecoveryToken
       summary: Verify 2fa recovery token
       description: Verify the 2fa recovery token provided by the user.
       parameters:
@@ -572,6 +591,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/matches:
     get:
+      operationId: getUserMatches
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
       parameters:
@@ -619,6 +639,7 @@ paths:
 
   /users/{user_id}/tournaments:
     get:
+      operationId: getUserTournaments
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
@@ -665,6 +686,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/friends:
     post:
+      operationId: addFriend
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:
@@ -694,6 +716,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getFriends
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
       parameters:
@@ -742,6 +765,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/friends/{friend_id}:
     delete:
+      operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
@@ -763,6 +787,7 @@ paths:
     
   /sessions/{user_id}:
     post:
+      operationId: login
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
@@ -805,6 +830,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getUserStatus
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
       parameters:
@@ -844,6 +870,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: logout
       summary: User logout
       description: Logs out a specific user from the system.
       parameters:
@@ -864,6 +891,7 @@ paths:
 
   /matches:
     post:
+      operationId: createMatch
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user ID.
       parameters:
@@ -917,6 +945,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /matches/{match_id}:
     post:
+      operationId: joinMatch
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
       parameters:
@@ -936,6 +965,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getMatchInfo
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
       parameters:
@@ -973,6 +1003,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: abandonMatch
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
       parameters:
@@ -994,6 +1025,7 @@ paths:
 
   /tournaments:
     post:
+      operationId: createTournament
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       parameters:
@@ -1045,6 +1077,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /tournaments/{tournament_id}:
     post:
+      operationId: joinTournament
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       parameters:
@@ -1068,6 +1101,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getTournamentInfo
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
       parameters:
@@ -1105,6 +1139,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     patch:
+      operationId: forceStartTournament
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
       parameters:
@@ -1128,6 +1163,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: abandonTournament
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:
