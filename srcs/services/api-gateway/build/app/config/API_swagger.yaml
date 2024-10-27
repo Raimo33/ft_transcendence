@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 19:19:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/27 09:23:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: Pongfumasters API
   description: REST-ful API to interact with the Pongfumasters gateway.
@@ -35,8 +35,7 @@ paths:
             text/plain:
               schema:
                 type: string
-                examples:
-                  - value: "pong"
+                example: "pong"
 
   /users:
     post:
@@ -1011,8 +1010,8 @@ paths:
                       type: array
                       items:
                         $ref: "#/components/schemas/user_id"
-                    required: true
-                    additionalProperties: false
+                  required: [invited_users]
+                  additionalProperties: false
         required: true
       security:
         - jwtAuth: []
@@ -1154,144 +1153,110 @@ components:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
       type: string
       format: uuid
-      examples:
-        - value: 550e8400-e29b-41d4-a716-446655440000
+      example: 550e8400-e29b-41d4-a716-446655440000
     user_psw:
       description: User's password (plain-text) for authentication.
       type: string
-      examples:
-        - value: "StrongPassword123!"
+      example: "StrongPassword123!"
     user_email:
       description: User's email address, used for login and notifications.
       type: string
       format: email
-      examples:
-        - value: "example@example.com"
+      example: "example@example.com"
     user_display_name:
       description: Display name of the user, visible to other players during gameplay.
       type: string
-      examples:
-        - value: "PongMaster123"
+      example: "PongMaster123"
     user_avatar:
-      description: User's avatar image, used for profile picture, defaults to a generic avatar if not provided.
-      oneOf:
-        - type: string
-          format: uri
-          description: URL to the user's avatar image.
-        - type: string
-          description: Base64-encoded image data for the user's avatar.
-      examples:
-        - value: "https://example.com/avatar.jpg"
+      description: User's avatar image in base64 encoding, used for profile picture, defaults to a generic avatar if not provided.
+      type: string
+      example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABjklEQVRIS+2Vv0oDQRDG..."
     user_status:
       description: Current status of the user (online or offline).
       type: string
       enum: [online, offline]
-      examples:
-        - value: "online"
-        - value: "offline"
+      example: "online"
 
     match_id:
       description: Unique identifier for the match (UUID format or similar).
       type: string
       format: uuid
-      examples:
-        - value: 550e8400-e29b-41d4-a716-446655440000
+      example: 550e8400-e29b-41d4-a716-446655440000
     match_status:
       description: Current status of the match.
       type: string
       enum: [ongoing, completed, interrupted]
-      examples:
-        - value: "ongoing"
-        - value: "completed"
-        - value: "interrupted"
+      example: "ongoing"
     match_ball_speed:
       description: Defines the speed of the ball in the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
-      examples:
-        - value: 50
+      example: 50
     match_max_duration:
       description: Maximum allowable duration (seconds) for the match.
       type: integer
       format: int32
       minimum: 60
       maximum: 3600
-      examples:
-        - value: 300
+      example: 300
     match_starting_health_points:
       description: Initial health or lives given to each player at the start of the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
-      examples:
-        - value: 3
+      example: 3
 
     player_leaderboard_position:
       description: Position of the player in the leaderboard.
       type: integer
       format: int32
       minimum: 1
-      examples:
-        - value: 3
+      example: 3
 
     tournament_id:
       description: Unique identifier for the tournament (UUID format or similar).
       type: string
       format: uuid
-      examples:
-        - value: "550e8400-e29b-41d4-a716-446655440000"
+      example: 550e8400-e29b-41d4-a716-446655440000
     tournament_mode:
       description: Format of the tournament.
       type: string
       enum: [single_elimination, knockout, king_of_the_hill, ladder, round_robin]
-      examples:
-        - value: "single_elimination"
-        - value: "knockout"
-        - value: "king_of_the_hill"
-        - value: "ladder"
-        - value: "round_robin"
+      example: "king_of_the_hill"
     tournament_status:
       description: Current status of the tournament.
       type: string
       enum: [ongoing, completed, interrupted]
-      examples:
-        - value: "ongoing"
-        - value: "completed"
-        - value: "interrupted"
+      example: "ongoing"
     timestamp:
       description: Timestamp in unix timestamp format.
       type: integer
       format: int64
-      examples:
-        - value: 1630000000
+      example: 1634265600
 
     two_factor_auth_status:
       description: Status of the 2FA authentication for the user.
       type: boolean
-      examples:
-        - value: true
+      example: true
 
     qr_code:
       description: URL to the QR code image.
       type: string
       format: uri
-      examples:
-        - value: "https://example.com/qr_code.png"
+      example: "https://example.com/qr_code.png"
   
     totp_code:
       description: TOTP code generated by the user for 2FA authentication.
       type: string #string because it can contain leading zeros
-      examples:
-        - value: "012345"
+      example: "123456"
 
     totp_secret:
       description: TOTP secret key for generating 2FA codes.
       type: string
-      examples:
-        - value: otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}
+      example: "otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}"
 
     totp_key:
       description: Represents a 2FA private key for a user.
@@ -1305,15 +1270,13 @@ components:
     jwt_token:
       description: JWT token for session management.
       type: string
-      examples:
-        - value: <Header>.<Payload>.<Signature>
+      example: "<Header>.<Payload>.<Signature>"
 
     websocket_url:
       description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
       type: string
       format: uri
-      examples:
-        - value: "wss://example.com/ws"
+      example: "wss://example.com/ws"
 
     UserProfile:
       description: Represents a public user profile with limited information.
@@ -1368,7 +1331,7 @@ components:
         players:
           description: Array of user_ids representing the players in the match.
           type: array
-          intems:
+          items:
             $ref: "#/components/schemas/user_id"
         status:
           $ref: "#/components/schemas/match_status"

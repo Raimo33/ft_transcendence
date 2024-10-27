@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/10/26 23:28:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/27 08:43:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,7 +59,7 @@ class EndpointTreeNode
       resources = resources.map do |http_method, details|
         auth_required = details['security']
         body_required = details['requestBody']
-        APIRequest.new(http_method.to_sym, auth_required, body_required)
+        Resource.new(http_method.to_sym, auth_required, body_required)
       end
       add_path(path, resources)
     end
