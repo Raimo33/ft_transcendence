@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 18:02:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 17:13:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -98,17 +98,20 @@ class ClientHandler
     body_start_index = header_end + 4
 
     request_line, headers_lines = headers_part.split("\r\n", 2)
-    request.headers = parse_headers(headers_lines)
-
-    content_length = headers["content-length"]&.to_i
-    request.method, full_path, _ = request_line.split(" ", 3)
     path, query = full_path.split("?", 2)
-
+    
     endpoint = @endpoint_tree.find_endpoint(path)
     raise ServerExceptions::NotFound unless endpoint
-
+    
     resource = endpoint.resources[method]
     raise ServerExceptions::MethodNotAllowed unless resource
+
+    request_schema = resource.request_schema
+
+    request.headers = parse_headers(request_schema.allowed_headers, headers_lines)
+
+    content_length = request.headers["content-length"]&.to_i
+    request.method, full_path, _ = request_line.split(" ", 3)
 
     if resource.body_required
       raise ServerExceptions::LengthRequired unless content_length
@@ -122,11 +125,13 @@ class ClientHandler
 
     raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
 
-    request.path_params  = parse_path_params(resource.allowed_path_params, path)
-    request.query_params = parse_query_params(resource.allowed_query_params, query)
-    request.body         = parse_body(resource.request_body_type, raw_body)
+    request.path_params  = parse_path_params(request_schema.allowed_path_params, path)
+    request.query_params = parse_query_params(request_schema.allowed_query_params, query)
+    request.body         = parse_body(request_schema.request_body_type, raw_body)
 
     request
+
+    #TODO valutare se rimuovere completamente il parsing delle RequestSchema e ReponseSchema e quindi Resource a favore di un parsing unico di openapi3_parser iniziale e poi convalidazione QUI
   end
   
   def skip_request(buffer)

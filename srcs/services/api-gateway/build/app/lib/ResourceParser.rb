@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 17:57:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 17:01:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -58,18 +58,6 @@ class ResourceParser
     operation.security.present?
   end
 
-  def extract_path_params(path)
-    path.scan(/\{([^}]+)\}/).flatten
-  end
-
-  def extract_query_params(operation)
-    #TODO: Implement logic to extract query parameters
-  end  
-
-  def extract_request_body(operation)
-    #TODO: Implement logic to extract request body schema
-  end
-
   def extract_request(operation)
     Request.new.tap do |request|
       allowed_path_params   = extract_path_params(path)
@@ -79,6 +67,63 @@ class ResourceParser
     end
   end
 
-  def extract_responses(operation)
-    #TODO return a hash of Response.new objects keyed by status code
+  def extract_path_params(path)
+    path.scan(/\{([^}]+)\}/).flatten
   end
+
+  def extract_query_params(operation)
+    {}.tap do |query_params|
+      operation.parameters.each do |parameter|
+        next unless parameter.in == 'query'
+  
+        query_params[parameter.name.to_sym] = {
+          required: parameter.required,
+          style: parameter.style,
+          explode: parameter.explode,
+          schema: parameter.schema
+        }
+      end
+    end
+  end
+  
+  def extract_headers(operation)
+    {}.tap do |headers|
+      operation.parameters.each do |parameter|
+        next unless parameter.in == 'header'
+  
+        headers[parameter.name.to_sym] = {
+          required: parameter.required,
+          style: parameter.style,
+          explode: parameter.explode,
+          schema: parameter.schema
+        }
+      end
+    end
+  end
+
+  def extract_request_body(operation)
+    return nil unless operation.request_body
+  
+    content = operation.request_body.content['application/json']
+    return nil unless content
+  
+    {
+      required: operation.request_body.required?,
+      schema: content.schema
+    }
+  end
+  
+
+  def extract_responses(operation)
+    {}.tap do |responses|
+      operation.responses.each do |status_code, response|
+
+        content = response.content['application/json']
+
+        responses[status_code.to_sym] = {
+          schema: content&.schema
+        }
+      end
+    end
+  end
+end

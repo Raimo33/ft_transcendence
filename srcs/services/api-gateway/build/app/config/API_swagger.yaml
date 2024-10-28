@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 16:05:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 16:30:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -1765,7 +1765,12 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    BadRequest:
+
+    #######################################################
+    #                 Generic Responses                   #
+    #######################################################
+
+    BadRequest: #HTTP 400
       description: Bad request. The request was invalid or cannot be served.
       headers:
         X-Rate-Limit-Limit:
@@ -1777,11 +1782,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    #######################################################
-    #                 Generic Responses                   #
-    #######################################################
-
-    NotFound:
+    NotFound: #HTTP 404
       description: Not found. The requested resource could not be found.
       headers:
         X-Rate-Limit-Limit:
@@ -1793,7 +1794,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    MethodNotAllowed:
+    MethodNotAllowed: #HTTP 405
       description: Method not allowed. The request method is known but not supported by the target resource.
       headers:
         X-Rate-Limit-Limit:
@@ -1805,7 +1806,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    RequestTimeout:
+    RequestTimeout: #HTTP 408
       description: Request timeout. Idle time has passed without any data being sent or received.
       headers:
         X-Rate-Limit-Limit:
@@ -1817,7 +1818,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    UriTooLong:
+    UriTooLong: #HTTP 414
       description: URI too long. The URI provided was too long for the server to process.
       headers:
         X-Rate-Limit-Limit:
@@ -1829,7 +1830,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    TooManyRequests:
+    TooManyRequests: #HTTP 429
       description: Rate limit exceeded. Too many requests in a given time window.
       headers:
         X-Rate-Limit-Limit:
@@ -1841,7 +1842,7 @@ components:
         Retry-After:
           $ref: '#/components/headers/Retry-After'
 
-    InternalServerError:
+    InternalServerError: #HTTP 500
       description: Internal server error. The server encountered an unexpected condition that prevented it from fulfilling the request.
       headers:
         X-Rate-Limit-Limit:
@@ -1853,7 +1854,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    NotImplemented:
+    NotImplemented: #HTTP 501
       description: Not implemented. The server does not support the method or functionality required to fulfill the request.
       headers:
         X-Rate-Limit-Limit:
@@ -1865,7 +1866,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    BadGateway:
+    BadGateway: #HTTP 502
       description: Bad gateway. The server received an invalid response from an upstream server.
       headers:
         X-Rate-Limit-Limit:
@@ -1877,7 +1878,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    ServiceUnavailable:
+    ServiceUnavailable: #HTTP 503
       description: Service unavailable. The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.
       headers:
         X-Rate-Limit-Limit:
@@ -1889,7 +1890,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    GatewayTimeout:
+    GatewayTimeout: #HTTP 504
       description: Gateway timeout. The server did not receive a timely response from an upstream server it needed to access in order to complete the request.
       headers:
         X-Rate-Limit-Limit:
@@ -1901,7 +1902,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    ImATeaPot:
+    ImATeaPot: #HTTP 418
       description: I'm a teapot. The server is a teapot, not a coffee machine.
 
   securitySchemes:
