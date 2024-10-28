@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 17:57:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 19:48:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,8 +30,8 @@ class EndpointTree
       current_node = current_node.children[part]
     end
 
-    resources.each do |resource|
-      current_node.resources[resource.http_method] = resource
+    resources.each do |r|
+      current_node.resources[r.http_method] = r
     end    
   end
 

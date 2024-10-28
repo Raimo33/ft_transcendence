@@ -1,36 +1,27 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    ResourceParser.rb                                  :+:      :+:    :+:    #
+#    SwaggerParser.rb                                   :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/10/28 17:01:37 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 19:42:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'openapi3_parser'
-require_relative 'Resource'
-require_relative 'EndpointTree'
+require_relative 'structs'
 
-class ResourceParser
-  attr_reader :openapi_spec
+class SwaggerParser
 
-  def initialize(openapi_path)
-    barrier = Async::Barrier.new
-
-    @openapi_spec = barrier.async { Openapi3Parser.load_file(openapi_path) }
-
-    barrier.wait
-  ensure
-    barrier.stop
+  def initialize(file_path)
+    @openapi_spec = Openapi3Parser.load_file(file_path)
   end
 
   def fill_endpoint_tree(endpoint_tree)
     @openapi_spec.paths.each do |path, path_item|
-      path_resources = process_path(path, path_item)
-      endpoint_tree.add_path(path, path_resources)
+      endpoint_tree.add_path(path, process_path(path, path_item))
     end
   end
 
@@ -43,14 +34,14 @@ class ResourceParser
   end
 
   def build_resource(http_method, operation)
-    Resource.new.tap do |resource|
-      resource.http_method   = http_method
-      resource.auth_required = requires_auth?(operation)
-      resource.request       = extract_request(operation)
-      resource.responses     = extract_responses(operation)
-      resource.grpc_service  = extract_grpc_service(operation)
-      resource.grpc_request  = extract_grpc_request(operation)
-      resource.grpc_response = extract_grpc_response(operation)
+    Resource.new.tap do |r|
+      r.http_method              = http_method
+      r.expected_auth            = requires_auth?(operation)
+      r.expected_request         = extract_request(operation)
+      r.expected_responses       = extract_responses(operation)
+      r.grpc_service             = extract_grpc_service(operation)
+      r.expected_grpc_request    = extract_grpc_request(operation)
+      r.expected_grpc_response   = extract_grpc_response(operation)
     end
   end
 
@@ -59,11 +50,11 @@ class ResourceParser
   end
 
   def extract_request(operation)
-    Request.new.tap do |request|
-      allowed_path_params   = extract_path_params(path)
-      allowed_query_params  = extract_query_params(operation)
-      allowed_headers       = extract_headers(operation)
-      body_type             = extract_request_body(operation)
+    ExpectedRequest.new.tap do |r|
+      r.allowed_path_params   = extract_path_params(path)
+      r.allowed_query_params  = extract_query_params(operation)
+      r.allowed_headers       = extract_headers(operation)
+      r.body_type             = extract_request_body(operation)
     end
   end
 
@@ -115,15 +106,6 @@ class ResourceParser
   
 
   def extract_responses(operation)
-    {}.tap do |responses|
-      operation.responses.each do |status_code, response|
-
-        content = response.content['application/json']
-
-        responses[status_code.to_sym] = {
-          schema: content&.schema
-        }
-      end
-    end
+    #TODO ritorna hash di ExpectedResponse (status code, body, headers)
   end
 end

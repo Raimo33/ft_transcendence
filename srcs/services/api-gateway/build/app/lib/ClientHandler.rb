@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/28 17:13:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 19:59:02 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ class ClientHandler
   Request = Struct.new(:method, :path_params, :query_params, :headers, :body)
   Response = Struct.new(:status_code, :headers, :body)
 
-  def initialize(socket, endpoint_tree)
+  def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
     @stream = Async::IO::Stream.new(socket)
     @endpoint_tree = endpoint_tree
     @request_queue = Async::Queue.new
@@ -65,9 +65,9 @@ class ClientHandler
           priority += 1
 
           barrier.async do
-            grpc_request = resource.map_to_grpc_request(request)
+            grpc_request = resource.rest_to_grpc_request(request)
             grpc_response = @grpc_client.call(resource.grpc_service, resource.grpc_call, grpc_request)
-            response = resource.map_to_rest_response(grpc_response)
+            response = resource.grpc_to_rest_response(grpc_response)
             response_queue.enqueue(current_priority, response)
           rescue => e
             send_error(e.status_code)
@@ -106,9 +106,9 @@ class ClientHandler
     resource = endpoint.resources[method]
     raise ServerExceptions::MethodNotAllowed unless resource
 
-    request_schema = resource.request_schema
+    expected_request = resource.expected_request
 
-    request.headers = parse_headers(request_schema.allowed_headers, headers_lines)
+    request.headers = parse_headers(expected_request.allowed_headers, headers_lines)
 
     content_length = request.headers["content-length"]&.to_i
     request.method, full_path, _ = request_line.split(" ", 3)
@@ -125,13 +125,12 @@ class ClientHandler
 
     raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
 
-    request.path_params  = parse_path_params(request_schema.allowed_path_params, path)
-    request.query_params = parse_query_params(request_schema.allowed_query_params, query)
-    request.body         = parse_body(request_schema.request_body_type, raw_body)
+    request.path_params  = parse_path_params(expected_request.allowed_path_params, path)
+    request.query_params = parse_query_params(expected_request.allowed_query_params, query)
+    request.body         = parse_body(expected_request.body_schema, raw_body)
 
     request
 
-    #TODO valutare se rimuovere completamente il parsing delle RequestSchema e ReponseSchema e quindi Resource a favore di un parsing unico di openapi3_parser iniziale e poi convalidazione QUI
   end
   
   def skip_request(buffer)
@@ -145,7 +144,7 @@ class ClientHandler
     buffer.slice!(0, next_request_index) if next_request_index
   end
 
-  def parse_headers(headers_lines)
+  def parse_headers(allowed_headers, headers_lines) #TODO valutare se implementare warning per headers non previsti
     headers = {}
 
     headers_lines.split("\r\n").each do |line|
@@ -164,7 +163,7 @@ class ClientHandler
     #TODO
   end
 
-  def parse_body(request_body_type, raw_body)
+  def parse_body(body_schema, raw_body)
     #TODO
   end
 

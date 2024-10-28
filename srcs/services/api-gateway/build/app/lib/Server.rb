@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 17:57:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 19:42:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,16 +19,19 @@ require_relative 'EndpointTree'
 require_relative 'ClientHandler'
 require_relative 'JwtValidator'
 require_relative 'ServerExceptions'
+require_relative 'SwaggerParser'
+require_relative 'structs'
 
 class Server
+
   def initialize(grpc_client)
     @grpc_client = grpc_client
     @endpoint_tree = EndpointTree.new('v1')
-    @resource_parser = ResourceParser.new('/app/config/openapi.yaml')
+    @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
 
-    @resource_parser.fill_endpoint_tree(@endpoint_tree)
+    @swagger_parser.fill_endpoint_tree(@endpoint_tree)
   end
 
   def run
