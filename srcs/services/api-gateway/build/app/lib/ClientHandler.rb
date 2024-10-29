@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 17:01:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/29 20:30:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -159,15 +159,15 @@ class ClientHandler
   end
 
   def parse_path_params(allowed_path_params, path)
-    #TODO
+    #TODO deve restituire un hash con i parametri e i valori
   end
 
   def parse_query_params(allowed_query_params, raw_query)
-    #TODO
+    #TODO deve restituire un hash con i parametri e i valori
   end
 
   def parse_body(body_schema, raw_body)
-    #TODO
+    #TODO deve restituire un hash con i campi e i valori
   end
 
   def check_auth(resource, authorization_header)

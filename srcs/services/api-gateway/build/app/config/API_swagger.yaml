@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 20:05:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/29 20:29:28 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -273,9 +273,9 @@ paths:
             schema:
               type: object
               properties:
-                email:
+                new_email:
                   $ref: "#/components/schemas/user_email"
-              required: [email]
+              required: [new_email]
         required: true
       security:
         - jwtAuth: []
@@ -1241,7 +1241,7 @@ components:
       maximum: 100
       example: 3
 
-    player_leaderboard_position:
+    player_position:
       description: Position of the player in the leaderboard.
       type: integer
       format: int32
@@ -1488,13 +1488,11 @@ components:
 
     profile_sorting_options:
       description: Options to sort the user profiles list.
-      name: sort
+      name: sort_by
       in: query
       schema:
-        type: array
-        items:
-          type: string
-          enum: [display_name, registered_timestamp, last_active]
+        type: string
+        enum: [display_name, registered_timestamp, last_active]
       style: form
       explode: false
       required: false
@@ -1513,13 +1511,11 @@ components:
   
     player_match_sorting_options:
       description: Options to sort the player's matches list.
-      name: sort
+      name: sort_by
       in: query
       schema:
-        type: array
-        items:
-          type: string
-          enum: [age, duration, number_of_players, leaderboard_position]
+        type: string
+        enum: [age, duration, number_of_players, position]
       style: form
       explode: false
       required: false
@@ -1532,21 +1528,19 @@ components:
         properties:
           status:
             $ref: "#/components/schemas/match_status"
-          leaderboard_position:
-            $ref: "#/components/schemas/player_leaderboard_position"
+          position:
+            $ref: "#/components/schemas/player_position"
       style: deepObject
       explode: true
       required: false
 
     player_tournament_sorting_options:
       description: Options to sort the player's tournaments list.
-      name: sort
+      name: sort_by
       in: query
       schema:
-        type: array
-        items:
-          type: string
-          enum: [age, duration, number_of_players, leaderboard_position]
+        type: string
+        enum: [age, duration, number_of_players, position]
       style: form
       explode: false
       required: false
@@ -1561,8 +1555,8 @@ components:
             $ref: "#/components/schemas/tournament_mode"
           status:
             $ref: "#/components/schemas/tournament_status"
-          leaderboard_position:
-            $ref: "#/components/schemas/player_leaderboard_position"
+          position:
+            $ref: "#/components/schemas/player_position"
 
     limit:
       description: Maximum number of items to return.

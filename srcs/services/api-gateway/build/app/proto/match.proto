@@ -18,25 +18,25 @@ enum player_match_sorting_options
     AGE = 0;
     DURATION = 1;
     NUMBER_OF_PLAYERS = 2;
-    LEADERBOARD_POSITION = 3;
+    POSITION = 3;
     // Add more sorting options here
 }
 
 message player_match_filters
 {
     optional match_status  status = 1;
-    optional uint32        leaderboard_position = 2;
+    optional uint32        position = 2;
     // Add more filter options here
 }
 
 // v1/users/{user_id}/matches GET
 message GetUserMatchesRequest
 {
-    string                                          user_id = 1;
-    optional uint32                                 page = 2;
-    optional uint32                                 results_per_page = 3;
-    optional repeated player_match_sorting_options  sorting = 4;
-    optional player_match_filters                   filters = 5;
+    string                                 user_id = 1;
+    optional uint32                        limit = 2;
+    optional uint32                        offset = 3;
+    optional player_match_sorting_options  sort_by = 4;
+    optional player_match_filters          filters = 5;
 }
 message GetUserMatchesResponse
 {

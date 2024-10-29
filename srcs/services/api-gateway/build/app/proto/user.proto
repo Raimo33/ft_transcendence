@@ -12,25 +12,24 @@ service UserService
     rpc GetUserProfile                (GetUserProfileRequest)                returns (GetUserProfileResponse) {}
     rpc UpdateUserProfile             (UpdateUserProfileRequest)             returns (UpdateUserProfileResponse) {}
     rpc UpdateUserPassword            (UpdateUserPasswordRequest)            returns (UpdateUserPasswordResponse) {}
-    rpc RecoverUserPassword           (RecoverUserPasswordRequest)           returns (RecoverUserPasswordResponse) {}
-    rpc VerifyPasswordRecoveryToken   (VerifyPasswordRecoveryTokenRequest)   returns (VerifyPasswordRecoveryTokenResponse) {}
-    rpc GetUserEmail                  (GetUserEmailRequest)                  returns (GetUserEmailResponse) {}
     rpc UpdateUserEmail               (UpdateUserEmailRequest)               returns (UpdateUserEmailResponse) {}
     rpc VerifyUserEmail               (VerifyUserEmailRequest)               returns (VerifyUserEmailResponse) {}
     rpc VerifyEmailVerificationToken  (VerifyEmailVerificationTokenRequest)  returns (VerifyEmailVerificationTokenResponse) {}
     rpc Enable2FA                     (Enable2FARequest)                     returns (Enable2FAResponse) {}
     rpc Get2FAStatus                  (Get2FAStatusRequest)                  returns (Get2FAStatusResponse) {}
-    rpc Disable2FACode                (Disable2FACodeRequest)                returns (Disable2FACodeResponse) {}
-    rpc Verify2FA                     (Verify2FARequest)                     returns (Verify2FAResponse) {}
-    rpc Recover2FA                    (Recover2FARequest)                    returns (Recover2FAResponse) {}
-    rpc Verify2FARecoveryToken        (Verify2FARecoveryTokenRequest)        returns (Verify2FARecoveryTokenResponse) {}
+    rpc Disable2FA                    (Disable2FARequest)                    returns (Disable2FAResponse) {}
+    rpc Verify2FACode                 (Verify2FACodeRequest)                 returns (Verify2FACodeResponse) {}
     rpc AddFriend                     (AddFriendRequest)                     returns (AddFriendResponse) {}
     rpc GetFriends                    (GetFriendsRequest)                    returns (GetFriendsResponse) {}
     rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
     rpc LoginUser                     (LoginUserRequest)                     returns (LoginUserResponse) {}
     rpc GetUserStatus                 (GetUserStatusRequest)                 returns (GetUserStatusResponse) {}
     rpc LogoutUser                    (LogoutUserRequest)                    returns (LogoutUserResponse) {}
-}
+    rpc RecoverUserPassword           (RecoverUserPasswordRequest)           returns (RecoverUserPasswordResponse) {}
+    rpc VerifyPasswordRecoveryToken   (VerifyPasswordRecoveryTokenRequest)   returns (VerifyPasswordRecoveryTokenResponse) {}
+    rpc Recover2FA                    (Recover2FARequest)                    returns (Recover2FAResponse) {}
+    rpc Verify2FARecoveryToken        (Verify2FARecoveryTokenRequest)        returns (Verify2FARecoveryTokenResponse) {}
+  }
 
 enum profile_sorting_options
 {
@@ -115,40 +114,6 @@ message UpdateUserPasswordResponse
     int32 status_code = 1;
 }
 
-// v1/users/{user_id}/password/recovery POST
-message RecoverUserPasswordRequest
-{
-    string  user_id = 1;
-    string  email = 2;
-}
-message RecoverUserPasswordResponse
-{
-    int32 status_code = 1;
-}
-
-// v1/users/{user_id}/password/recovery/{token} POST
-message VerifyPasswordRecoveryTokenRequest
-{
-    string  user_id = 1;
-    string  recovery_token = 2;
-    string  new_password = 3;
-}
-message VerifyPasswordRecoveryTokenResponse
-{
-    int32 status_code = 1;
-}
-
-// v1/users/{user_id}/email GET
-message GetUserEmailRequest
-{
-    string user_id = 1;
-}
-message GetUserEmailResponse
-{
-    int32           status_code = 1;
-    optional string email = 2;
-}
-
 // v1/users/{user_id}/email PUT
 message UpdateUserEmailRequest
 {
@@ -174,7 +139,7 @@ message VerifyUserEmailResponse
 message VerifyEmailVerificationTokenRequest
 {
     string  user_id = 1;
-    string  verification_token = 2;
+    string  token = 2;
 }
 message VerifyEmailVerificationTokenResponse
 {
@@ -203,43 +168,22 @@ message Get2FAStatusResponse
 }
 
 // v1/users/{user_id}/2fa DELETE
-message Disable2FACodeRequest
+message Disable2FARequest
 {
     string user_id = 1;
 }
-message Disable2FACodeResponse
+message Disable2FAResponse
 {
     int32  status_code = 1;
 }
 
 // v1/users/{user_id}/2fa/verify POST
-message Verify2FARequest
+message Verify2FACodeRequest
 {
     string  user_id = 1;
-    string  totp_status_code = 2;
+    string  totp_code = 2;
 }
-message Verify2FAResponse
-{
-    int32  status_code = 1;
-}
-
-// v1/users/{user_id}/2fa/recovery POST
-message Recover2FARequest
-{
-    string  user_id = 1;
-}
-message Recover2FAResponse
-{
-    int32  status_code = 1;
-}
-
-// v1/users/{user_id}/2fa/recovery/{token} POST
-message Recover2FAWithTokenRequest
-{
-    string  user_id = 1;
-    string  recovery_token = 2;
-}
-message Recover2FAWithTokenResponse
+message Verify2FACodeResponse
 {
     int32  status_code = 1;
 }
@@ -258,11 +202,11 @@ message AddFriendResponse
 // v1/users/{user_id}/friends/ GET
 message GetFriendsRequest
 {
-    string                                    user_id = 1;
-    optional uint32                           page = 2;
-    optional uint32                           results_per_page = 3;
-    optional repeated profile_sorting_options sorting = 4;
-    optional profile_filters                  filters = 5;
+    string                           user_id = 1;
+    optional uint32                  limit = 2;
+    optional uint32                  offset = 3;
+    optional profile_sorting_options sort_by = 4;
+    optional profile_filters         filters = 5;
 }
 message GetFriendsResponse
 {
@@ -310,6 +254,50 @@ message LogoutUserRequest
     string  user_id = 1;
 }
 message LogoutUserResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/users/{user_id}/2fa/recovery POST
+message Recover2FARequest
+{
+    string  user_id = 1;
+}
+message Recover2FAResponse
+{
+    int32  status_code = 1;
+}
+
+// v1/users/{user_id}/2fa/recovery/{token} POST
+message Recover2FAWithTokenRequest
+{
+    string  user_id = 1;
+    string  recovery_token = 2;
+}
+message Recover2FAWithTokenResponse
+{
+    int32  status_code = 1;
+}
+
+// v1/users/{user_id}/password/recovery POST
+message RecoverUserPasswordRequest
+{
+    string  user_id = 1;
+    string  email = 2;
+}
+message RecoverUserPasswordResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/users/{user_id}/password/recovery/{token} POST
+message VerifyPasswordRecoveryTokenRequest
+{
+    string  user_id = 1;
+    string  recovery_token = 2;
+    string  new_password = 3;
+}
+message VerifyPasswordRecoveryTokenResponse
 {
     int32 status_code = 1;
 }
