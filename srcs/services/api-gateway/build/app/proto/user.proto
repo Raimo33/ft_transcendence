@@ -6,29 +6,30 @@ import "common.proto";
 
 service UserService
 {
-    rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
-    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
-    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
-    rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse) {}
-    rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {}
-    rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UpdateUserPasswordResponse) {}
-    rpc RecoverUserPassword(RecoverUserPasswordRequest) returns (RecoverUserPasswordResponse) {}
-    rpc RecoverUserPasswordWithToken(RecoverUserPasswordWithTokenRequest) returns (RecoverUserPasswordWithTokenResponse) {}
-    rpc GetUserEmail(GetUserEmailRequest) returns (GetUserEmailResponse) {}
-    rpc UpdateUserEmail(UpdateUserEmailRequest) returns (UpdateUserEmailResponse) {}
-    rpc VerifyUserEmail(VerifyUserEmailRequest) returns (VerifyUserEmailResponse) {}
-    rpc VerifyUserEmailWithToken(VerifyUserEmailWithTokenRequest) returns (VerifyUserEmailWithTokenResponse) {}
-    rpc EnableTwoFactorAuth(EnableTwoFactorAuthRequest) returns (EnableTwoFactorAuthResponse) {}
-    rpc GetTwoFactorAuthStatus(GetTwoFactorAuthStatusRequest) returns (GetTwoFactorAuthStatusResponse) {}
-    rpc DisableTwoFactorAuth(DisableTwoFactorAuthRequest) returns (DisableTwoFactorAuthResponse) {}
-    rpc VerifyTwoFactorAuth(VerifyTwoFactorAuthRequest) returns (VerifyTwoFactorAuthResponse) {}
-    rpc RecoverTwoFactorAuth(RecoverTwoFactorAuthRequest) returns (RecoverTwoFactorAuthResponse) {}
-    rpc RecoverTwoFactorAuthWithToken(RecoverTwoFactorAuthWithTokenRequest) returns (RecoverTwoFactorAuthWithTokenResponse) {}
-    rpc AddFriend(AddFriendRequest) returns (AddFriendResponse) {}
-    rpc GetFriends(GetFriendsRequest) returns (GetFriendsResponse) {}
-    rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
-    rpc UserLogin(UserLoginRequest) returns (UserLoginResponse) {}
-    rpc UserLogout(UserLogoutRequest) returns (UserLogoutResponse) {}
+    rpc RegisterUser                  (RegisterUserRequest)                  returns (RegisterUserResponse) {}
+    rpc GetUser                       (GetUserRequest)                       returns (GetUserResponse) {}
+    rpc DeleteUser                    (DeleteUserRequest)                    returns (DeleteUserResponse) {}
+    rpc GetUserProfile                (GetUserProfileRequest)                returns (GetUserProfileResponse) {}
+    rpc UpdateUserProfile             (UpdateUserProfileRequest)             returns (UpdateUserProfileResponse) {}
+    rpc UpdateUserPassword            (UpdateUserPasswordRequest)            returns (UpdateUserPasswordResponse) {}
+    rpc RecoverUserPassword           (RecoverUserPasswordRequest)           returns (RecoverUserPasswordResponse) {}
+    rpc VerifyPasswordRecoveryToken   (VerifyPasswordRecoveryTokenRequest)   returns (VerifyPasswordRecoveryTokenResponse) {}
+    rpc GetUserEmail                  (GetUserEmailRequest)                  returns (GetUserEmailResponse) {}
+    rpc UpdateUserEmail               (UpdateUserEmailRequest)               returns (UpdateUserEmailResponse) {}
+    rpc VerifyUserEmail               (VerifyUserEmailRequest)               returns (VerifyUserEmailResponse) {}
+    rpc VerifyEmailVerificationToken  (VerifyEmailVerificationTokenRequest)  returns (VerifyEmailVerificationTokenResponse) {}
+    rpc Enable2FA                     (Enable2FARequest)                     returns (Enable2FAResponse) {}
+    rpc Get2FAStatus                  (Get2FAStatusRequest)                  returns (Get2FAStatusResponse) {}
+    rpc Disable2FACode                (Disable2FACodeRequest)                returns (Disable2FACodeResponse) {}
+    rpc Verify2FA                     (Verify2FARequest)                     returns (Verify2FAResponse) {}
+    rpc Recover2FA                    (Recover2FARequest)                    returns (Recover2FAResponse) {}
+    rpc Verify2FARecoveryToken        (Verify2FARecoveryTokenRequest)        returns (Verify2FARecoveryTokenResponse) {}
+    rpc AddFriend                     (AddFriendRequest)                     returns (AddFriendResponse) {}
+    rpc GetFriends                    (GetFriendsRequest)                    returns (GetFriendsResponse) {}
+    rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
+    rpc LoginUser                     (LoginUserRequest)                     returns (LoginUserResponse) {}
+    rpc GetUserStatus                 (GetUserStatusRequest)                 returns (GetUserStatusResponse) {}
+    rpc LogoutUser                    (LogoutUserRequest)                    returns (LogoutUserResponse) {}
 }
 
 enum profile_sorting_options
@@ -54,7 +55,8 @@ message RegisterUserRequest
 }
 message RegisterUserResponse
 {
-    response_outcome  outcome = 1;
+    int32             status_code = 1;
+    optional string   user_id = 2;
 }
 
 // v1/users/{user_id} GET
@@ -64,8 +66,8 @@ message GetUserRequest
 }
 message GetUserResponse
 {
-    response_outcome       outcome = 1;
-    optional user  user = 2;
+    int32         status_code = 1;
+    optional user user = 2;
 }
 
 // v1/users/{user_id} DELETE
@@ -75,7 +77,7 @@ message DeleteUserRequest
 }
 message DeleteUserResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/profile GET
@@ -85,7 +87,7 @@ message GetUserProfileRequest
 }
 message GetUserProfileResponse
 {
-    response_outcome                outcome = 1;
+    int32                           status_code = 1;
     optional repeated user_profile  user_profiles = 2;
 }
 
@@ -98,7 +100,7 @@ message UpdateUserProfileRequest
 }
 message UpdateUserProfileResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/password PUT
@@ -110,7 +112,7 @@ message UpdateUserPasswordRequest
 }
 message UpdateUserPasswordResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/password/recovery POST
@@ -121,19 +123,19 @@ message RecoverUserPasswordRequest
 }
 message RecoverUserPasswordResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/password/recovery/{token} POST
-message RecoverUserPasswordWithTokenRequest
+message VerifyPasswordRecoveryTokenRequest
 {
     string  user_id = 1;
     string  recovery_token = 2;
     string  new_password = 3;
 }
-message RecoverUserPasswordWithTokenResponse
+message VerifyPasswordRecoveryTokenResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/email GET
@@ -143,8 +145,8 @@ message GetUserEmailRequest
 }
 message GetUserEmailResponse
 {
-    response_outcome  outcome = 1;
-    optional string   email = 2;
+    int32           status_code = 1;
+    optional string email = 2;
 }
 
 // v1/users/{user_id}/email PUT
@@ -155,7 +157,7 @@ message UpdateUserEmailRequest
 }
 message UpdateUserEmailResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/email/verify POST
@@ -165,81 +167,81 @@ message VerifyUserEmailRequest
 }
 message VerifyUserEmailResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/email/verify/{token} POST
-message VerifyUserEmailWithTokenRequest
+message VerifyEmailVerificationTokenRequest
 {
     string  user_id = 1;
     string  verification_token = 2;
 }
-message VerifyUserEmailWithTokenResponse
+message VerifyEmailVerificationTokenResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/2fa POST
-message EnableTwoFactorAuthRequest
+message Enable2FARequest
 {
     string  user_id = 1;
 }
-message EnableTwoFactorAuthResponse
+message Enable2FAResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/users/{user_id}/2fa GET
-message GetTwoFactorAuthStatusRequest
+message Get2FAStatusRequest
 {
     string user_id = 1;
 }
-message GetTwoFactorAuthStatusResponse
+message Get2FAStatusResponse
 {
-    response_outcome  outcome = 1;
-    optional bool     two_factor_auth = 2;
+    int32         status_code = 1;
+    optional bool two_factor_auth = 2;
 }
 
 // v1/users/{user_id}/2fa DELETE
-message DisableTwoFactorAuthRequest
+message Disable2FACodeRequest
 {
     string user_id = 1;
 }
-message DisableTwoFactorAuthResponse
+message Disable2FACodeResponse
 {
-    response_outcome  outcome = 1;
+    int32  status_code = 1;
 }
 
 // v1/users/{user_id}/2fa/verify POST
-message VerifyTwoFactorAuthRequest
+message Verify2FARequest
 {
     string  user_id = 1;
-    string  totp_code = 2;
+    string  totp_status_code = 2;
 }
-message VerifyTwoFactorAuthResponse
+message Verify2FAResponse
 {
-    response_outcome  outcome = 1;
+    int32  status_code = 1;
 }
 
 // v1/users/{user_id}/2fa/recovery POST
-message RecoverTwoFactorAuthRequest
+message Recover2FARequest
 {
     string  user_id = 1;
 }
-message RecoverTwoFactorAuthResponse
+message Recover2FAResponse
 {
-    response_outcome  outcome = 1;
+    int32  status_code = 1;
 }
 
 // v1/users/{user_id}/2fa/recovery/{token} POST
-message RecoverTwoFactorAuthWithTokenRequest
+message Recover2FAWithTokenRequest
 {
     string  user_id = 1;
     string  recovery_token = 2;
 }
-message RecoverTwoFactorAuthWithTokenResponse
+message Recover2FAWithTokenResponse
 {
-    response_outcome  outcome = 1;
+    int32  status_code = 1;
 }
 
 // v1/users/{user_id}/friends POST
@@ -250,7 +252,7 @@ message AddFriendRequest
 }
 message AddFriendResponse
 {
-    response_outcome  outcome = 1;
+    int32  status_code = 1;
 }
 
 // v1/users/{user_id}/friends/ GET
@@ -264,7 +266,7 @@ message GetFriendsRequest
 }
 message GetFriendsResponse
 {
-    response_outcome          outcome = 1;
+    int32                     status_code = 1;
     optional repeated string  friend_ids = 2;
 }
 
@@ -276,38 +278,38 @@ message RemoveFriendRequest
 }
 message RemoveFriendResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/sessions/{user_id} POST
-message UserLoginRequest
+message LoginUserRequest
 {
     string  user_id = 1;
     string  password = 2;
 }
-message UserLoginResponse
+message LoginUserResponse
 {
-    response_outcome  outcome = 1;
-    optional string   jwt_token = 2;
+    int32           status_code = 1;
+    optional string jwt_token = 2;
 }
 
 // v1/sessions/{user_id} GET
-message GetLoginStatusRequest
+message GetUserStatusRequest
 {
     string  user_id = 1;
 }
-message GetLoginStatusResponse
+message GetUserStatusResponse
 {
-    response_outcome      outcome = 1;
-    optional user_status  status = 2;
+    int32                 status_code = 1;
+    optional user_status  user_status = 2;
 }
 
 // v1/sessions/{user_id} DELETE
-message UserLogoutRequest
+message LogoutUserRequest
 {
     string  user_id = 1;
 }
-message UserLogoutResponse
+message LogoutUserResponse
 {
-    response_outcome  outcome = 1;
+    int32 status_code = 1;
 }

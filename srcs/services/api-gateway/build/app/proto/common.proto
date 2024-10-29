@@ -15,18 +15,18 @@ message user_profile
     string       avatar = 3;
     user_status  status = 4;
     uint64       last_active = 5;
-    uint64       date_registered = 6;
+    uint64       registered_timestamp = 6;
 }
 message user
 {
     string       user_id = 1;
-    string       avatar = 3;
     string       display_name = 2;
+    string       avatar = 3;
     user_status  status = 4;
     uint64       last_active = 5;
-    uint64       date_registered = 6;
+    uint64       registered_timestamp = 6;
     string       email = 7;
-    bool         two_factor_auth = 8;
+    bool         two_factor_enabled = 8;
 }
 
 //match
@@ -76,10 +76,4 @@ message tournament
     tournament_status  status = 4;
     uint64             started_timestamp = 5;
     optional uint64    finished_timestamp = 6;
-}
-
-message response_outcome
-{
-    uint16  code = 1;
-    string  message = 2;
 }

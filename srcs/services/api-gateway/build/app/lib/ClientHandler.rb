@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/28 19:59:02 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/29 17:01:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,9 +22,12 @@ class ClientHandler
   Request = Struct.new(:method, :path_params, :query_params, :headers, :body)
   Response = Struct.new(:status_code, :headers, :body)
 
-  def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
+  def initialize(socket, endpoint_tree, grpc_client, jwt_validator, mapper)
     @stream = Async::IO::Stream.new(socket)
     @endpoint_tree = endpoint_tree
+    @grpc_client = grpc_client
+    @jwt_validator = jwt_validator
+    @mapper = mapper
     @request_queue = Async::Queue.new
   end
 
@@ -65,9 +68,9 @@ class ClientHandler
           priority += 1
 
           barrier.async do
-            grpc_request = resource.rest_to_grpc_request(request)
-            grpc_response = @grpc_client.call(resource.grpc_service, resource.grpc_call, grpc_request)
-            response = resource.grpc_to_rest_response(grpc_response)
+            grpc_request = @mapper.map_request_to_grpc_request(request, resource.operation_id)
+            grpc_response = @grpc_client.call(grpc_request)
+            response = @mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
             response_queue.enqueue(current_priority, response)
           rescue => e
             send_error(e.status_code)

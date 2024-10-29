@@ -6,12 +6,11 @@ import "common.proto";
 
 service MatchService
 {
-    rpc GetUserMatches(GetUserMatchesRequest) returns (GetUserMatchesResponse) {}
-    rpc CreateMatch(CreateMatchRequest) returns (CreateMatchResponse) {}
-    rpc InterruptMatches(InterruptMatchesRequest) returns (InterruptMatchesResponse) {}
-    rpc JoinMatch(JoinMatchRequest) returns (JoinMatchResponse) {}
-    rpc GetMatch(GetMatchRequest) returns (GetMatchResponse) {}
-    rpc AbandonMatch(AbandonMatchRequest) returns (AbandonMatchResponse) {}
+    rpc GetUserMatches     (GetUserMatchesRequest)    returns (GetUserMatchesResponse) {}
+    rpc CreateMatch        (CreateMatchRequest)       returns (CreateMatchResponse) {}
+    rpc JoinMatch          (JoinMatchRequest)         returns (JoinMatchResponse) {}
+    rpc GetMatch           (GetMatchRequest)          returns (GetMatchResponse) {}
+    rpc AbandonMatch       (AbandonMatchRequest)      returns (AbandonMatchResponse) {}
 }
 
 enum player_match_sorting_options
@@ -55,15 +54,6 @@ message CreateMatchResponse
 {
     response_outcome  outcome = 1;
     optional string   match_id = 2;
-}
-
-// v1/matches DELETE
-message InterruptMatchesRequest
-{
-}
-message InterruptMatchesResponse
-{
-    response_outcome  outcome = 1;
 }
 
 // v1/matches/{match_id} POST

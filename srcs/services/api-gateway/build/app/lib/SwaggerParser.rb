@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/10/28 19:42:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/29 14:36:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,9 +39,7 @@ class SwaggerParser
       r.expected_auth            = requires_auth?(operation)
       r.expected_request         = extract_request(operation)
       r.expected_responses       = extract_responses(operation)
-      r.grpc_service             = extract_grpc_service(operation)
-      r.expected_grpc_request    = extract_grpc_request(operation)
-      r.expected_grpc_response   = extract_grpc_response(operation)
+      r.operation_id             = operation.operation_id
     end
   end
 
@@ -108,4 +106,5 @@ class SwaggerParser
   def extract_responses(operation)
     #TODO ritorna hash di ExpectedResponse (status code, body, headers)
   end
+
 end

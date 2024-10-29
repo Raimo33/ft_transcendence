@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/10/28 19:42:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/29 15:12:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,6 +29,7 @@ class Server
     @endpoint_tree = EndpointTree.new('v1')
     @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
     @jwt_validator = JWTValidator.new
+    @mapper = Mapper.new
     @clients = Async::Queue.new
 
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
@@ -51,7 +52,7 @@ class Server
   private
 
   def handle_connection(socket)
-    client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator)
+    client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator, @mapper)
     @clients.enqueue(client_handler)
     client_handler.read_requests
   rescue => e

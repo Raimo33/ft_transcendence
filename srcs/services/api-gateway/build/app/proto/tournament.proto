@@ -6,13 +6,12 @@ import "common.proto";
 
 service TournamentService
 {
-    rpc GetUserTournaments(GetUserTournamentsRequest) returns (GetUserTournamentsResponse) {}
-    rpc CreateTournament(CreateTournamentRequest) returns (CreateTournamentResponse) {}
-    rpc InterruptTournaments(InterruptTournamentsRequest) returns (InterruptTournamentsResponse) {}
-    rpc JoinTournament(JoinTournamentRequest) returns (JoinTournamentResponse) {}
-    rpc GetTournament(GetTournamentRequest) returns (GetTournamentResponse) {}
-    rpc UpdateTournament(UpdateTournamentRequest) returns (UpdateTournamentResponse) {}
-    rpc AbandonTournament(AbandonTournamentRequest) returns (AbandonTournamentResponse) {}
+    rpc GetUserTournaments    (GetUserTournamentsRequest)   returns (GetUserTournamentsResponse) {}
+    rpc CreateTournament      (CreateTournamentRequest)     returns (CreateTournamentResponse) {}
+    rpc JoinTournament        (JoinTournamentRequest)       returns (JoinTournamentResponse) {}
+    rpc GetTournament         (GetTournamentRequest)        returns (GetTournamentResponse) {}
+    rpc ForceStartTournament  (ForceStartTournamentRet)     returns (ForceStartTournamentRese) {}
+    rpc AbandonTournament     (AbandonTournamentRequest)    returns (AbandonTournamentResponse) {}
 }
 
 enum player_tournament_sorting_options
@@ -58,15 +57,6 @@ message CreateTournamentResponse
     optional string   tournament_id = 2;
 }
 
-// v1/tournaments DELETE
-message InterruptTournamentsRequest
-{
-}
-message InterruptTournamentsResponse
-{
-    response_outcome  outcome = 1;
-}
-
 // v1/tournaments/{tournament_id} POST
 message JoinTournamentRequest
 {
@@ -89,11 +79,11 @@ message GetTournamentResponse
 }
 
 // v1/tournaments/{tournament_id} PATCH
-message UpdateTournamentRequest
+message ForceStartTournamentRet
 {
     string tournament_id = 1;
 }
-message UpdateTournamentResponse
+message ForceStartTournamentRese
 {
     response_outcome     outcome = 1;
 }

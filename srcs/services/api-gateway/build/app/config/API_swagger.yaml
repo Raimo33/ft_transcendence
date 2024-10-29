@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/28 16:30:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/29 16:48:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,7 +40,7 @@ paths:
 
   /users:
     post:
-      operationId: register
+      operationId: registerUser
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       parameters:
@@ -57,6 +57,8 @@ paths:
                   $ref: "#/components/schemas/user_psw"
                 display_name:
                   $ref: "#/components/schemas/user_display_name"
+                avatar:
+                  $ref: "#/components/schemas/user_avatar"
               required: [email, password, display_name]
         required: true
       responses:
@@ -259,7 +261,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password/recovery:
     post:
-      operationId: generatePasswordRecoveryToken
+      operationId: recoverUserPassword
       summary: Generate password recovery token
       description: Generate and send a password recovery token to the user via email.
       parameters:
@@ -381,7 +383,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification:
     post:
-      operationId: generateEmailVerificationToken
+      operationId: verifyUserEmail
       summary: Generate email verification token
       description: Receive via email the verification token to be provided in the next request.
       parameters:
@@ -424,8 +426,8 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa:
     post:
-      operationId: enableTwoFactorAuth
-      summary: Setup two-factor authentication
+      operationId: enable2FA
+      summary: Setup 2fa
       description: Enable two-factor authentication for a user account.
       parameters:
         - $ref: '#/components/parameters/user_id'
@@ -463,8 +465,8 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
-      operationId: getTwoFactorAuthStatus
-      summary: Get two-factor authentication status
+      operationId: get2FAStatus
+      summary: Get 2fa status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
         - $ref: '#/components/parameters/user_id'
@@ -497,8 +499,8 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
-      operationId: disableTwoFactorAuth
-      summary: Disable two-factor authentication
+      operationId: disable2FA
+      summary: Disable 2fa
       description: Disable two-factor authentication for a user account.
       parameters:
         - $ref: '#/components/parameters/user_id'
@@ -517,8 +519,8 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/verification:
     post:
-      operationId: verifyTwoFactorAuthCode
-      summary: Verify two-factor authentication code
+      operationId: verify2FACode
+      summary: Verify 2fa code
       description: Verify the two-factor authentication code provided by the user.
       parameters:
         - $ref: '#/components/parameters/user_id'
@@ -542,7 +544,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery:
     post:
-      operationId: generate2faRecoveryToken
+      operationId: recover2FA
       summary: Generate 2fa recovery token
       description: Generate and send via email the recovery token to be provided in the next request.
       parameters:
@@ -571,7 +573,7 @@ paths:
             $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery/{token}:
     post:
-      operationId: verify2faRecoveryToken
+      operationId: verify2FARecoveryToken
       summary: Verify 2fa recovery token
       description: Verify the 2fa recovery token provided by the user.
       parameters:
@@ -787,7 +789,7 @@ paths:
     
   /sessions/{user_id}:
     post:
-      operationId: login
+      operationId: loginUser
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
@@ -831,8 +833,8 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       operationId: getUserStatus
-      summary: Get user login status
-      description: Check if a user is currently logged in and return their status.
+      summary: Get user status
+      description: Retrieve the status of a specific user.
       parameters:
         - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Cache-Control'
@@ -841,7 +843,7 @@ paths:
         - jwtAuth: []
       responses:
         "200":
-          description: Returns the login status of the user.
+          description: Returns the status of the user.
           headers:
             Content-Length:
               $ref: '#/components/headers/Content-Length'
@@ -870,7 +872,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
-      operationId: logout
+      operationId: logoutUser
       summary: User logout
       description: Logs out a specific user from the system.
       parameters:
@@ -965,7 +967,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
-      operationId: getMatchInfo
+      operationId: getMatch
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
       parameters:
@@ -1101,7 +1103,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
-      operationId: getTournamentInfo
+      operationId: getTournament
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
       parameters:
@@ -1340,7 +1342,7 @@ components:
         - properties:
             email:
               $ref: "#/components/schemas/user_email"
-            two_factor_auth:
+            two_factor_enabled:
               $ref: "#/components/schemas/two_factor_auth_status"
           additionalProperties: false
       required: [user_id, display_name, avatar, status, last_active, email, two_factor_auth]
