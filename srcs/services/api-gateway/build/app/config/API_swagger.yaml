@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 16:48:10 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/29 20:05:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -153,7 +153,7 @@ paths:
       summary: Get user profile
       description: Retrieve the public profile of a user account.
       parameters:
-        - $ref: '#/components/parameters/user_id_serialized'
+        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
@@ -259,98 +259,7 @@ paths:
           $ref: '#/components/responses/ContentTooLarge'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-  /users/{user_id}/password/recovery:
-    post:
-      operationId: recoverUserPassword
-      summary: Generate password recovery token
-      description: Generate and send a password recovery token to the user via email.
-      parameters:
-        - $ref: '#/components/parameters/user_id'
-        - $ref: '#/components/parameters/Content-Length'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/user_email"
-        required: true
-      responses:
-          "204":
-            $ref: '#/components/responses/NoContent'
-          "401":
-            $ref: '#/components/responses/Unauthorized'
-          "403":
-            $ref: '#/components/responses/Forbidden'
-          "411":
-            $ref: '#/components/responses/LengthRequired'
-          "413":
-            $ref: '#/components/responses/ContentTooLarge'
-          "431":
-            $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-  /users/{user_id}/password/recovery/{token}:
-    post:
-      operationId: verifyPasswordRecoveryToken
-      summary: Verify password recovery token
-      description: Verify the password recovery token provided by the user.
-      parameters:
-        - $ref: '#/components/parameters/user_id'
-        - $ref: '#/components/parameters/token'
-        - $ref: '#/components/parameters/Content-Length'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/user_psw"
-        required: true
-      responses:
-        "204":
-          $ref: '#/components/responses/NoContent'
-        "411":
-          $ref: '#/components/responses/LengthRequired'
-        "413":
-          $ref: '#/components/responses/ContentTooLarge'
-        "431":
-          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email:
-    get:
-      operationId: getUserEmail
-      summary: Get user email
-      description: Retrieve the email address of a user account.
-      parameters:
-        - $ref: '#/components/parameters/user_id'
-        - $ref: '#/components/parameters/Cache-Control'
-        - $ref: '#/components/parameters/If-None-Match'
-      security:
-        - jwtAuth: []
-      responses:
-        "200":
-          description: Returns the email address of the specified user.
-          headers:
-            Content-Length:
-              $ref: '#/components/headers/Content-Length'
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/X-Rate-Limit-Interval'
-            Cache-Control:
-              $ref: '#/components/headers/Cache-Control'
-            ETag:
-              $ref: '#/components/headers/ETag'
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/user_email"
-        "304":
-          $ref: '#/components/responses/NotModified'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "403":
-          $ref: '#/components/responses/Forbidden'
-        "431":
-          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     put:
       operationId: updateUserEmail
       summary: Update user email
@@ -362,7 +271,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/user_email"
+              type: object
+              properties:
+                email:
+                  $ref: "#/components/schemas/user_email"
+              required: [email]
         required: true
       security:
         - jwtAuth: []
@@ -525,6 +438,16 @@ paths:
       parameters:
         - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                totp_code:
+                  $ref: "#/components/schemas/totp_code"
+              required: [totp_code]
+        required: true
       security:
         - jwtAuth: []
       responses:
@@ -534,55 +457,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "403":
           $ref: '#/components/responses/Forbidden'
-        "409":
-          $ref: '#/components/responses/Conflict'
-        "411":
-          $ref: '#/components/responses/LengthRequired'
-        "413":
-          $ref: '#/components/responses/ContentTooLarge'
-        "431":
-          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-  /users/{user_id}/2fa/recovery:
-    post:
-      operationId: recover2FA
-      summary: Generate 2fa recovery token
-      description: Generate and send via email the recovery token to be provided in the next request.
-      parameters:
-        - $ref: '#/components/parameters/user_id'
-        - $ref: '#/components/parameters/Content-Length'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/user_email"
-        required: true
-      security:
-        - jwtAuth: []
-      responses:
-          "204":
-            $ref: '#/components/responses/NoContent'
-          "401":
-            $ref: '#/components/responses/Unauthorized'
-          "403":
-            $ref: '#/components/responses/Forbidden'
-          "411":
-            $ref: '#/components/responses/LengthRequired'
-          "413":
-            $ref: '#/components/responses/ContentTooLarge'
-          "431":
-            $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-  /users/{user_id}/2fa/recovery/{token}:
-    post:
-      operationId: verify2FARecoveryToken
-      summary: Verify 2fa recovery token
-      description: Verify the 2fa recovery token provided by the user.
-      parameters:
-        - $ref: '#/components/parameters/user_id'
-        - $ref: '#/components/parameters/token'
-        - $ref: '#/components/parameters/Content-Length'
-      responses:
-        "204":
-          $ref: '#/components/responses/NoContent'
         "409":
           $ref: '#/components/responses/Conflict'
         "411":
@@ -638,7 +512,6 @@ paths:
           $ref: '#/components/responses/PreconditionFailed'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-
   /users/{user_id}/tournaments:
     get:
       operationId: getUserTournaments
@@ -699,7 +572,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/user_id"
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
       security:
         - jwtAuth: []
       responses:
@@ -786,6 +663,117 @@ paths:
           $ref: '#/components/responses/Conflict'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
+  /users/recovery/password:
+    post:
+      operationId: recoverUserPassword
+      summary: Generate password recovery token
+      description: Generate and send a password recovery token to the user via email.
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/Content-Length'
+      requestBody:
+        content:
+          application/json:
+            type: object
+            properties:
+              email:
+                $ref: "#/components/schemas/user_email"
+            reqired: [email]
+        required: true
+      responses:
+          "204":
+            $ref: '#/components/responses/NoContent'
+          "401":
+            $ref: '#/components/responses/Unauthorized'
+          "403":
+            $ref: '#/components/responses/Forbidden'
+          "411":
+            $ref: '#/components/responses/LengthRequired'
+          "413":
+            $ref: '#/components/responses/ContentTooLarge'
+          "431":
+            $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
+  /users/recovery/password/{token}:
+    post:
+      operationId: verifyPasswordRecoveryToken
+      summary: Verify password recovery token
+      description: Verify the password recovery token provided by the user.
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/token'
+        - $ref: '#/components/parameters/Content-Length'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_password:
+                  $ref: "#/components/schemas/user_psw"
+              required: [new_password]
+        required: true
+      responses:
+        "204":
+          $ref: '#/components/responses/NoContent'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
+  /users/recovery/2fa:
+    post:
+      operationId: recover2FA
+      summary: Generate 2fa recovery token
+      description: Generate and send via email the recovery token to be provided in the next request.
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/Content-Length'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  $ref: "#/components/schemas/user_email"
+              required: [email]
+        required: true
+      security:
+        - jwtAuth: []
+      responses:
+          "204":
+            $ref: '#/components/responses/NoContent'
+          "401":
+            $ref: '#/components/responses/Unauthorized'
+          "403":
+            $ref: '#/components/responses/Forbidden'
+          "411":
+            $ref: '#/components/responses/LengthRequired'
+          "413":
+            $ref: '#/components/responses/ContentTooLarge'
+          "431":
+            $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
+  /users/recovery/2fa/{token}:
+    post:
+      operationId: verify2FARecoveryToken
+      summary: Verify 2fa recovery token
+      description: Verify the 2fa recovery token provided by the user.
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/token'
+        - $ref: '#/components/parameters/Content-Length'
+      responses:
+        "204":
+          $ref: '#/components/responses/NoContent'
+        "409":
+          $ref: '#/components/responses/Conflict'
+        "411":
+          $ref: '#/components/responses/LengthRequired'
+        "413":
+          $ref: '#/components/responses/ContentTooLarge'
+        "431":
+          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     
   /sessions/{user_id}:
     post:
@@ -799,7 +787,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/user_psw"
+              type: object
+              properties:
+                email:
+                  $ref: "#/components/schemas/user_email"
+                password:
+                  $ref: "#/components/schemas/user_psw"
+              required: [email, password]
         required: true
       responses:
         "200":
@@ -1424,17 +1418,6 @@ components:
       in: path
       schema:
         $ref: "#/components/schemas/user_id"
-      required: true
-    user_id_serialized:
-      description: comma separated list of user ids
-      name: user_id
-      in: path
-      schema:
-        type: array
-        items:
-          $ref: "#/components/schemas/user_id"
-      style: simple
-      explode: false
       required: true
     match_id:
       description: Unique identifier of the match.
