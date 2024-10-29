@@ -25,16 +25,14 @@ class JwtValidator
 
   end
 
-  def validate_token(token)
+  def token_valid?(token)
     decoded_token = _decode_token(token)
-    return false unless decoded_token && _validate_claims(decoded_token)
-
-    true
-  end
+    decoded_token && validate_claims(decoded_token)
+  end  
   
   private
 
-  def _decode_token(token)
+  def decode_token(token)
     public_key = fetch_public_key
     decoded_token = JWT.decode(token, public_key, true, { algorithm: $JWT_ALGORITHM })
     decoded_token
@@ -42,7 +40,7 @@ class JwtValidator
     nil
   end
 
-  def _validate_claims(decoded_token)
+  def validate_claims(decoded_token)
     exp = decoded_token[0]['exp'] + JWT_EXPIRY_LEEWAY
     iat = decoded_token[0]['iat'] - JWT_EXPIRY_LEEWAY
     aud = decoded_token[0]['aud']

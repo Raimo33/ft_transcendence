@@ -1,16 +1,18 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    endpoint_tree.rb                                   :+:      :+:    :+:    #
+#    EndpointTree.rb                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/10/25 21:15:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 19:48:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-class EndpointTreeNode
+require_relative 'Resource'
+
+class EndpointTree
   attr_accessor :part, :children, :resources
 
   def initialize(part)
@@ -24,13 +26,13 @@ class EndpointTreeNode
     current_node = self
 
     parts.each do |part|
-      current_node.children[part] ||= EndpointTrieNode.new(part)
+      current_node.children[part] ||= EndpointTree.new(part)
       current_node = current_node.children[part]
     end
 
-    resources.each do |endpoint|
-      current_node.resources[endpoint.http_method] = endpoint
-    end
+    resources.each do |r|
+      current_node.resources[r.http_method] = r
+    end    
   end
 
   def find_endpoint(path)
@@ -49,29 +51,6 @@ class EndpointTreeNode
     end
   
     current_node
-  end
-
-  def parse_swagger_file(file_path)
-    require 'yaml'
-
-    swagger_data = YAML.load_file(file_path)
-    swagger_data['paths'].each do |path, resources|
-      resources = resources.map do |http_method, details|
-        auth_required = details['security']
-        APIRequest.new(http_method.to_sym, auth_required)
-      end
-      add_path(path, resources)
-    end
-
-  rescue ERRNO::ENOENT => e
-    STDERR.puts "File not found: #{e.message}"
-  rescue ERRNO::EACCES => e
-    STDERR.puts "Permission denied: #{e.message}"
-  rescue Psych::SyntaxError => e
-    STDERR.puts "Error parsing YAML: #{e.message}"
-  rescue StandardError => e
-    STDERR.puts "Unexpected error: #{e.message}"
-    nil
   end
 
 end

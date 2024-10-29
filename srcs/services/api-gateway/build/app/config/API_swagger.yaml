@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/25 20:18:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/28 16:30:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: Pongfumasters API
   description: REST-ful API to interact with the Pongfumasters gateway.
@@ -23,20 +23,24 @@ security:
 paths:
   /ping:
     get:
+      operationId: ping
       summary: Ping the API
       description: Returns a simple pong response to check if the API is alive.
       responses:
         "200":
           description: API is responsive.
+          headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
           content:
             text/plain:
               schema:
                 type: string
-                examples:
-                  - value: "pong"
+                example: "pong"
 
   /users:
     post:
+      operationId: register
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       parameters:
@@ -59,6 +63,8 @@ paths:
         "201":
           description: User registration successful.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -81,6 +87,7 @@ paths:
           $ref: '#/components/responses/ContentTooLarge'
   /users/{user_id}:
     get:
+      operationId: getUser
       summary: Get public and private user data by user_id
       description: Retrieve detailed information of a specific user using their unique user_id.
       parameters:
@@ -93,6 +100,8 @@ paths:
         "200":
           description: Returns the Private User object of the specified user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -120,6 +129,7 @@ paths:
         "413":
           $ref: '#/components/responses/ContentTooLarge'
     delete:
+      operationId: deleteUser
       summary: Delete a user account
       description: Permanently delete a user account by their user_id.
       parameters:
@@ -137,6 +147,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/profile:
     get:
+      operationId: getUserProfile
       summary: Get user profile
       description: Retrieve the public profile of a user account.
       parameters:
@@ -149,6 +160,8 @@ paths:
         "200":
           description: Returns an array of public user profiles.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -176,6 +189,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge' 
     patch:
+      operationId: updateUserProfile
       summary: Update user profile
       description: Update the public profile of a user account.
       parameters:
@@ -210,6 +224,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password:
     put:
+      operationId: updateUserPassword
       summary: Update user password
       description: Update the password of a user account.
       parameters:
@@ -244,6 +259,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password/recovery:
     post:
+      operationId: generatePasswordRecoveryToken
       summary: Generate password recovery token
       description: Generate and send a password recovery token to the user via email.
       parameters:
@@ -270,6 +286,7 @@ paths:
             $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/password/recovery/{token}:
     post:
+      operationId: verifyPasswordRecoveryToken
       summary: Verify password recovery token
       description: Verify the password recovery token provided by the user.
       parameters:
@@ -293,6 +310,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email:
     get:
+      operationId: getUserEmail
       summary: Get user email
       description: Retrieve the email address of a user account.
       parameters:
@@ -305,6 +323,8 @@ paths:
         "200":
           description: Returns the email address of the specified user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -317,6 +337,10 @@ paths:
               $ref: '#/components/headers/Cache-Control'
             ETag:
               $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user_email"
         "304":
           $ref: '#/components/responses/NotModified'
         "401":
@@ -326,6 +350,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     put:
+      operationId: updateUserEmail
       summary: Update user email
       description: Update the email address of a user account.
       parameters:
@@ -356,6 +381,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification:
     post:
+      operationId: generateEmailVerificationToken
       summary: Generate email verification token
       description: Receive via email the verification token to be provided in the next request.
       parameters:
@@ -378,6 +404,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/email/verification/{token}:
     post:
+      operationId: verifyEmailVerificationToken
       summary: Verify email verification token
       description: Verify the email verification token provided by the user.
       parameters:
@@ -397,6 +424,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa:
     post:
+      operationId: enableTwoFactorAuth
       summary: Setup two-factor authentication
       description: Enable two-factor authentication for a user account.
       parameters:
@@ -408,6 +436,8 @@ paths:
         "200":
           description: Two-factor authentication successfully enabled.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -433,6 +463,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getTwoFactorAuthStatus
       summary: Get two-factor authentication status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
@@ -443,6 +474,8 @@ paths:
         "200":
           description: Returns the 2fa status of the specified user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -464,6 +497,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: disableTwoFactorAuth
       summary: Disable two-factor authentication
       description: Disable two-factor authentication for a user account.
       parameters:
@@ -483,6 +517,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/verification:
     post:
+      operationId: verifyTwoFactorAuthCode
       summary: Verify two-factor authentication code
       description: Verify the two-factor authentication code provided by the user.
       parameters:
@@ -507,6 +542,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery:
     post:
+      operationId: generate2faRecoveryToken
       summary: Generate 2fa recovery token
       description: Generate and send via email the recovery token to be provided in the next request.
       parameters:
@@ -535,6 +571,7 @@ paths:
             $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/2fa/recovery/{token}:
     post:
+      operationId: verify2faRecoveryToken
       summary: Verify 2fa recovery token
       description: Verify the 2fa recovery token provided by the user.
       parameters:
@@ -554,6 +591,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/matches:
     get:
+      operationId: getUserMatches
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
       parameters:
@@ -570,6 +608,8 @@ paths:
         "200":
           description: Matches list successfully retrieved.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -599,6 +639,7 @@ paths:
 
   /users/{user_id}/tournaments:
     get:
+      operationId: getUserTournaments
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
@@ -615,6 +656,8 @@ paths:
         "200":
           description: Tournaments list successfully retrieved.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -643,6 +686,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/friends:
     post:
+      operationId: addFriend
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:
@@ -672,6 +716,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getFriends
       summary: Get list of friends
       description: Retrieve the list of friends of a specific user.
       parameters:
@@ -688,6 +733,8 @@ paths:
         "200":
           description: Friends list successfully retrieved.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -718,6 +765,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /users/{user_id}/friends/{friend_id}:
     delete:
+      operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
@@ -739,6 +787,7 @@ paths:
     
   /sessions/{user_id}:
     post:
+      operationId: login
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
@@ -754,6 +803,8 @@ paths:
         "200":
           description: User successfully logged in.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -779,6 +830,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getUserStatus
       summary: Get user login status
       description: Check if a user is currently logged in and return their status.
       parameters:
@@ -791,6 +843,8 @@ paths:
         "200":
           description: Returns the login status of the user.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -803,6 +857,10 @@ paths:
               $ref: '#/components/headers/Cache-Control'
             ETag:
               $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user_status"
         "304":
           $ref: '#/components/responses/NotModified'
         "401":
@@ -812,6 +870,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: logout
       summary: User logout
       description: Logs out a specific user from the system.
       parameters:
@@ -832,6 +891,7 @@ paths:
 
   /matches:
     post:
+      operationId: createMatch
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user ID.
       parameters:
@@ -853,8 +913,10 @@ paths:
         - jwtAuth: []
       responses:
         "201":
-          description: Match successfully created.
+          description: Returns the match ID of the newly created match.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -883,6 +945,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /matches/{match_id}:
     post:
+      operationId: joinMatch
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
       parameters:
@@ -902,6 +965,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getMatchInfo
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
       parameters:
@@ -912,6 +976,8 @@ paths:
         "200":
           description: Returns match information.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -937,6 +1003,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: abandonMatch
       summary: Abandon the current match
       description: Exit and terminate the ongoing match.
       parameters:
@@ -958,6 +1025,7 @@ paths:
 
   /tournaments:
     post:
+      operationId: createTournament
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       parameters:
@@ -974,15 +1042,17 @@ paths:
                       type: array
                       items:
                         $ref: "#/components/schemas/user_id"
-                    required: true
-                    additionalProperties: false
+                  required: [invited_users]
+                  additionalProperties: false
         required: true
       security:
         - jwtAuth: []
       responses:
         "201":
-          description: Tournament successfully created.
+          description: Returns the tournament ID of the newly created tournament.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -1007,6 +1077,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /tournaments/{tournament_id}:
     post:
+      operationId: joinTournament
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       parameters:
@@ -1030,6 +1101,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
+      operationId: getTournamentInfo
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
       parameters:
@@ -1040,6 +1112,8 @@ paths:
         "200":
           description: Returns match information.
           headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             X-Rate-Limit-Limit:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
@@ -1065,6 +1139,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     patch:
+      operationId: forceStartTournament
       summary: Force start a tournament
       description: Force start the tournament (even if not all players have accepted the invitation).
       parameters:
@@ -1088,6 +1163,7 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
+      operationId: abandonTournament
       summary: Abandon the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:
@@ -1113,144 +1189,110 @@ components:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
       type: string
       format: uuid
-      examples:
-        - value: 550e8400-e29b-41d4-a716-446655440000
+      example: 550e8400-e29b-41d4-a716-446655440000
     user_psw:
       description: User's password (plain-text) for authentication.
       type: string
-      examples:
-        - value: "StrongPassword123!"
+      example: "StrongPassword123!"
     user_email:
       description: User's email address, used for login and notifications.
       type: string
       format: email
-      examples:
-        - value: "example@example.com"
+      example: "example@example.com"
     user_display_name:
       description: Display name of the user, visible to other players during gameplay.
       type: string
-      examples:
-        - value: "PongMaster123"
+      example: "PongMaster123"
     user_avatar:
-      description: User's avatar image, used for profile picture, defaults to a generic avatar if not provided.
-      oneOf:
-        - type: string
-          format: uri
-          description: URL to the user's avatar image.
-        - type: string
-          description: Base64-encoded image data for the user's avatar.
-      examples:
-        - value: "https://example.com/avatar.jpg"
+      description: User's avatar image in base64 encoding, used for profile picture, defaults to a generic avatar if not provided.
+      type: string
+      example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABjklEQVRIS+2Vv0oDQRDG..."
     user_status:
       description: Current status of the user (online or offline).
       type: string
       enum: [online, offline]
-      examples:
-        - value: "online"
-        - value: "offline"
+      example: "online"
 
     match_id:
       description: Unique identifier for the match (UUID format or similar).
       type: string
       format: uuid
-      examples:
-        - value: 550e8400-e29b-41d4-a716-446655440000
+      example: 550e8400-e29b-41d4-a716-446655440000
     match_status:
       description: Current status of the match.
       type: string
       enum: [ongoing, completed, interrupted]
-      examples:
-        - value: "ongoing"
-        - value: "completed"
-        - value: "interrupted"
+      example: "ongoing"
     match_ball_speed:
       description: Defines the speed of the ball in the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
-      examples:
-        - value: 50
+      example: 50
     match_max_duration:
       description: Maximum allowable duration (seconds) for the match.
       type: integer
       format: int32
       minimum: 60
       maximum: 3600
-      examples:
-        - value: 300
+      example: 300
     match_starting_health_points:
       description: Initial health or lives given to each player at the start of the match.
       type: integer
       format: int32
       minimum: 1
       maximum: 100
-      examples:
-        - value: 3
+      example: 3
 
     player_leaderboard_position:
       description: Position of the player in the leaderboard.
       type: integer
       format: int32
       minimum: 1
-      examples:
-        - value: 3
+      example: 3
 
     tournament_id:
       description: Unique identifier for the tournament (UUID format or similar).
       type: string
       format: uuid
-      examples:
-        - value: "550e8400-e29b-41d4-a716-446655440000"
+      example: 550e8400-e29b-41d4-a716-446655440000
     tournament_mode:
       description: Format of the tournament.
       type: string
       enum: [single_elimination, knockout, king_of_the_hill, ladder, round_robin]
-      examples:
-        - value: "single_elimination"
-        - value: "knockout"
-        - value: "king_of_the_hill"
-        - value: "ladder"
-        - value: "round_robin"
+      example: "king_of_the_hill"
     tournament_status:
       description: Current status of the tournament.
       type: string
       enum: [ongoing, completed, interrupted]
-      examples:
-        - value: "ongoing"
-        - value: "completed"
-        - value: "interrupted"
+      example: "ongoing"
     timestamp:
       description: Timestamp in unix timestamp format.
       type: integer
       format: int64
-      examples:
-        - value: 1630000000
+      example: 1634265600
 
     two_factor_auth_status:
       description: Status of the 2FA authentication for the user.
       type: boolean
-      examples:
-        - value: true
+      example: true
 
     qr_code:
       description: URL to the QR code image.
       type: string
       format: uri
-      examples:
-        - value: "https://example.com/qr_code.png"
+      example: "https://example.com/qr_code.png"
   
     totp_code:
       description: TOTP code generated by the user for 2FA authentication.
       type: string #string because it can contain leading zeros
-      examples:
-        - value: "012345"
+      example: "123456"
 
     totp_secret:
       description: TOTP secret key for generating 2FA codes.
       type: string
-      examples:
-        - value: otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}
+      example: "otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}"
 
     totp_key:
       description: Represents a 2FA private key for a user.
@@ -1264,15 +1306,13 @@ components:
     jwt_token:
       description: JWT token for session management.
       type: string
-      examples:
-        - value: <Header>.<Payload>.<Signature>
+      example: "<Header>.<Payload>.<Signature>"
 
     websocket_url:
       description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
       type: string
       format: uri
-      examples:
-        - value: "wss://example.com/ws"
+      example: "wss://example.com/ws"
 
     UserProfile:
       description: Represents a public user profile with limited information.
@@ -1327,7 +1367,7 @@ components:
         players:
           description: Array of user_ids representing the players in the match.
           type: array
-          intems:
+          items:
             $ref: "#/components/schemas/user_id"
         status:
           $ref: "#/components/schemas/match_status"
@@ -1725,7 +1765,12 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    BadRequest:
+
+    #######################################################
+    #                 Generic Responses                   #
+    #######################################################
+
+    BadRequest: #HTTP 400
       description: Bad request. The request was invalid or cannot be served.
       headers:
         X-Rate-Limit-Limit:
@@ -1737,11 +1782,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    #######################################################
-    #                 Generic Responses                   #
-    #######################################################
-
-    NotFound:
+    NotFound: #HTTP 404
       description: Not found. The requested resource could not be found.
       headers:
         X-Rate-Limit-Limit:
@@ -1753,7 +1794,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    MethodNotAllowed:
+    MethodNotAllowed: #HTTP 405
       description: Method not allowed. The request method is known but not supported by the target resource.
       headers:
         X-Rate-Limit-Limit:
@@ -1765,7 +1806,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    RequestTimeout:
+    RequestTimeout: #HTTP 408
       description: Request timeout. Idle time has passed without any data being sent or received.
       headers:
         X-Rate-Limit-Limit:
@@ -1777,7 +1818,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    UriTooLong:
+    UriTooLong: #HTTP 414
       description: URI too long. The URI provided was too long for the server to process.
       headers:
         X-Rate-Limit-Limit:
@@ -1789,7 +1830,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    TooManyRequests:
+    TooManyRequests: #HTTP 429
       description: Rate limit exceeded. Too many requests in a given time window.
       headers:
         X-Rate-Limit-Limit:
@@ -1801,7 +1842,7 @@ components:
         Retry-After:
           $ref: '#/components/headers/Retry-After'
 
-    InternalServerError:
+    InternalServerError: #HTTP 500
       description: Internal server error. The server encountered an unexpected condition that prevented it from fulfilling the request.
       headers:
         X-Rate-Limit-Limit:
@@ -1813,7 +1854,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    NotImplemented:
+    NotImplemented: #HTTP 501
       description: Not implemented. The server does not support the method or functionality required to fulfill the request.
       headers:
         X-Rate-Limit-Limit:
@@ -1825,7 +1866,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    BadGateway:
+    BadGateway: #HTTP 502
       description: Bad gateway. The server received an invalid response from an upstream server.
       headers:
         X-Rate-Limit-Limit:
@@ -1837,7 +1878,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    ServiceUnavailable:
+    ServiceUnavailable: #HTTP 503
       description: Service unavailable. The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.
       headers:
         X-Rate-Limit-Limit:
@@ -1849,7 +1890,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    GatewayTimeout:
+    GatewayTimeout: #HTTP 504
       description: Gateway timeout. The server did not receive a timely response from an upstream server it needed to access in order to complete the request.
       headers:
         X-Rate-Limit-Limit:
@@ -1861,7 +1902,7 @@ components:
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
 
-    ImATeaPot:
+    ImATeaPot: #HTTP 418
       description: I'm a teapot. The server is a teapot, not a coffee machine.
 
   securitySchemes:

@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    config_loader.rb                                   :+:      :+:    :+:    #
+#    ConfigLoader.rb                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/24 19:21:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/27 17:52:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,10 +15,8 @@ class ConfigLoader
   VALID_KEYS = %i[
     bind_address
     bind_port
-    keycloak_host
-    keycloak_realm
-    keycloak_certs
-    jwt_cache_expiry
+    keycloak_pub_key_url
+    jwt_pub_key_ttl
     jwt_algorithm
     jwt_expiry_leeway
     max_connections
@@ -69,14 +67,10 @@ class ConfigLoader
         $BIND_ADDRESS = value
       when 'bind_port'
         $BIND_PORT = value
-      when 'keycloak_host'
-        $KEYCLOAK_HOST = value
-      when 'keycloak_realm'
-        $KEYCLOAK_REALM = value
-      when 'keycloak_certs'
-        $KEYCLOAK_CERTS = value
-      when 'jwt_cache_expiry'
-        $JWT_CACHE_EXPIRY = value.to_i
+      when 'keycloak_pub_key_url'
+        $KEYCLOAK_PUB_KEY_URL = value
+      when 'jwt_pub_key_ttl'
+        $JWT_PUB_KEY_TTL = value.to_i
       when 'jwt_algorithm'
         $JWT_ALGORITHM = value
       when 'jwt_expiry_leeway'
