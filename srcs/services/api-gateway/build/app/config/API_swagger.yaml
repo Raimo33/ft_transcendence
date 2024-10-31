@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/31 20:39:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 21:42:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -372,13 +372,13 @@ paths:
             schema:
               type: object
               properties:
-                current_password:
+                old_password:
                   $ref: "#/components/schemas/user_psw"
                 new_password:
                   $ref: "#/components/schemas/user_psw"
                 totp_code:
                   $ref: "#/components/schemas/totp_code"
-              required: [current_password, new_password]
+              required: [old_password, new_password]
               additionalProperties: false
         required: true
       security:

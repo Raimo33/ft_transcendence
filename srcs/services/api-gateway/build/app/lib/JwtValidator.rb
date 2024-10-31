@@ -26,18 +26,25 @@ class JwtValidator
   end
 
   def token_valid?(token)
-    decoded_token = _decode_token(token)
-    decoded_token && validate_claims(decoded_token)
-  end  
-  
+    decoded_token = decode_token(token)
+    return false unless decoded_token
+
+    validate_claims(decoded_token)
+  end
+
+  def get_subject(token)
+    decoded_token = decode_token(token)
+    return false unless decoded_token
+
+    decoded_token[0]['sub']
+  end
+
   private
 
   def decode_token(token)
     public_key = fetch_public_key
-    decoded_token = JWT.decode(token, public_key, true, { algorithm: $JWT_ALGORITHM })
-    decoded_token
 
-    nil
+    JWT.decode(token, public_key, true, { algorithm: $JWT_ALGORITHM })
   end
 
   def validate_claims(decoded_token)
@@ -48,6 +55,7 @@ class JwtValidator
     return false unless exp && iat && aud
     now = Time.now.to_i
     return false unless (iat..exp).cover?(now)
+    return false unless aud == $JWT_AUDIENCE
 
     true
   end

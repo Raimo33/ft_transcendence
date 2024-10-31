@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 20:30:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 22:20:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -67,14 +67,20 @@ class ClientHandler
           current_priority = priority
           priority += 1
 
+          if request.path == "/ping"
+            response_queue.enqueue(current_priority, Response.new(200, {"Content-Length" => "16"}, "pong...fumasters"))
+            next
+          end
+
           barrier.async do
-            grpc_request = @mapper.map_request_to_grpc_request(request, resource.operation_id)
+            requesting_user_id = @jwt_validator.get_subject(request.headers["authorization"]) if request.headers["authorization"]
+            grpc_request = @mapper.map_request_to_grpc_request(request, resource.operation_id, requesting_user_id)
             grpc_response = @grpc_client.call(grpc_request)
             response = @mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
             response_queue.enqueue(current_priority, response)
           rescue => e
             send_error(e.status_code)
-          end          
+          end
         end
 
         barrier.wait

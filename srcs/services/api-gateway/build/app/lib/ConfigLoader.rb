@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/10/27 17:52:56 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 22:25:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,7 @@ class ConfigLoader
     jwt_pub_key_ttl
     jwt_algorithm
     jwt_expiry_leeway
+    jwt_audience
     max_connections
     max_body_size
     user_server_cert
@@ -75,6 +76,8 @@ class ConfigLoader
         $JWT_ALGORITHM = value
       when 'jwt_expiry_leeway'
         $JWT_EXPIRY_LEEWAY = value.to_i
+      when 'jwt_audience'
+        $JWT_AUDIENCE = value
       when 'max_connections'
         $MAX_CONNECTIONS = value.to_i
       when 'max_body_size'
