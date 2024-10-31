@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 16:04:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 20:58:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,7 @@ WORKDIR /app
 RUN gem install bundler
 RUN bundle install
 WORKDIR /app/proto
-RUN protoc --ruby_out=./ common.proto user.proto match.proto tournament.proto
+RUN protoc --ruby_out=./ user.proto match.proto tournament.proto
 
 WORKDIR /etc/api-gateway/conf.d/
 USER api-gateway

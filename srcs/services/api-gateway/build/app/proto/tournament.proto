@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package tournament;
 
-import "common.proto";
 
 service TournamentService
 {
@@ -12,6 +11,30 @@ service TournamentService
     rpc GetTournament         (GetTournamentRequest)        returns (GetTournamentResponse) {}
     rpc ForceStartTournament  (ForceStartTournamentRet)     returns (ForceStartTournamentRese) {}
     rpc AbandonTournament     (AbandonTournamentRequest)    returns (AbandonTournamentResponse) {}
+}
+
+enum tournament_status
+{
+    ONGOING = 0;
+    COMPLETED = 1;
+    INTERRUPTED = 2;
+}
+enum tournament_mode
+{
+    SINGLE_ELIMINATION = 0;
+    KNOCKOUT = 1;
+    KING_OF_THE_HILL = 2;
+    LADDERS = 3;
+    ROUND_ROBIN = 4;
+}
+message tournament
+{
+    string             id = 1;
+    tournament_mode    mode = 2;
+    repeated string    match_ids = 3;
+    tournament_status  status = 4;
+    uint64             started_timestamp = 5;
+    optional uint64    finished_timestamp = 6;
 }
 
 enum player_tournament_sorting_options
@@ -27,7 +50,6 @@ message player_tournament_filters
     optional tournament_mode    mode = 1;
     optional tournament_status  status = 2;
     optional uint32             position = 3;
-    // Add more filter options here
 }
 
 // v1/users/{user_id}/tournaments GET
@@ -42,7 +64,7 @@ message GetUserTournamentsRequest
 }
 message GetUserTournamentsResponse
 {
-    response_outcome             outcome = 1;
+    int32                        status_code = 1;
     optional repeated tournament tournaments = 2;
 }
 
@@ -55,8 +77,8 @@ message CreateTournamentRequest
 }
 message CreateTournamentResponse
 {
-    response_outcome  outcome = 1;
-    optional string   tournament_id = 2;
+    int32            status_code = 1;
+    optional string  tournament_id = 2;
 }
 
 // v1/tournaments/{tournament_id} POST
@@ -67,7 +89,7 @@ message JoinTournamentRequest
 }
 message JoinTournamentResponse
 {
-    response_outcome    outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/tournaments/{tournament_id} GET
@@ -78,8 +100,8 @@ message GetTournamentRequest
 }
 message GetTournamentResponse
 {
-    response_outcome     outcome = 1;
-    optional tournament  tournament = 2;
+    int32               status_code = 1;
+    optional tournament tournament = 2;
 }
 
 // v1/tournaments/{tournament_id} PATCH
@@ -90,7 +112,7 @@ message ForceStartTournamentRet
 }
 message ForceStartTournamentRese
 {
-    response_outcome     outcome = 1;
+    int32 status_code = 1;
 }
 
 // v1/tournaments/{tournament_id} DELETE
@@ -101,5 +123,5 @@ message AbandonTournamentRequest
 }
 message AbandonTournamentResponse
 {
-    response_outcome  outcome = 1;
+    int32  status_code = 1;
 }

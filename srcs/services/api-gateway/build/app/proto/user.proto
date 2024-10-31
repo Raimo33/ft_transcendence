@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package user;
 
-import "common.proto";
 
 service UserService
 {
@@ -27,7 +26,33 @@ service UserService
     rpc AddFriend                     (AddFriendRequest)                     returns (AddFriendResponse) {}
     rpc GetFriends                    (GetFriendsRequest)                    returns (GetFriendsResponse) {}
     rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
-  }
+}
+
+enum user_status
+{
+    ONLINE = 0;
+    OFFLINE = 1;
+}
+message user_profile
+{
+    string       user_id = 1;
+    string       display_name = 2;
+    string       avatar = 3;
+    user_status  status = 4;
+    uint64       last_active_timestamp = 5;
+    uint64       registered_timestamp = 6;
+}
+message user
+{
+    string       user_id = 1;
+    string       display_name = 2;
+    string       avatar = 3;
+    user_status  status = 4;
+    uint64       last_active_timestamp = 5;
+    uint64       registered_timestamp = 6;
+    string       email = 7;
+    bool         two_factor_enabled = 8;
+}
 
 enum profile_sorting_options
 {
@@ -39,7 +64,6 @@ enum profile_sorting_options
 message profile_filters
 {
     optional user_status status = 1;
-    // Add more filter options here
 }
 
 // v1/users POST
@@ -65,8 +89,8 @@ message GetUserProfileRequest
 }
 message GetUserProfileResponse
 {
-  int32                            status_code = 1;
-  optional common.user_profile     profile = 2;
+  int32                 status_code = 1;
+  optional user_profile profile = 2;
 }
 
 // v1/users/{user_id}/status GET
@@ -77,8 +101,8 @@ message GetUserStatusRequest
 }
 message GetUserStatusResponse
 {
-    int32                        status_code = 1;
-    optional common.user_status  user_status = 2;
+    int32                 status_code = 1;
+    optional user_status  user_status = 2;
 }
 
 // v1/user DELETE
@@ -98,8 +122,8 @@ message GetPrivateProfileRequest
 }
 message GetPrivateProfileResponse
 {
-    int32                        status_code = 1;
-    optional common.user_profile profile = 2;
+    int32                 status_code = 1;
+    optional user_profile profile = 2;
 }
 
 // v1/user/profile PATCH
