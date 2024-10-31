@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/31 20:20:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 20:39:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -278,8 +278,6 @@ paths:
       operationId: deleteAccount
       summary: Delete a user account
       description: Permanently delete the account of the current user.
-      parameters:
-        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:
@@ -632,8 +630,6 @@ paths:
       operationId: disable2FA
       summary: Disable 2fa
       description: Disable two-factor authentication for a user account.
-      parameters:
-        - $ref: '#/components/parameters/user_id'
       security:
         - jwtAuth: []
       responses:

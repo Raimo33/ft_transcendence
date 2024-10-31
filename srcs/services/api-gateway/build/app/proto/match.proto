@@ -32,6 +32,7 @@ message player_match_filters
 // v1/users/{user_id}/matches GET
 message GetUserMatchesRequest
 {
+    string                                 requesting_user_id = 1;
     string                                 user_id = 1;
     optional uint32                        limit = 2;
     optional uint32                        offset = 3;
@@ -47,6 +48,7 @@ message GetUserMatchesResponse
 // v1/matches POST
 message CreateMatchRequest
 {
+    string                   requesting_user_id = 1;
     repeated string          invited_users_ids = 1;
     optional match_settings  settings = 2;
 }
@@ -59,6 +61,7 @@ message CreateMatchResponse
 // v1/matches/{match_id} POST
 message JoinMatchRequest
 {
+    string  requesting_user_id = 1;
     string  match_id = 1;
 }
 message JoinMatchResponse
@@ -69,6 +72,7 @@ message JoinMatchResponse
 // v1/matches/{match_id} GET
 message GetMatchRequest
 {
+    string  requesting_user_id = 1;
     string  match_id = 1;
 }
 message GetMatchResponse
@@ -80,6 +84,7 @@ message GetMatchResponse
 // v1/matches/{match_id} DELETE
 message AbandonMatchRequest
 {
+    string  requesting_user_id = 1;
     string  match_id = 1;
 }
 message AbandonMatchResponse
