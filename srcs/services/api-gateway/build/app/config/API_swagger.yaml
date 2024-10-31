@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/31 20:07:10 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 20:20:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -275,7 +275,7 @@ paths:
 
   /user:
     delete:
-      operationId: deleteOwnAccount
+      operationId: deleteAccount
       summary: Delete a user account
       description: Permanently delete the account of the current user.
       parameters:
@@ -291,7 +291,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /user/profile:
     get:
-      operationId: getOwnProfile
+      operationId: getPrivateProfile
       summary: Get current user's profile
       description: Retrieve detailed information about the current user.
       parameters:
@@ -330,7 +330,7 @@ paths:
         "413":
           $ref: '#/components/responses/ContentTooLarge'
     patch:
-      operationId: updateOwnProfile
+      operationId: updateProfile
       summary: Update user profile
       description: Update the public profile of the current user.
       parameters:
@@ -363,7 +363,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /user/password:
     put:
-      operationId: updateOwnPassword
+      operationId: updatePassword
       summary: Update user password
       description: Update the password of the current user account.
       parameters:
@@ -473,7 +473,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /user/email:
     patch:
-      operationId: updateOwnEmail
+      operationId: updateEmail
       summary: Update user email
       description: Update the email address of the current user account.
       parameters:
@@ -501,7 +501,7 @@ paths:
         "401":
           $ref: '#/components/responses/Unauthorized'
         "409":
-          $ref: '#/components/responses/Conflict'
+          $ref: '#/components/responses/Conflict'g
         "411":
           $ref: '#/components/responses/LengthRequired'
         "413":
@@ -510,7 +510,7 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /user/email/verify:
     post:
-      operationId: verifyOwnEmail
+      operationId: verifyEmail
       summary: Generate email verification token
       description: Receive via email the verification token to be provided in the next request.
       parameters:
@@ -534,7 +534,7 @@ paths:
     post:
       operationId: checkEmailVerificationToken
       summary: Check the email verification token
-      description: Verify the email verification token provided by the user.
+      description: Check the validity of the email verification token provided by the user.
       parameters:
         - $ref: '#/components/parameters/token'
         - $ref: '#/components/parameters/Content-Length'
@@ -602,7 +602,7 @@ paths:
         - jwtAuth: []
       responses:
         "200":
-          description: Returns the 2fa status of the specified user.
+          description: Returns the 2fa status of the current user.
           headers:
             Content-Length:
               $ref: '#/components/headers/Content-Length'
@@ -647,9 +647,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
   /user/2fa/verify:
     post:
-      operationId: verify2FACode
-      summary: Verify 2fa code
-      description: Verify the two-factor authentication code provided by the user.
+      operationId: check2FACode
+      summary: Check 2fa code
+      description: Check the validity of the two-factor authentication code provided by the user.
       parameters:
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
