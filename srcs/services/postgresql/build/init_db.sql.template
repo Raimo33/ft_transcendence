@@ -12,28 +12,28 @@ CREATE TYPE user_status AS ENUM ('O', 'F'); -- O: online, F: offline
 
 CREATE  TABLE User
 (
-    id                   uuid  NOT NULL,
-    email                text  NOT NULL,
-    psw                  text  NOT NULL,
-    display_name         varchar(25) NOT NULL,
-    avatar               bytea,
-    two_factor_auth      boolean DEFAULT false NOT NULL,
-    current_status       user_status DEFAULT 'F' NOT NULL,
-    registered_timestamp timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    last_active          timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    id                     uuid  NOT NULL,
+    email                  text  NOT NULL,
+    psw                    text  NOT NULL,
+    display_name           varchar(25) NOT NULL,
+    avatar                 bytea,
+    two_factor_auth        boolean DEFAULT false NOT NULL,
+    current_status         user_status DEFAULT 'F' NOT NULL,
+    registered_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_active_timestamp  timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
     CONSTRAINT pk_usr PRIMARY KEY (id),
     CONSTRAINT unq_usr_email UNIQUE (email),
 
     CONSTRAINT chk_email CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
     CONSTRAINT chk_avatar CHECK (LENGTH(avatar) <= 5242880),
-    CONSTRAINT chk_last_active CHECK (last_active <= NOW()),
+    CONSTRAINT chk_last_active_timestamp CHECK (last_active_timestamp <= NOW()),
     CONSTRAINT chk_registered_timestamp CHECK (registered_timestamp <= NOW())
 );
 
 CREATE INDEX idx_usr_display_name ON User(display_name);
 CREATE INDEX idx_usr_registered_timestamp ON User(registered_timestamp);
-CREATE INDEX idx_usr_last_active ON User(last_active);
+CREATE INDEX idx_usr_last_active_timestamp ON User(last_active_timestamp);
 
 CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
@@ -144,7 +144,7 @@ SELECT
     u.display_name,
     COUNT(um.match_id) AS total_matches,
     COUNT(ut.tournament_id) AS total_tournaments,
-    u.last_active AS last_active
+    u.last_active_timestamp AS last_active_timestamp
 FROM
     usr u
 LEFT JOIN

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 20:29:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 08:39:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -669,7 +669,6 @@ paths:
       summary: Generate password recovery token
       description: Generate and send a password recovery token to the user via email.
       parameters:
-        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
@@ -699,7 +698,6 @@ paths:
       summary: Verify password recovery token
       description: Verify the password recovery token provided by the user.
       parameters:
-        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/token'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
@@ -727,7 +725,6 @@ paths:
       summary: Generate 2fa recovery token
       description: Generate and send via email the recovery token to be provided in the next request.
       parameters:
-        - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Content-Length'
       requestBody:
         content:
@@ -1322,11 +1319,11 @@ components:
           $ref: "#/components/schemas/user_avatar"
         status:
           $ref: "#/components/schemas/user_status"
-        last_active:
+        last_active_timestamp:
           $ref: "#/components/schemas/timestamp"
         registered_timestamp:
           $ref: "#/components/schemas/timestamp"
-      required: [user_id, display_name, avatar, status, last_active, registered_timestamp]
+      required: [user_id, display_name, avatar, status, last_active_timestamp, registered_timestamp]
 
     User:
       description: Represents a private user profile with additional information.
@@ -1339,7 +1336,7 @@ components:
             two_factor_enabled:
               $ref: "#/components/schemas/two_factor_auth_status"
           additionalProperties: false
-      required: [user_id, display_name, avatar, status, last_active, email, two_factor_auth]
+      required: [user_id, display_name, avatar, status, last_active_timestamp, email, two_factor_auth]
 
     MatchSettings:
       description: Settings and configurations for the match, such as ball speed, match duration, and player health.
@@ -1492,7 +1489,7 @@ components:
       in: query
       schema:
         type: string
-        enum: [display_name, registered_timestamp, last_active]
+        enum: [display_name, registered_timestamp, last_active_timestamp]
       style: form
       explode: false
       required: false

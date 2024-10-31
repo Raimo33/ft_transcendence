@@ -24,8 +24,8 @@ enum player_tournament_sorting_options
 
 message player_tournament_filters
 {
-    optional tournament_status  status = 1;
-    optional tournament_mode    mode = 2;
+    optional tournament_mode    mode = 1;
+    optional tournament_status  status = 2;
     optional uint32             position = 3;
     // Add more filter options here
 }

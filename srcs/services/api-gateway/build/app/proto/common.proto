@@ -14,7 +14,7 @@ message user_profile
     string       display_name = 2;
     string       avatar = 3;
     user_status  status = 4;
-    uint64       last_active = 5;
+    uint64       last_active_timestamp = 5;
     uint64       registered_timestamp = 6;
 }
 message user
@@ -23,7 +23,7 @@ message user
     string       display_name = 2;
     string       avatar = 3;
     user_status  status = 4;
-    uint64       last_active = 5;
+    uint64       last_active_timestamp = 5;
     uint64       registered_timestamp = 6;
     string       email = 7;
     bool         two_factor_enabled = 8;

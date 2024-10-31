@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 20:42:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/10/31 08:37:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,6 +23,20 @@ module Mapper
     'number_of_players' => YourPackage::PlayerMatchSortingOptions::NUMBER_OF_PLAYERS,
     'position' => YourPackage::PlayerMatchSortingOptions::POSITION
   }.freeze
+
+  PLAYER_TOURNAMENT_SORTING_OPTIONS_MAP = {
+    'age' => YourPackage::PlayerTournamentSortingOptions::AGE,
+    'duration' => YourPackage::PlayerTournamentSortingOptions::DURATION,
+    'number_of_players' => YourPackage::PlayerTournamentSortingOptions::NUMBER_OF_PLAYERS,
+    'position' => YourPackage::PlayerTournamentSortingOptions::POSITION
+  }.freeze
+
+  USER_PROFILE_SORTING_OPTIONS_MAP = {
+    'display_name' => YourPackage::UserProfileSortingOptions::DISPLAY_NAME,
+    'registered_timestamp' => YourPackage::UserProfileSortingOptions::REGISTERED_TIMESTAMP,
+    'last_active_timestamp' => YourPackage::UserProfileSortingOptions::LAST_ACTIVE_TIMESTAMP
+  }.freeze
+
 
   def self.map_request_to_grpc_request(request, operation_id)
     case operation_id
@@ -89,6 +103,39 @@ module Mapper
             position: request[:query_params]["filters"]["position"], )
         : nil )
     when "getUserTournaments"
+      TournamentService::GetUserTournamentsRequest.new(
+        user_id: request[:path_params]["user_id"],
+        limit: request[:query_params]["limit"],
+        offset: request[:query_params]["offset"],
+        sort_by: PLAYER_TOURNAMENT_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
+        filters: request[:query_params]["filters"] ?
+          TournamentService::PlayerTournamentFilters.new(
+            mode: request[:query_params]["filters"]["mode"],
+            status: request[:query_params]["filters"]["status"],
+            position: request[:query_params]["filters"]["position"], )
+        : nil )
+    when "addFriend"
+      UserService::AddFriendRequest.new(
+        user_id: request[:path_params]["user_id"],
+        friend_id: request[:body]["friend_id"] )
+    when "getFriends"
+      UserService::GetFriendsRequest.new(
+        user_id: request[:path_params]["user_id"],
+        limit: request[:query_params]["limit"],
+        offset: request[:query_params]["offset"],
+        sort_by: USER_PROFILE_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
+        filters: request[:query_params]["filters"] ?
+          UserService::UserProfileFilters.new(
+            status: request[:query_params]["filters"]["status"], )
+        : nil )
+    when "removeFriend"
+      UserService::RemoveFriendRequest.new(
+        user_id: request[:path_params]["user_id"],
+        friend_id: request[:path_params]["friend_id"] )
+    when "recoverUserPassword"
+      UserService::RecoverUserPasswordRequest.new(
+        
+
     #TODO Add more request mappings
     else
       raise #TODO internal
@@ -113,7 +160,7 @@ module Mapper
           display_name: grpc_response.user.display_name,
           avatar: grpc_response.user.avatar,
           status: grpc_response.user.status,
-          last_active: grpc_response.user.last_active,
+          last_active_timestamp: grpc_response.user.last_active_timestamp,
           registered_timestamp: grpc_response.user.registered_timestamp,
           email: grpc_response.user.email,
           two_factor_auth: grpc_response.user.two_factor_auth,

@@ -225,6 +225,47 @@ message RemoveFriendResponse
     int32 status_code = 1;
 }
 
+// v1/users/{user_id}/2fa/recovery POST
+message Recover2FARequest
+{
+    string user_email = 1;
+}
+message Recover2FAResponse
+{
+    int32  status_code = 1;
+}
+
+// v1/users/{user_id}/2fa/recovery/{token} POST
+message verify2FARecoveryTokenRequest
+{
+    string  recovery_token = 2;
+}
+message verify2FARecoveryTokenResponse
+{
+    int32  status_code = 1;
+}
+
+// v1/users/{user_id}/password/recovery POST
+message RecoverUserPasswordRequest
+{
+    string  email = 2;
+}
+message RecoverUserPasswordResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/users/{user_id}/password/recovery/{token} POST
+message VerifyPasswordRecoveryTokenRequest
+{
+    string  recovery_token = 2;
+    string  new_password = 3;
+}
+message VerifyPasswordRecoveryTokenResponse
+{
+    int32 status_code = 1;
+}
+
 // v1/sessions/{user_id} POST
 message LoginUserRequest
 {
@@ -254,50 +295,6 @@ message LogoutUserRequest
     string  user_id = 1;
 }
 message LogoutUserResponse
-{
-    int32 status_code = 1;
-}
-
-// v1/users/{user_id}/2fa/recovery POST
-message Recover2FARequest
-{
-    string  user_id = 1;
-}
-message Recover2FAResponse
-{
-    int32  status_code = 1;
-}
-
-// v1/users/{user_id}/2fa/recovery/{token} POST
-message Recover2FAWithTokenRequest
-{
-    string  user_id = 1;
-    string  recovery_token = 2;
-}
-message Recover2FAWithTokenResponse
-{
-    int32  status_code = 1;
-}
-
-// v1/users/{user_id}/password/recovery POST
-message RecoverUserPasswordRequest
-{
-    string  user_id = 1;
-    string  email = 2;
-}
-message RecoverUserPasswordResponse
-{
-    int32 status_code = 1;
-}
-
-// v1/users/{user_id}/password/recovery/{token} POST
-message VerifyPasswordRecoveryTokenRequest
-{
-    string  user_id = 1;
-    string  recovery_token = 2;
-    string  new_password = 3;
-}
-message VerifyPasswordRecoveryTokenResponse
 {
     int32 status_code = 1;
 }
