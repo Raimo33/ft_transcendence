@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/10/31 22:39:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 07:27:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,25 +18,34 @@ require_relative 'structs'
 module Mapper
 
   PLAYER_MATCH_SORTING_OPTIONS_MAP = {
-    'age' => YourPackage::PlayerMatchSortingOptions::AGE,
-    'duration' => YourPackage::PlayerMatchSortingOptions::DURATION,
-    'number_of_players' => YourPackage::PlayerMatchSortingOptions::NUMBER_OF_PLAYERS,
-    'position' => YourPackage::PlayerMatchSortingOptions::POSITION
+    'age' => Match::PlayerMatchSortingOptions::AGE,
+    'duration' => Match::PlayerMatchSortingOptions::DURATION,
+    'number_of_players' => Match::PlayerMatchSortingOptions::NUMBER_OF_PLAYERS,
+    'position' => Match::PlayerMatchSortingOptions::POSITION
   }.freeze
 
   PLAYER_TOURNAMENT_SORTING_OPTIONS_MAP = {
-    'age' => YourPackage::PlayerTournamentSortingOptions::AGE,
-    'duration' => YourPackage::PlayerTournamentSortingOptions::DURATION,
-    'number_of_players' => YourPackage::PlayerTournamentSortingOptions::NUMBER_OF_PLAYERS,
-    'position' => YourPackage::PlayerTournamentSortingOptions::POSITION
+    'age' => Tournament::PlayerTournamentSortingOptions::AGE,
+    'duration' => Tournament::PlayerTournamentSortingOptions::DURATION,
+    'number_of_players' => Tournament::PlayerTournamentSortingOptions::NUMBER_OF_PLAYERS,
+    'position' => Tournament::PlayerTournamentSortingOptions::POSITION
   }.freeze
 
   USER_PROFILE_SORTING_OPTIONS_MAP = {
-    'display_name' => YourPackage::UserProfileSortingOptions::DISPLAY_NAME,
-    'registered_timestamp' => YourPackage::UserProfileSortingOptions::REGISTERED_TIMESTAMP,
-    'last_active_timestamp' => YourPackage::UserProfileSortingOptions::LAST_ACTIVE_TIMESTAMP
+    'display_name' => User::UserProfileSortingOptions::DISPLAY_NAME,
+    'registered_timestamp' => User::UserProfileSortingOptions::REGISTERED_TIMESTAMP,
+    'last_active_timestamp' => User::UserProfileSortingOptions::LAST_ACTIVE_TIMESTAMP
   }.freeze
 
+  TOURNAMENT_MODES_STRING_TO_ENUM_MAP = {
+    'single_elimination' => Tournament::TournamentMode::SINGLE_ELIMINATION,
+    'knockout' => Tournament::TournamentMode::KNOCKOUT,
+    'king_of_the_hill' => Tournament::TournamentMode::KING_OF_THE_HILL,
+    'ladder' => Tournament::TournamentMode::LADDER,
+    'round_robin' => Tournament::TournamentMode::ROUND_ROBIN
+  }.freeze
+
+  TOURNAMENT_MODES_ENUM_TO_STRING_MAP = TOURNAMENT_MODES_MAP.invert.freeze
 
   def self.map_request_to_grpc_request(request, operation_id, requesting_user_id)
     case operation_id
@@ -48,9 +57,10 @@ module Mapper
         display_name: request[:body]["display_name"],
         avatar: request[:body]["avatar"] )
     when "getUserProfile"
-      UserService::GetUserRequest.new(
+      UserService::GetUserProfileRequest.new(
         requesting_user_id: requesting_user_id,
-        user_id: request[:path_params]["user_id"] )
+        user_id: request[:path_params]["user_id"],
+        etag: request[:headers]["if-none-match"] )
     when "getUserStatus"
       UserService::GetUserStatusRequest.new(
         requesting_user_id: requesting_user_id,
@@ -65,7 +75,8 @@ module Mapper
         filters: request[:query_params]["filters"] ?
           MatchService::PlayerMatchFilters.new(
             status: request[:query_params]["filters"]["status"],
-            position: request[:query_params]["filters"]["position"], )
+            position: request[:query_params]["filters"]["position"],
+        etag: request[:headers]["if-none-match"] )
         : nil )
     when "getUserTournaments"
       TournamentService::GetUserTournamentsRequest.new(
@@ -74,18 +85,18 @@ module Mapper
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: PLAYER_TOURNAMENT_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
-        filters: request[:query_params]["filters"] ?
-          TournamentService::PlayerTournamentFilters.new(
-            mode: request[:query_params]["filters"]["mode"],
+        filters: TournamentService::PlayerTournamentFilters.new(
+            mode: TOURNAMENT_MODES_STRING_TO_ENUM_MAP[request[:query_params]["filters"]["mode"]],
             status: request[:query_params]["filters"]["status"],
-            position: request[:query_params]["filters"]["position"], )
-        : nil )
+            position: request[:query_params]["filters"]["position"] ) if request[:query_params]["filters"],
+        etag: request[:headers]["if-none-match"] )
     when "deleteAccount"
       UserService::DeleteAccountRequest.new(
         requesting_user_id: requesting_user_id, )
     when "getPrivateProfile"
       UserService::GetPrivateProfileRequest.new(
-        requesting_user_id: requesting_user_id )
+        requesting_user_id: requesting_user_id,
+        etag: request[:headers]["if-none-match"] )
     when "updateProfile"
       UserService::UpdateProfileRequest.new(
         requesting_user_id: requesting_user_id,
@@ -149,14 +160,52 @@ module Mapper
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: USER_PROFILE_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
-        filters: request[:query_params]["filters"] ?
-          UserService::UserProfileFilters.new(
-            status: request[:query_params]["filters"]["status"] )
-        : nil )
+        filters: UserService::UserProfileFilters.new(
+            status: request[:query_params]["filters"]["status"] ) if request[:query_params]["filters"],
+        etag: request[:headers]["if-none-match"] )
     when "removeFriend"
       UserService::RemoveFriendRequest.new(
         requesting_user_id: requesting_user_id,
         friend_id: request[:path_params]["friend_id"] )
+    when "createMatch"
+      MatchService::CreateMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        invited_user_ids: request[:body]["invited_user_ids"],
+        settings: MatchService::MatchSettings.new(
+          ball_speed: request[:body]["settings"]["ball_speed"],
+          max_duration: request[:body]["settings"]["max_duration"],
+          starting_health: request[:body]["settings"]["starting_health"] ) if request[:body]["settings"] )
+    when "joinMatch"
+      MatchService::JoinMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        match_id: request[:path_params]["match_id"] )
+    when "getMatch"
+      MatchService::GetMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        match_id: request[:path_params]["match_id"],
+        etag: request[:headers]["if-none-match"] )
+    when "leaveMatch"
+      MatchService::LeaveMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        match_id: request[:path_params]["match_id"] )
+    when "createTournament"
+      TournamentService::CreateTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        invited_user_ids: request[:body]["invited_user_ids"],
+        mode: TOURNAMENT_MODES_STRING_TO_ENUM_MAP[request[:body]["mode"]] )
+    when "joinTournament"
+      TournamentService::JoinTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        tournament_id: request[:path_params]["tournament_id"] )
+    when "getTournament"
+      TournamentService::GetTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        tournament_id: request[:path_params]["tournament_id"],
+        etag: request[:headers]["if-none-match"] )
+    when "leaveTournament"
+      TournamentService::LeaveTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        tournament_id: request[:path_params]["tournament_id"] )
     else
       raise #TODO internal
     end
@@ -165,23 +214,180 @@ module Mapper
   def self.map_grpc_response_to_response(grpc_response, operation_id)
     case operation_id
     when "registerUser"
-      Response.new(
-        status_code: grpc_response.status_code,
-        headers: #TODO aggiungere headers (capire se automatizzabile)
-        body: grpc_response.user_id ? { user_id: grpc_response.user_id } : nil )
+      status_code = grpc_response.status_code
+      user_id = grpc_response.user_id
+      body = user_id ? { user_id: user_id } : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "private" if body
+      }.compact
+    
+      Response.new(status_code, headers, body)    
     when "getUserProfile"
-      Response.new(
-        status_code: grpc_response.status_code,
-        headers: #TODO aggiungere headers (capire se automatizzabile)
-        body: grpc_response.user ? {
-          user_id: grpc_response.user.user_id,
-          display_name: grpc_response.user.display_name,
-          avatar: grpc_response.user.avatar,
-          status: grpc_response.user.status,
-          last_active_timestamp: grpc_response.user.last_active_timestamp,
-          registered_timestamp: grpc_response.user.registered_timestamp,
-        } : nil )
-    #TODO add more response mappings
+      status_code = grpc_response.status_code
+      user = grpc_response.user
+      body = user ? {
+        user_id: user.user_id,
+        display_name: user.display_name,
+        avatar: user.avatar,
+        status: user.status,
+        last_active_timestamp: user.last_active_timestamp,
+        registered_timestamp: user.registered_timestamp,
+    }.compact : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "public, max-age=1800" if body,
+        "ETag" => grpc_response.etag if body
+      }.compact
+    
+      Response.new(status_code, headers, body)    
+    when "getUserStatus"
+      status_code = grpc_response.status_code
+      status = grpc_response.status
+      body = status ? { status: status } : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "public, max-age=300" if body
+      }.compact
+    
+      Response.new(status_code, headers, body)    
+    when "getUserMatches"
+      status_code = grpc_response.status_code
+      matches = grpc_response.matches || []
+      body = matches.map do |match|
+        {
+          id: match.id,
+          player_ids: match.player_ids,
+          status: match.status,
+          started_timestamp: match.started_timestamp,
+          finished_timestamp: match.finished_timestamp,
+          settings: {
+            ball_speed: match.settings.ball_speed,
+            max_duration: match.settings.max_duration,
+            starting_health: match.settings.starting_health,
+          }.compact
+        }.compact
+      end.presence || nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "public, max-age=300" if body,
+        "ETag" => grpc_response.etag if body
+      }.compact
+    
+      Response.new(status_code, headers, body)    
+    when "getUserTournaments"
+      status_code = grpc_response.status_code
+      tournaments = grpc_response.tournaments || []
+      body = tournaments.map do |tournament|
+        {
+          id: tournament.id,
+          mode: TOURNAMENT_MODES_ENUM_TO_STRING_MAP[tournament.mode],
+          match_ids: tournament.match_ids,
+          status: tournament.status,
+          started_timestamp: tournament.started_timestamp,
+          finished_timestamp: tournament.finished_timestamp,
+        }.compact
+      end.presence || nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "public, max-age=300" if body,
+        "ETag" => grpc_response.etag if body
+      }.compact
+    
+      Response.new(status_code, headers, body)
+    when "deleteAccount"
+      status_code = grpc_response.status_code
+      body = nil
+      headers = {}
+
+      Response.new(status_code, headers, body)
+    when "getPrivateProfile"
+      status_code = grpc_response.status_code
+      user = grpc_response.user
+      body = user ? {
+        id: user.id,
+        display_name: user.display_name,
+        avatar: user.avatar,
+        status: user.status,
+        last_active_timestamp: user.last_active_timestamp,
+        registered_timestamp: user.registered_timestamp,
+        email: user.email,
+        two_factor_auth_enabled: user.two_factor_auth_enabled
+      }.compact : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "private, must-revalidate" if body,
+        "ETag" => grpc_response.etag if body
+      }.compact
+
+      Response.new(status_code, headers, body)
+    when "updateProfile"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "updatePassword"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "requestPasswordReset"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "checkPasswordResetToken"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "resetPassword"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "updateEmail"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "verifyEmail"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "checkEmailVerificationToken"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "enable2FA"
+      status_code = grpc_response.status_code
+      totp_secret = grpc_response.totp_secret
+      body = totp_secret ? { totp_secret: totp_secret } : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "no-store" if body
+      }.compact
+
+      Response.new(status_code, headers, body)
+    when "get2FAStatus"
+      status_code = grpc_response.status_code
+      two_factor_auth_enabled = grpc_response.two_factor_auth_enabled
+      body = two_factor_auth_enabled ? { two_factor_auth_enabled: two_factor_auth_enabled } : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "private, no-cache" if body
+      }.compact
+
+      Response.new(status_code, headers, body)
+    when "disable2FA"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "check2FACode"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "loginUser"
+      status_code = grpc_response.status_code
+      jwt_token = grpc_response.jwt_token
+      body = jwt_token ? { jwt_token: jwt_token } : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "no-store" if body
+      }.compact
+
+      Response.new(status_code, headers, body)
+    when "logoutUser"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "addFriend"
+      Response.new(grpc_response.status_code, {}, nil)
+    when "getFriends"
+      status_code = grpc_response.status_code
+      friend_ids = grpc_response.friend_ids
+      body = friend_ids ? { friend_ids: friend_ids } : nil
+      headers = {
+        "Content-Length" => body.to_json.bytesize.to_s if body,
+        "Cache-Control" => "private, max-age=300" if body
+        "ETag" => grpc_response.etag if body
+      }.compact
+
+      Response.new(status_code, headers, body)
+    when "removeFriend"
+      Response.new(grpc_response.status_code, {}, nil)
     else
       raise #TODO internal
     end

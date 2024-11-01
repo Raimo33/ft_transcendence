@@ -9,7 +9,7 @@ service MatchService
     rpc CreateMatch        (CreateMatchRequest)       returns (CreateMatchResponse) {}
     rpc JoinMatch          (JoinMatchRequest)         returns (JoinMatchResponse) {}
     rpc GetMatch           (GetMatchRequest)          returns (GetMatchResponse) {}
-    rpc AbandonMatch       (AbandonMatchRequest)      returns (AbandonMatchResponse) {}
+    rpc LeaveMatch       (LeaveMatchRequest)      returns (LeaveMatchResponse) {}
 }
 
 enum match_status
@@ -27,12 +27,11 @@ message match_settings
 message match
 {
     string           id = 1;
-    optional string  websocket_url = 2;
-    repeated string  player_ids = 3;
-    match_status     status = 4;
-    uint64           started_timestamp = 5;
-    optional uint64  finished_timestamp = 6;
-    match_settings   settings = 7;
+    repeated string  player_ids = 2;
+    match_status     status = 3;
+    uint64           started_timestamp = 4;
+    optional uint64  finished_timestamp = 5;
+    match_settings   settings = 6;
 }
 
 enum player_match_sorting_options
@@ -53,24 +52,26 @@ message player_match_filters
 message GetUserMatchesRequest
 {
     string                                 requesting_user_id = 1;
-    string                                 user_id = 1;
-    optional uint32                        limit = 2;
-    optional uint32                        offset = 3;
-    optional player_match_sorting_options  sort_by = 4;
-    optional player_match_filters          filters = 5;
+    string                                 user_id = 2;
+    optional uint32                        limit = 3;
+    optional uint32                        offset = 4;
+    optional player_match_sorting_options  sort_by = 5;
+    optional player_match_filters          filters = 6;
+    optional string                        etag = 7;
 }
 message GetUserMatchesResponse
 {
     int32                    status_code = 1;
     optional repeated match  matches = 2;
+    string                   etag = 3;
 }
 
 // v1/matches POST
 message CreateMatchRequest
 {
     string                   requesting_user_id = 1;
-    repeated string          invited_users_ids = 1;
-    optional match_settings  settings = 2;
+    repeated string          invited_user_ids = 2;
+    optional match_settings  settings = 3;
 }
 message CreateMatchResponse
 {
@@ -82,7 +83,7 @@ message CreateMatchResponse
 message JoinMatchRequest
 {
     string  requesting_user_id = 1;
-    string  match_id = 1;
+    string  match_id = 2;
 }
 message JoinMatchResponse
 {
@@ -92,22 +93,24 @@ message JoinMatchResponse
 // v1/matches/{match_id} GET
 message GetMatchRequest
 {
-    string  requesting_user_id = 1;
-    string  match_id = 1;
+    string          requesting_user_id = 1;
+    string          match_id = 2;
+    optional string etag = 3;
 }
 message GetMatchResponse
 {
-    int32          status_code = 1;
-    optional match match = 2;
+    int32           status_code = 1;
+    optional match  match = 2;
+    string          etag = 3;
 }
 
 // v1/matches/{match_id} DELETE
-message AbandonMatchRequest
+message LeaveMatchRequest
 {
     string  requesting_user_id = 1;
-    string  match_id = 1;
+    string  match_id = 2;
 }
-message AbandonMatchResponse
+message LeaveMatchResponse
 {
     int32 status_code = 1;
 }

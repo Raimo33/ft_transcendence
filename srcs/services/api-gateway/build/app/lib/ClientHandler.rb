@@ -6,7 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
+<<<<<<< HEAD
 #    Updated: 2024/11/01 10:11:25 by craimond         ###   ########.fr        #
+=======
+#    Updated: 2024/11/01 04:20:46 by craimond         ###   ########.fr        #
+>>>>>>> 562abba16add9d5621976610ba7fad7764731da8
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,11 +55,11 @@ class ClientHandler
     barrier = Async::Barrier.new
 
     Async do |task|
-      response_processor = task.async do
+      response_processor = task.async do |subtask|
         loop do
           response = response_queue.dequeue
           break if response == :exit_signal
-          send_response(stream, response)
+          subtask.async { send_response(stream, response) }
         rescue => e
           send_error(e.status_code)
         end

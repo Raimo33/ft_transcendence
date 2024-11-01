@@ -6,33 +6,27 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 17:02:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 07:44:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 class GrpcClient
   def initialize
-    services = {
-      user: {
-        cert_file: $USER_SERVER_CERT,
-        address: 'user.corenet:50051',
-        stub_class: User::UserService::Stub
-      },
-      match: {
-        cert_file: $MATCH_SERVER_CERT,
-        address: 'match.corenet:50051',
-        stub_class: Match::MatchService::Stub
-      },
-      tournament: {
-        cert_file: $TOURNAMENT_SERVER_CERT,
-        address: 'tournament.corenet:50051',
-        stub_class: Tournament::TournamentService::Stub
-      }
+    user_server_credentials = GRPC::Core::ChannelCredentials.new(File.read($USER_SERVER_CERT))
+    match_server_credentials = GRPC::Core::ChannelCredentials.new(File.read($MATCH_SERVER_CERT))
+    tournament_server_credentials = GRPC::Core::ChannelCredentials.new(File.read($TOURNAMENT_SERVER_CERT))
+    
+    options = {
+      'grpc.compression_algorithm' => 'gzip'
     }
-
-    @stubs = {}
-    services.each do |service_name, service_info|
-      @stubs[service_name] = create_stub(service_info[:cert_file], service_info[:address], service_info[:stub_class])
+    
+    user_channel       = GRPC::Core::Channel.new('users.corenet:50051', options, user_server_credentials)
+    match_channel      = GRPC::Core::Channel.new('match.corenet:50051', options, match_server_credentials)
+    tournament_channel = GRPC::Core::Channel.new('tournament.corenet:50051', options, tournament_server_credentials)  
+    
+    @user_stub       = Users::Stub.new(user_channel)
+    @match_stub      = Match::Stub.new(match_channel)
+    @tournament_stub = Tournament::Stub.new(tournament_channel)
   end
 
   def call(grpc_request)

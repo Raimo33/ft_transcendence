@@ -35,7 +35,7 @@ enum user_status
 }
 message user_profile
 {
-    string       user_id = 1;
+    string       id = 1;
     string       display_name = 2;
     string       avatar = 3;
     user_status  status = 4;
@@ -44,14 +44,14 @@ message user_profile
 }
 message user
 {
-    string       user_id = 1;
+    string       id = 1;
     string       display_name = 2;
     string       avatar = 3;
     user_status  status = 4;
     uint64       last_active_timestamp = 5;
     uint64       registered_timestamp = 6;
     string       email = 7;
-    bool         two_factor_auth_status = 8;
+    bool         two_factor_auth_enabled = 8;
 }
 
 enum profile_sorting_options
@@ -85,19 +85,21 @@ message RegisterUserResponse
 message GetUserProfileRequest
 {
     string requesting_user_id = 1;
-    string user_id = 1;
+    string user_id = 2;
+    string etag = 3;
 }
 message GetUserProfileResponse
 {
   int32                 status_code = 1;
   optional user_profile profile = 2;
+  string                etag = 3;
 }
 
 // v1/users/{user_id}/status GET
 message GetUserStatusRequest
 {
     string  requesting_user_id = 1;
-    string  user_id = 1;
+    string  user_id = 2;
 }
 message GetUserStatusResponse
 {
@@ -118,12 +120,14 @@ message DeleteAccountResponse
 // v1/user/profile GET
 message GetPrivateProfileRequest
 {
-    string requesting_user_id = 1;
+    string          requesting_user_id = 1;
+    optional string etag = 2; 
 }
 message GetPrivateProfileResponse
 {
     int32                 status_code = 1;
     optional user_profile profile = 2;
+    string                etag = 3;
 }
 
 // v1/user/profile PATCH
@@ -233,7 +237,7 @@ message Get2FAStatusRequest
 message Get2FAStatusResponse
 {
     int32         status_code = 1;
-    optional bool two_factor_auth = 2;
+    optional bool two_factor_auth_enabled = 2;
 }
 
 // v1/user/2fa DELETE
@@ -299,11 +303,13 @@ message GetFriendsRequest
     optional uint32                  offset = 3;
     optional profile_sorting_options sort_by = 4;
     optional profile_filters         filters = 5;
+    optional string                  etag = 6;
 }
 message GetFriendsResponse
 {
     int32                     status_code = 1;
     optional repeated string  friend_ids = 2;
+    string                    etag = 3;
 }
 
 // v1/user/friends/{friend_id} DELETE
