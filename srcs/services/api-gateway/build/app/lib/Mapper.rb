@@ -6,13 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 14:55:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 19:20:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative 'proto/user_pb'
-require_relative 'proto/match_pb'
-require_relative 'proto/tournament_pb'
+require 'grpc'
+require_relative '../proto/users_services_pb'
+require_relative '../proto/match_services_pb'
+require_relative '../proto/tournament_services_pb'
 require_relative 'structs'
 
 module Mapper
@@ -176,7 +177,7 @@ module Mapper
         requesting_user_id: requesting_user_id,
         tournament_id: request[:path_params]["tournament_id"] )
     else
-      raise #TODO internal
+      raise ActionFailedException::NotImplemented
     end
   end
 
@@ -185,7 +186,7 @@ module Mapper
     when "registerUser"
       status_code = grpc_response.status_code
       user_id = grpc_response.user_id
-      body = user_id ? { user_id: user_id } : nil
+      body = { user_id: user_id } if user_id
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "private" if body
@@ -195,14 +196,14 @@ module Mapper
     when "getUserProfile"
       status_code = grpc_response.status_code
       user = grpc_response.user
-      body = user ? {
+      body = {
         user_id: user.user_id,
         display_name: user.display_name,
         avatar: user.avatar,
         status: user.status,
         last_active_timestamp: user.last_active_timestamp,
         registered_timestamp: user.registered_timestamp,
-    }.compact : nil
+    }.compact if user
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "public, max-age=1800" if body,
@@ -213,7 +214,7 @@ module Mapper
     when "getUserStatus"
       status_code = grpc_response.status_code
       status = grpc_response.status
-      body = status ? { status: status } : nil
+      body = { status: status } if status
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "public, max-age=300" if body
@@ -273,7 +274,7 @@ module Mapper
     when "getPrivateProfile"
       status_code = grpc_response.status_code
       user = grpc_response.user
-      body = user ? {
+      body = {
         id: user.id,
         display_name: user.display_name,
         avatar: user.avatar,
@@ -282,7 +283,7 @@ module Mapper
         registered_timestamp: user.registered_timestamp,
         email: user.email,
         two_factor_auth_enabled: user.two_factor_auth_enabled
-      }.compact : nil
+      }.compact if user
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "private, must-revalidate" if body,
@@ -309,7 +310,7 @@ module Mapper
     when "enable2FA"
       status_code = grpc_response.status_code
       totp_secret = grpc_response.totp_secret
-      body = totp_secret ? { totp_secret: totp_secret } : nil
+      body = { totp_secret: totp_secret } if totp_secret
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "no-store" if body
@@ -319,7 +320,7 @@ module Mapper
     when "get2FAStatus"
       status_code = grpc_response.status_code
       two_factor_auth_enabled = grpc_response.two_factor_auth_enabled
-      body = two_factor_auth_enabled ? { two_factor_auth_enabled: two_factor_auth_enabled } : nil
+      body = { two_factor_auth_enabled: two_factor_auth_enabled } if two_factor_auth_enabled
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "private, no-cache" if body
@@ -333,7 +334,7 @@ module Mapper
     when "loginUser"
       status_code = grpc_response.status_code
       jwt_token = grpc_response.jwt_token
-      body = jwt_token ? { jwt_token: jwt_token } : nil
+      body = { jwt_token: jwt_token } if jwt_token
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "no-store" if body
@@ -347,7 +348,7 @@ module Mapper
     when "getFriends"
       status_code = grpc_response.status_code
       friend_ids = grpc_response.friend_ids
-      body = friend_ids ? { friend_ids: friend_ids } : nil
+      body = { friend_ids: friend_ids } if friend_ids
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "private, max-age=300" if body
@@ -358,7 +359,7 @@ module Mapper
     when "removeFriend"
       Response.new(grpc_response.status_code, {}, nil)
     else
-      raise #TODO internal
+      raise ActionFailedException::NotImplemented
     end
   end
     

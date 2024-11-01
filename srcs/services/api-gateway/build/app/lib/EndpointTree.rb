@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 16:03:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 19:13:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative 'Resource'
+require_relative 'structs'
 
 class EndpointTree
   attr_accessor :part, :children, :resources

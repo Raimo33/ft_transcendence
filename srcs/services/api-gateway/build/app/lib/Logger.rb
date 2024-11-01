@@ -6,9 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 15:30:08 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 15:55:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 19:14:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+require 'logger'
 
 module Logger
 

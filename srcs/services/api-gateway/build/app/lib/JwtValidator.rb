@@ -1,7 +1,20 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    JwtValidator.rb                                    :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
+#    Updated: 2024/11/01 19:14:46 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 require 'jwt'
 require 'net/http'
-require 'uri'
 require 'json'
+require 'base64'
+require 'openssl'
 require_relative 'Logger'
 
 class JwtValidator

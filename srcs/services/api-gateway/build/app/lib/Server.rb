@@ -6,22 +6,19 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 16:32:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 19:10:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'set'
 require 'async'
 require 'async/io'
 require 'async/queue'
-require 'async/io/tcp_socket'
+require 'async/semaphore'
 require_relative 'EndpointTree'
-require_relative 'ClientHandler'
-require_relative 'JwtValidator'
-require_relative 'ServerExceptions'
 require_relative 'SwaggerParser'
+require_relative 'JWTValidator'
+require_relative 'ClientHandler'
 require_relative 'Logger'
-require_relative 'structs'
 
 class Server
 
@@ -71,10 +68,13 @@ class Server
   def process_requests
     Async do |task|
       loop do
-        client_handler = @clients.dequeue
-        task.async { client_handler.process_requests }
-      rescue => e
-        @logger.error("Unable to process client: #{client_handler.socket} requests. Reason: #{e}")
+        begin
+          client_handler = @clients.dequeue
+          task.async { client_handler.process_requests }
+        rescue => e
+          client_info = client_handler&.socket || 'unknown'
+          @logger.error("Unable to process client: #{client_info} requests. Reason: #{e}")
+        end
       end
     end
   end

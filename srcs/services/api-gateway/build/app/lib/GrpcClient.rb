@@ -6,9 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 15:09:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 19:14:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+require 'grpc'
+require_relative '../proto/users_services_pb'
+require_relative '../proto/match_services_pb'
+require_relative '../proto/tournament_services_pb'
 
 class GrpcClient
   def initialize
@@ -36,24 +41,5 @@ class GrpcClient
   end
 
   private
-
-  def create_stub(cert_file, address, stub_class)
-    cert = read_certificate(cert_file)
-    stub_class.new(address, cert)
-  end
-
-  def read_certificate(cert_file)
-    begin
-      GRPC::Core::ChannelCredentials.new(File.read(cert_file))
-    rescue #TODO handle file errors
-    end
-  end
-
-  def get_stub(method_name)
-    @stubs.each do |service_name, stub|
-      return stub if stub.class.instance_methods.include?(method_name.to_sym)
-    end
-    nil
-  end
 
 end

@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 16:20:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 19:11:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'ConfigLoader'
 require_relative 'GrpcClient'
-require_relative 'Server'
 require_relative 'Logger'
+require_relative 'Server'
 
 class APIGateway
   def initialize(config_file)

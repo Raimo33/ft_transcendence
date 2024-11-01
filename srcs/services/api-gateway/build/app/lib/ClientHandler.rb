@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 17:02:02 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 19:05:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,9 +15,7 @@ require 'async/io'
 require 'async/queue'
 require 'async/barrier'
 require_relative 'BlockingPriorityQueue'
-require_relative 'ActionFailedException'
 require_relative 'Mapper'
-require_relative 'exceptions'
 require_relative 'Logger'
 
 class ClientHandler
@@ -52,15 +50,19 @@ class ClientHandler
   def process_requests
     response_queue = BlockingPriorityQueue.new
     barrier = Async::Barrier.new
+    last_task = nil
 
     Async do |task|
       response_processor = task.async do |subtask|
         loop do
-          response = response_queue.dequeue
-          break if response == :exit_signal
-          subtask.async { send_response(stream, response) }
-        rescue => e
-          send_error(e.status_code)
+          begin
+            response = response_queue.dequeue
+            break if response == :exit_signal
+
+            last_task&.wait
+            last_task = subtask.async { send_response(stream, response) }
+          rescue => e
+            send_error(e.status_code)
         end
       end
       
@@ -124,9 +126,7 @@ class ClientHandler
     raise ActionFailedException::MethodNotAllowed unless resource
 
     expected_request = resource.expected_request
-
     request.headers = parse_headers(expected_request.allowed_headers, headers_lines)
-
     content_length = request.headers["content-length"]&.to_i
 
     if resource.body_required
