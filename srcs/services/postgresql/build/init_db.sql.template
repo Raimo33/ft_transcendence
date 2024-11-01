@@ -24,6 +24,7 @@ CREATE  TABLE User
 
     CONSTRAINT pk_usr PRIMARY KEY (id),
     CONSTRAINT unq_usr_email UNIQUE (email),
+    CONSTRAINT unq_usr_display_name UNIQUE (display_name),
 
     CONSTRAINT chk_email CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
     CONSTRAINT chk_avatar CHECK (LENGTH(avatar) <= 5242880),
@@ -31,7 +32,6 @@ CREATE  TABLE User
     CONSTRAINT chk_registered_timestamp CHECK (registered_timestamp <= NOW())
 );
 
-CREATE INDEX idx_usr_display_name ON User(display_name);
 CREATE INDEX idx_usr_registered_timestamp ON User(registered_timestamp);
 CREATE INDEX idx_usr_last_active_timestamp ON User(last_active_timestamp);
 
