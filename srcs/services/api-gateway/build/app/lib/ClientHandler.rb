@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/10/31 22:20:49 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 10:11:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -165,10 +165,20 @@ class ClientHandler
   end
 
   def parse_path_params(allowed_path_params, path)
-    #TODO deve restituire un hash con i parametri e i valori
-  end
+    return {} unless allowed_path_params
+  
+    path_parts = path.split("/")
 
-  def parse_query_params(allowed_query_params, raw_query)
+    params = {}
+    allowed_path_params.each_with_index do |param, index|
+      next unless path_parts[index]
+      params[param] = path_parts[index]
+    end
+  
+    params
+  end
+  
+  def parse_query_params(allowed_query_params, query)
     #TODO deve restituire un hash con i parametri e i valori
   end
 
