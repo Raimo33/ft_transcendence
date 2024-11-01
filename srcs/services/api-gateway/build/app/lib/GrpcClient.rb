@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 07:44:54 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 15:09:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,13 +20,15 @@ class GrpcClient
       'grpc.compression_algorithm' => 'gzip'
     }
     
-    user_channel       = GRPC::Core::Channel.new('users.corenet:50051', options, user_server_credentials)
-    match_channel      = GRPC::Core::Channel.new('match.corenet:50051', options, match_server_credentials)
-    tournament_channel = GRPC::Core::Channel.new('tournament.corenet:50051', options, tournament_server_credentials)  
+    user_channel       = GRPC::Core::Channel.new($USER_GRPC_SERVER_ADDR, options, user_server_credentials)
+    match_channel      = GRPC::Core::Channel.new($MATCH_GRPC_SERVER_ADDR, options, match_server_credentials)
+    tournament_channel = GRPC::Core::Channel.new($TOURNAMENT_GRPC_SERVER_ADDR, options, tournament_server_credentials)  
     
     @user_stub       = Users::Stub.new(user_channel)
     @match_stub      = Match::Stub.new(match_channel)
     @tournament_stub = Tournament::Stub.new(tournament_channel)
+  rescue => Errno::ENOENT, Errno::EACCES, Errno::EISDIR
+    #TODO handle file errors
   end
 
   def call(grpc_request)

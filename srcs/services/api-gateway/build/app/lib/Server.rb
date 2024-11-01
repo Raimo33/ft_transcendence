@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 15:12:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 16:32:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,24 +20,32 @@ require_relative 'ClientHandler'
 require_relative 'JwtValidator'
 require_relative 'ServerExceptions'
 require_relative 'SwaggerParser'
+require_relative 'Logger'
 require_relative 'structs'
 
 class Server
 
   def initialize(grpc_client)
+    @logger = Logger.logger
+    @logger.info('Initializing server...')
     @grpc_client = grpc_client
     @endpoint_tree = EndpointTree.new('v1')
     @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
     @jwt_validator = JWTValidator.new
-    @mapper = Mapper.new
     @clients = Async::Queue.new
 
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
+    @logger.info('Server initialized')
+  rescue => e
+    @logger.fatal("Error initializing server: #{e}")
+    raise
   end
 
   def run
     Sync do
+      @logger.info('Starting server...')
       endpoint = Async::IO::Endpoint.tcp($BIND_ADDRESS, $PORT)
+      @logger.debug("Server listening on #{$BIND_ADDRESS}:#{$PORT}")
       semaphore = Async::Semaphore.new($MAX_CONNECTIONS)
 
       Thread.new { process_requests }
@@ -52,11 +60,12 @@ class Server
   private
 
   def handle_connection(socket)
-    client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator, @mapper)
+    @logger.debug("Handling connection: #{socket}")
+    client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator)
     @clients.enqueue(client_handler)
     client_handler.read_requests
   rescue => e
-    #TODO log error (Unable to handle connection: <socket>. Reason: <error>)
+    @logger.error("Unable to handle connection: #{socket}. Reason: #{e}")
   end
 
   def process_requests
@@ -65,7 +74,7 @@ class Server
         client_handler = @clients.dequeue
         task.async { client_handler.process_requests }
       rescue => e
-        #TODO log error (Unable to process client: <socket> requests. Reason: <error>)
+        @logger.error("Unable to process client: #{client_handler.socket} requests. Reason: #{e}")
       end
     end
   end

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/10/29 14:36:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 16:21:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,14 @@ require_relative 'structs'
 class SwaggerParser
 
   def initialize(file_path)
+    @logger = Logger.logger
+    @logger.info('Parsing OpenAPI spec...')
+    @logger.debug("OpenAPI spec file path: #{file_path}")
     @openapi_spec = Openapi3Parser.load_file(file_path)
+    @logger.info('OpenAPI spec parsed')
+  rescue Openapi3Parser::Error => e
+    @logger.fatal("Error parsing OpenAPI spec: #{e.message}")
+    raise
   end
 
   def fill_endpoint_tree(endpoint_tree)
@@ -38,7 +45,6 @@ class SwaggerParser
       r.http_method              = http_method
       r.expected_auth            = requires_auth?(operation)
       r.expected_request         = extract_request(operation)
-      r.expected_responses       = extract_responses(operation)
       r.operation_id             = operation.operation_id
     end
   end
@@ -100,11 +106,6 @@ class SwaggerParser
       required: operation.request_body.required?,
       schema: content.schema
     }
-  end
-  
-
-  def extract_responses(operation)
-    #TODO ritorna hash di ExpectedResponse (status code, body, headers)
   end
 
 end
