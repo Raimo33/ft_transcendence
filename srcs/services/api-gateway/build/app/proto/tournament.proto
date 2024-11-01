@@ -9,8 +9,7 @@ service TournamentService
     rpc CreateTournament      (CreateTournamentRequest)     returns (CreateTournamentResponse) {}
     rpc JoinTournament        (JoinTournamentRequest)       returns (JoinTournamentResponse) {}
     rpc GetTournament         (GetTournamentRequest)        returns (GetTournamentResponse) {}
-    rpc ForceStartTournament  (ForceStartTournamentRet)     returns (ForceStartTournamentRese) {}
-    rpc AbandonTournament     (AbandonTournamentRequest)    returns (AbandonTournamentResponse) {}
+    rpc LeaveTournament     (LeaveTournamentRequest)    returns (LeaveTournamentResponse) {}
 }
 
 enum tournament_status
@@ -108,24 +107,13 @@ message GetTournamentResponse
     string              etag = 3;
 }
 
-// v1/tournaments/{tournament_id} PATCH
-message ForceStartTournamentRet
-{
-    string requesting_user_id = 1;
-    string tournament_id = 2;
-}
-message ForceStartTournamentRese
-{
-    int32 status_code = 1;
-}
-
 // v1/tournaments/{tournament_id} DELETE
-message AbandonTournamentRequest
+message LeaveTournamentRequest
 {
     string requesting_user_id = 1;
     string tournament_id = 2;
 }
-message AbandonTournamentResponse
+message LeaveTournamentResponse
 {
     int32  status_code = 1;
 }

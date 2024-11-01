@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 05:39:14 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 07:26:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -855,7 +855,7 @@ paths:
               properties:
                 settings:
                   $ref: "#/components/schemas/MatchSettings"
-                invited_users:
+                invited_user_ids:
                   type: array
                   items:
                     $ref: "#/components/schemas/user_id"
@@ -983,8 +983,8 @@ paths:
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
-      operationId: abandonMatch
-      summary: Abandon the current match
+      operationId: leaveMatch
+      summary: Leave the current match
       description: Exit and terminate the ongoing match.
       parameters:
         - $ref: '#/components/parameters/match_id'
@@ -1018,7 +1018,7 @@ paths:
               properties:
                 mode:
                   $ref: "#/components/schemas/tournament_mode"
-                invited_users:
+                invited_user_ids:
                   type: array
                   items:
                     $ref: "#/components/schemas/user_id"
@@ -1118,33 +1118,9 @@ paths:
           $ref: '#/components/responses/PreconditionFailed'
         "431":
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
-    patch:
-      operationId: forceStartTournament
-      summary: Force start a tournament
-      description: Force start the tournament (even if not all players have accepted the invitation).
-      parameters:
-        - $ref: '#/components/parameters/tournament_id'
-        - $ref: '#/components/parameters/Content-Length'
-      security:
-        - jwtAuth: []
-      responses:
-        "204":
-          $ref: '#/components/responses/NoContent'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "403":
-          $ref: '#/components/responses/Forbidden'
-        "409":
-          $ref: '#/components/responses/Conflict'
-        "411":
-          $ref: '#/components/responses/LengthRequired'
-        "413":
-          $ref: '#/components/responses/ContentTooLarge'
-        "431":
-          $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
-      operationId: abandonTournament
-      summary: Abandon the specified tournament
+      operationId: leaveTournament
+      summary: Leave the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:
         - $ref: '#/components/parameters/tournament_id'

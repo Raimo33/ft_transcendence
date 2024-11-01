@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 05:45:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 07:27:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -57,9 +57,10 @@ module Mapper
         display_name: request[:body]["display_name"],
         avatar: request[:body]["avatar"] )
     when "getUserProfile"
-      UserService::GetUserRequest.new(
+      UserService::GetUserProfileRequest.new(
         requesting_user_id: requesting_user_id,
-        user_id: request[:path_params]["user_id"] )
+        user_id: request[:path_params]["user_id"],
+        etag: request[:headers]["if-none-match"] )
     when "getUserStatus"
       UserService::GetUserStatusRequest.new(
         requesting_user_id: requesting_user_id,
@@ -74,7 +75,8 @@ module Mapper
         filters: request[:query_params]["filters"] ?
           MatchService::PlayerMatchFilters.new(
             status: request[:query_params]["filters"]["status"],
-            position: request[:query_params]["filters"]["position"], )
+            position: request[:query_params]["filters"]["position"],
+        etag: request[:headers]["if-none-match"] )
         : nil )
     when "getUserTournaments"
       TournamentService::GetUserTournamentsRequest.new(
@@ -83,18 +85,18 @@ module Mapper
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: PLAYER_TOURNAMENT_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
-        filters: request[:query_params]["filters"] ?
-          TournamentService::PlayerTournamentFilters.new(
+        filters: TournamentService::PlayerTournamentFilters.new(
             mode: TOURNAMENT_MODES_STRING_TO_ENUM_MAP[request[:query_params]["filters"]["mode"]],
             status: request[:query_params]["filters"]["status"],
-            position: request[:query_params]["filters"]["position"], )
-        : nil )
+            position: request[:query_params]["filters"]["position"] ) if request[:query_params]["filters"],
+        etag: request[:headers]["if-none-match"] )
     when "deleteAccount"
       UserService::DeleteAccountRequest.new(
         requesting_user_id: requesting_user_id, )
     when "getPrivateProfile"
       UserService::GetPrivateProfileRequest.new(
-        requesting_user_id: requesting_user_id )
+        requesting_user_id: requesting_user_id,
+        etag: request[:headers]["if-none-match"] )
     when "updateProfile"
       UserService::UpdateProfileRequest.new(
         requesting_user_id: requesting_user_id,
@@ -158,14 +160,52 @@ module Mapper
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: USER_PROFILE_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
-        filters: request[:query_params]["filters"] ?
-          UserService::UserProfileFilters.new(
-            status: request[:query_params]["filters"]["status"] )
-        : nil )
+        filters: UserService::UserProfileFilters.new(
+            status: request[:query_params]["filters"]["status"] ) if request[:query_params]["filters"],
+        etag: request[:headers]["if-none-match"] )
     when "removeFriend"
       UserService::RemoveFriendRequest.new(
         requesting_user_id: requesting_user_id,
         friend_id: request[:path_params]["friend_id"] )
+    when "createMatch"
+      MatchService::CreateMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        invited_user_ids: request[:body]["invited_user_ids"],
+        settings: MatchService::MatchSettings.new(
+          ball_speed: request[:body]["settings"]["ball_speed"],
+          max_duration: request[:body]["settings"]["max_duration"],
+          starting_health: request[:body]["settings"]["starting_health"] ) if request[:body]["settings"] )
+    when "joinMatch"
+      MatchService::JoinMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        match_id: request[:path_params]["match_id"] )
+    when "getMatch"
+      MatchService::GetMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        match_id: request[:path_params]["match_id"],
+        etag: request[:headers]["if-none-match"] )
+    when "leaveMatch"
+      MatchService::LeaveMatchRequest.new(
+        requesting_user_id: requesting_user_id,
+        match_id: request[:path_params]["match_id"] )
+    when "createTournament"
+      TournamentService::CreateTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        invited_user_ids: request[:body]["invited_user_ids"],
+        mode: TOURNAMENT_MODES_STRING_TO_ENUM_MAP[request[:body]["mode"]] )
+    when "joinTournament"
+      TournamentService::JoinTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        tournament_id: request[:path_params]["tournament_id"] )
+    when "getTournament"
+      TournamentService::GetTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        tournament_id: request[:path_params]["tournament_id"],
+        etag: request[:headers]["if-none-match"] )
+    when "leaveTournament"
+      TournamentService::LeaveTournamentRequest.new(
+        requesting_user_id: requesting_user_id,
+        tournament_id: request[:path_params]["tournament_id"] )
     else
       raise #TODO internal
     end
