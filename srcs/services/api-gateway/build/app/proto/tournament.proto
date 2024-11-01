@@ -24,7 +24,7 @@ enum tournament_mode
     SINGLE_ELIMINATION = 0;
     KNOCKOUT = 1;
     KING_OF_THE_HILL = 2;
-    LADDERS = 3;
+    LADDER = 3;
     ROUND_ROBIN = 4;
 }
 message tournament
@@ -56,24 +56,26 @@ message player_tournament_filters
 message GetUserTournamentsRequest
 {
     string                                     requesting_user_id = 1;
-    string                                     user_id = 1;
-    optional uint32                            limit = 2;
-    optional uint32                            offset = 3;
-    optional player_tournament_sorting_options sort_by = 4;
-    optional player_tournament_filters         filters = 5;
+    string                                     user_id = 2;
+    optional uint32                            limit = 3;
+    optional uint32                            offset = 4;
+    optional player_tournament_sorting_options sort_by = 5;
+    optional player_tournament_filters         filters = 6;
+    optional string                            etag = 7;
 }
 message GetUserTournamentsResponse
 {
     int32                        status_code = 1;
     optional repeated tournament tournaments = 2;
+    string                       etag = 3;
 }
 
 // v1/tournaments POST
 message CreateTournamentRequest
 {
     string                    requesting_user_id = 1;
-    repeated string           invided_users_ids = 1;
-    optional tournament_mode  mode = 2;
+    repeated string           invided_users_ids = 2;
+    optional tournament_mode  mode = 3;
 }
 message CreateTournamentResponse
 {
@@ -85,7 +87,7 @@ message CreateTournamentResponse
 message JoinTournamentRequest
 {
     string  requesting_user_id = 1;
-    string  tournament_id = 1;
+    string  tournament_id = 2;
 }
 message JoinTournamentResponse
 {
@@ -95,20 +97,22 @@ message JoinTournamentResponse
 // v1/tournaments/{tournament_id} GET
 message GetTournamentRequest
 {
-    string  requesting_user_id = 1;
-    string  tournament_id = 1;
+    string          requesting_user_id = 1;
+    string          tournament_id = 2;
+    optional string etag = 3;
 }
 message GetTournamentResponse
 {
     int32               status_code = 1;
     optional tournament tournament = 2;
+    string              etag = 3;
 }
 
 // v1/tournaments/{tournament_id} PATCH
 message ForceStartTournamentRet
 {
     string requesting_user_id = 1;
-    string tournament_id = 1;
+    string tournament_id = 2;
 }
 message ForceStartTournamentRese
 {
@@ -119,7 +123,7 @@ message ForceStartTournamentRese
 message AbandonTournamentRequest
 {
     string requesting_user_id = 1;
-    string tournament_id = 1;
+    string tournament_id = 2;
 }
 message AbandonTournamentResponse
 {

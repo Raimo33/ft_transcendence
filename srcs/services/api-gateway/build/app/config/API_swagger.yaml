@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/10/31 21:42:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 05:39:14 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -141,7 +141,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/user_id'
         - $ref: '#/components/parameters/Cache-Control'
-        - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
       responses:
@@ -160,8 +159,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Interval'
             Cache-Control:
               $ref: '#/components/headers/Cache-Control'
-            ETag:
-              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -499,7 +496,7 @@ paths:
         "401":
           $ref: '#/components/responses/Unauthorized'
         "409":
-          $ref: '#/components/responses/Conflict'g
+          $ref: '#/components/responses/Conflict'
         "411":
           $ref: '#/components/responses/LengthRequired'
         "413":
@@ -619,9 +616,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  two_factor_auth_status:
-                    $ref: "#/components/schemas/two_factor_auth_status"
-                required: [two_factor_auth_status]
+                  two_factor_auth_enabled:
+                    $ref: "#/components/schemas/two_factor_auth_enabled"
+                required: [two_factor_auth_enabled]
         "401":
           $ref: '#/components/responses/Unauthorized'
         "431":
@@ -892,6 +889,8 @@ paths:
                 properties:
                   match_id:
                     $ref: "#/components/schemas/match_id"
+                  websocket_url:
+                    $ref: "#/components/schemas/websocket_url"
                 required: [match_id]
         "401":
           $ref: '#/components/responses/Unauthorized'
@@ -914,8 +913,29 @@ paths:
       security:
         - jwtAuth: []
       responses:
-        "204":
-          $ref: '#/components/responses/NoContent'
+        "200":
+          description: Returns the websocket URL of the match.
+          headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/X-Rate-Limit-Interval'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  websocket_url:
+                    $ref: "#/components/schemas/websocket_url"
+                required: [websocket_url]
         "401":
           $ref: '#/components/responses/Unauthorized'
         "403":
@@ -1233,7 +1253,7 @@ components:
       format: int64
       example: 1634265600
 
-    two_factor_auth_status:
+    two_factor_auth_enabled:
       description: Status of the 2FA authentication for the user.
       type: boolean
       example: true
@@ -1278,7 +1298,7 @@ components:
       description: Represents a public user profile with limited information.
       type: object
       properties: 
-        user_id:
+        id:
           $ref: "#/components/schemas/user_id"
         display_name:
           $ref: "#/components/schemas/user_display_name"
@@ -1290,7 +1310,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         registered_timestamp:
           $ref: "#/components/schemas/timestamp"
-      required: [user_id, display_name, avatar, status, last_active_timestamp, registered_timestamp]
+      required: [id, display_name, avatar, status, last_active_timestamp, registered_timestamp]
 
     User:
       description: Represents a private user profile with additional information.
@@ -1300,10 +1320,10 @@ components:
         - properties:
             email:
               $ref: "#/components/schemas/user_email"
-            two_factor_enabled:
-              $ref: "#/components/schemas/two_factor_auth_status"
+            two_factor_auth_enabled:
+              $ref: "#/components/schemas/two_factor_auth_enabled"
           additionalProperties: false
-      required: [user_id, display_name, avatar, status, last_active_timestamp, email, two_factor_auth]
+      required: [id, display_name, avatar, status, last_active_timestamp, email, two_factor_auth_enabled]
 
     MatchSettings:
       description: Settings and configurations for the match, such as ball speed, match duration, and player health.
@@ -1322,9 +1342,7 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/match_id"
-        websocket_url:
-          $ref: "#/components/schemas/websocket_url"
-        players:
+        player_ids:
           description: Array of user_ids representing the players in the match.
           type: array
           items:
@@ -1337,22 +1355,17 @@ components:
           $ref: "#/components/schemas/timestamp"
         settings:
           $ref: "#/components/schemas/MatchSettings"
-        leaderboard:
-          description: Array of user_ids in the order of their scores.
-          type: array
-          items:
-            $ref: "#/components/schemas/user_id"
-      required: [match_id, players, status, started_timestamp, match_settings]
+      required: [id, player_ids, status, started_timestamp, settings]
 
     Tournament:
       description: Represents a Pong tournament, containing multiple matches and players.
       type: object
       properties:
-        tournament_id:
+        id:
           $ref: "#/components/schemas/tournament_id"
-        tournament_mode:
+        mode:
           $ref: "#/components/schemas/tournament_mode"
-        matches:
+        match_ids:
           description: Array of match_ids in the tournament.
           type: array
           items:
@@ -1363,12 +1376,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_timestamp:
           $ref: "#/components/schemas/timestamp"
-        leaderboard:
-          description: Array of user_ids in the order of their scores.
-          type: array
-          items:
-            $ref: "#/components/schemas/user_id"
-      required: [tournament_id, tournament_mode, matches, status, started_timestamp]
+      required: [id, mode, match_ids, status, started_timestamp]
 
   parameters:
 
