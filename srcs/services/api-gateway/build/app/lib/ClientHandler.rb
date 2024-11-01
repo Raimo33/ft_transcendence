@@ -183,7 +183,27 @@ class ClientHandler
   end
   
   def parse_query_params(allowed_query_params, query)
-    #TODO deve restituire un hash con i parametri e i valori
+    return {} unless allowed_query_params
+  
+    query_params = query.split("&")
+    params = {}
+  
+    query_params.each do |param|
+      key, value = param.split("=", 2)
+      keys = key.scan(/\w+/)
+  
+      current = params
+      keys.each_with_index do |k, index|
+        if index == keys.size - 1
+          current[k] = value
+        else
+          current[k] ||= {}
+          current = current[k]
+        end
+      end
+    end
+  
+    params
   end
 
   def parse_body(body_schema, raw_body)

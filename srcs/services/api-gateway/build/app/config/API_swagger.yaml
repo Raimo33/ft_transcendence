@@ -1181,7 +1181,7 @@ components:
     match_status:
       description: Current status of the match.
       type: string
-      enum: [ongoing, completed, interrupted]
+      enum: [ongoing, completed]
       example: "ongoing"
     match_ball_speed:
       description: Defines the speed of the ball in the match.
@@ -1225,7 +1225,7 @@ components:
     tournament_status:
       description: Current status of the tournament.
       type: string
-      enum: [ongoing, completed, interrupted]
+      enum: [ongoing, completed]
       example: "ongoing"
     timestamp:
       description: Timestamp in unix timestamp format.
@@ -1480,8 +1480,6 @@ components:
         properties:
           status:
             $ref: "#/components/schemas/match_status"
-          position:
-            $ref: "#/components/schemas/player_position"
       style: deepObject
       explode: false
       required: false

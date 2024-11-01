@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 07:27:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/01 14:55:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,36 +16,6 @@ require_relative 'proto/tournament_pb'
 require_relative 'structs'
 
 module Mapper
-
-  PLAYER_MATCH_SORTING_OPTIONS_MAP = {
-    'age' => Match::PlayerMatchSortingOptions::AGE,
-    'duration' => Match::PlayerMatchSortingOptions::DURATION,
-    'number_of_players' => Match::PlayerMatchSortingOptions::NUMBER_OF_PLAYERS,
-    'position' => Match::PlayerMatchSortingOptions::POSITION
-  }.freeze
-
-  PLAYER_TOURNAMENT_SORTING_OPTIONS_MAP = {
-    'age' => Tournament::PlayerTournamentSortingOptions::AGE,
-    'duration' => Tournament::PlayerTournamentSortingOptions::DURATION,
-    'number_of_players' => Tournament::PlayerTournamentSortingOptions::NUMBER_OF_PLAYERS,
-    'position' => Tournament::PlayerTournamentSortingOptions::POSITION
-  }.freeze
-
-  USER_PROFILE_SORTING_OPTIONS_MAP = {
-    'display_name' => User::UserProfileSortingOptions::DISPLAY_NAME,
-    'registered_timestamp' => User::UserProfileSortingOptions::REGISTERED_TIMESTAMP,
-    'last_active_timestamp' => User::UserProfileSortingOptions::LAST_ACTIVE_TIMESTAMP
-  }.freeze
-
-  TOURNAMENT_MODES_STRING_TO_ENUM_MAP = {
-    'single_elimination' => Tournament::TournamentMode::SINGLE_ELIMINATION,
-    'knockout' => Tournament::TournamentMode::KNOCKOUT,
-    'king_of_the_hill' => Tournament::TournamentMode::KING_OF_THE_HILL,
-    'ladder' => Tournament::TournamentMode::LADDER,
-    'round_robin' => Tournament::TournamentMode::ROUND_ROBIN
-  }.freeze
-
-  TOURNAMENT_MODES_ENUM_TO_STRING_MAP = TOURNAMENT_MODES_MAP.invert.freeze
 
   def self.map_request_to_grpc_request(request, operation_id, requesting_user_id)
     case operation_id
@@ -71,24 +41,22 @@ module Mapper
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
-        sort_by: PLAYER_MATCH_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
-        filters: request[:query_params]["filters"] ?
-          MatchService::PlayerMatchFilters.new(
-            status: request[:query_params]["filters"]["status"],
-            position: request[:query_params]["filters"]["position"],
+        sort_by: request[:query_params]["sort_by"],
+        filters: MatchService::PlayerMatchFilters.new(
+          status: request[:query_params]["filters"]["status"]
+        ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )
-        : nil )
     when "getUserTournaments"
       TournamentService::GetUserTournamentsRequest.new(
         requesting_user_id: requesting_user_id,
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
-        sort_by: PLAYER_TOURNAMENT_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
+        sort_by: request[:query_params]["sort_by"],
         filters: TournamentService::PlayerTournamentFilters.new(
-            mode: TOURNAMENT_MODES_STRING_TO_ENUM_MAP[request[:query_params]["filters"]["mode"]],
-            status: request[:query_params]["filters"]["status"],
-            position: request[:query_params]["filters"]["position"] ) if request[:query_params]["filters"],
+          mode: request[:query_params]["filters"]["mode"],
+          status: request[:query_params]["filters"]["status"]
+        ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )
     when "deleteAccount"
       UserService::DeleteAccountRequest.new(
@@ -159,9 +127,10 @@ module Mapper
         requesting_user_id: requesting_user_id,
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
-        sort_by: USER_PROFILE_SORTING_OPTIONS_MAP[request[:query_params]["sort_by"]],
+        sort_by: request[:query_params]["sort_by"],
         filters: UserService::UserProfileFilters.new(
-            status: request[:query_params]["filters"]["status"] ) if request[:query_params]["filters"],
+          status: request[:query_params]["filters"]["status"]
+        ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )
     when "removeFriend"
       UserService::RemoveFriendRequest.new(

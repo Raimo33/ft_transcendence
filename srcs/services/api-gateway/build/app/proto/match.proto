@@ -9,15 +9,9 @@ service MatchService
     rpc CreateMatch        (CreateMatchRequest)       returns (CreateMatchResponse) {}
     rpc JoinMatch          (JoinMatchRequest)         returns (JoinMatchResponse) {}
     rpc GetMatch           (GetMatchRequest)          returns (GetMatchResponse) {}
-    rpc LeaveMatch       (LeaveMatchRequest)      returns (LeaveMatchResponse) {}
+    rpc LeaveMatch         (LeaveMatchRequest)        returns (LeaveMatchResponse) {}
 }
 
-enum match_status
-{
-    ONGOING = 0;
-    COMPLETED = 1;
-    INTERRUPTED = 2;
-}
 message match_settings
 {
     uint8  ball_speed = 1;
@@ -28,36 +22,27 @@ message match
 {
     string           id = 1;
     repeated string  player_ids = 2;
-    match_status     status = 3;
+    string           status = 3;
     uint64           started_timestamp = 4;
     optional uint64  finished_timestamp = 5;
     match_settings   settings = 6;
 }
 
-enum player_match_sorting_options
-{
-    AGE = 0;
-    DURATION = 1;
-    NUMBER_OF_PLAYERS = 2;
-    POSITION = 3;
-}
-
 message player_match_filters
 {
-    optional match_status  status = 1;
-    optional uint32        position = 2;
+    optional string  status = 1;
 }
 
 // v1/users/{user_id}/matches GET
 message GetUserMatchesRequest
 {
-    string                                 requesting_user_id = 1;
-    string                                 user_id = 2;
-    optional uint32                        limit = 3;
-    optional uint32                        offset = 4;
-    optional player_match_sorting_options  sort_by = 5;
-    optional player_match_filters          filters = 6;
-    optional string                        etag = 7;
+    string                         requesting_user_id = 1;
+    string                         user_id = 2;
+    optional uint32                limit = 3;
+    optional uint32                offset = 4;
+    optional string                sort_by = 5;
+    optional player_match_filters  filters = 6;
+    optional string                etag = 7;
 }
 message GetUserMatchesResponse
 {

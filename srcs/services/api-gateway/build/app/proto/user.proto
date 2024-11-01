@@ -28,42 +28,30 @@ service UserService
     rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
 }
 
-enum user_status
-{
-    ONLINE = 0;
-    OFFLINE = 1;
-}
 message user_profile
 {
-    string       id = 1;
-    string       display_name = 2;
-    string       avatar = 3;
-    user_status  status = 4;
-    uint64       last_active_timestamp = 5;
-    uint64       registered_timestamp = 6;
+    string  id = 1;
+    string  display_name = 2;
+    string  avatar = 3;
+    string  status = 4;
+    uint64  last_active_timestamp = 5;
+    uint64  registered_timestamp = 6;
 }
 message user
 {
-    string       id = 1;
-    string       display_name = 2;
-    string       avatar = 3;
-    user_status  status = 4;
-    uint64       last_active_timestamp = 5;
-    uint64       registered_timestamp = 6;
-    string       email = 7;
-    bool         two_factor_auth_enabled = 8;
-}
-
-enum profile_sorting_options
-{
-    DISPLAY_NAME = 0;
-    REGISTERED_TIMESTAMP = 1;
-    LAST_ACTIVE_TIMESTAMP = 2;
+    string  id = 1;
+    string  display_name = 2;
+    string  avatar = 3;
+    string  status = 4;
+    uint64  last_active_timestamp = 5;
+    uint64  registered_timestamp = 6;
+    string  email = 7;
+    bool    two_factor_auth_enabled = 8;
 }
 
 message profile_filters
 {
-    optional user_status status = 1;
+    optional string status = 1;
 }
 
 // v1/users POST
@@ -103,8 +91,8 @@ message GetUserStatusRequest
 }
 message GetUserStatusResponse
 {
-    int32                 status_code = 1;
-    optional user_status  user_status = 2;
+    int32            status_code = 1;
+    optional string  user_status = 2;
 }
 
 // v1/user DELETE
@@ -298,12 +286,12 @@ message AddFriendResponse
 // v1/user/friends GET
 message GetFriendsRequest
 {
-    string                           requesting_user_id = 1;
-    optional uint32                  limit = 2;
-    optional uint32                  offset = 3;
-    optional profile_sorting_options sort_by = 4;
-    optional profile_filters         filters = 5;
-    optional string                  etag = 6;
+    string           requesting_user_id = 1;
+    optional uint32  limit = 2;
+    optional uint32  offset = 3;
+    optional string  sort_by = 4;
+    optional string  filters = 5;
+    optional string  etag = 6;
 }
 message GetFriendsResponse
 {
