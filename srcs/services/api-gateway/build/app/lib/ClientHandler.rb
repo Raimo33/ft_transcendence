@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 16:02:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 18:40:36 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,16 +14,23 @@ require 'async'
 require 'async/io'
 require 'async/queue'
 require 'async/barrier'
+require_relative 'exceptions'
 require_relative 'BlockingPriorityQueue'
 require_relative 'Mapper'
+require_relative 'JwtValidator'
+require_relative 'ConfigLoader'
 require_relative 'Logger'
+require_relative 'structs'
 
 class ClientHandler
+  include ConfigLoader
+  include Logger
 
   Request = Struct.new(:method, :path_params, :query_params, :headers, :body)
   Response = Struct.new(:status_code, :headers, :body)
 
   def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
+    @config         = ConfigLoader.config
     @stream         = Async::IO::Stream.new(socket)
     @endpoint_tree  = endpoint_tree
     @grpc_client    = grpc_client
@@ -42,7 +49,6 @@ class ClientHandler
         @request_queue.enqueue(request)
       rescue StandardError => e
         @logger.error("Error parsing request: #{e}")
-        @logger.debug(e.backtrace.join("\n"))
         send_error(e.status_code)
         skip_request(buffer)
       end
@@ -65,7 +71,6 @@ class ClientHandler
             last_task = subtask.async { send_response(stream, response) }
           rescue StandardError => e
             @logger.error("Error processing response: #{e}")
-            @logger.debug(e.backtrace.join("\n"))
             send_error(e.status_code)
         end
       end
@@ -89,7 +94,6 @@ class ClientHandler
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e
             @logger.error("Error processing request: #{e}")
-            @logger.debug(e.backtrace.join("\n"))
             send_error(e.status_code)
           end
         end
@@ -120,7 +124,7 @@ class ClientHandler
     request_line, headers_lines = headers_part.split("\r\n", 2)
     request.method, full_path, _ = request_line.split(" ", 3)
     raise ActionFailedException::BadRequest unless request.method && full_path
-    raise ActionFailedException::URITooLong if full_path.size > $MAX_URI_SIZE
+    raise ActionFailedException::URITooLong if full_path.size > @config[:max_uri_length]
 
     path, query = full_path.split("?", 2)
     raise ActionFailedException::BadRequest unless path
@@ -137,7 +141,7 @@ class ClientHandler
 
     if resource.body_required
       raise ActionFailedException::LengthRequired unless content_length
-      raise ActionFailedException::ContentTooLarge if content_length > $MAX_BODY_SIZE
+      raise ActionFailedException::ContentTooLarge if content_length > @config[:max_body_size]
     end
 
     check_auth(resource, headers["authorization"])

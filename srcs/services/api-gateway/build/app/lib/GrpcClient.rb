@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 15:38:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 18:38:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,11 +14,15 @@ require 'grpc'
 require_relative '../proto/users_services_pb'
 require_relative '../proto/match_services_pb'
 require_relative '../proto/tournament_services_pb'
+require_relative 'ConfigLoader'
 require_relative 'Logger'
 
 class GrpcClient
+  include ConfigLoader
+  include Logger
 
   def initialize
+    @config = ConfigLoader.config
     @logger = Logger.logger
     @logger.info('Initializing grpc client')
 
@@ -26,13 +30,13 @@ class GrpcClient
       'grpc.compression_algorithm' => 'gzip'
     }
 
-    user_server_credentials        = load_credentials($USER_SERVER_CERT)
-    match_server_credentials       = load_credentials($MATCH_SERVER_CERT)
-    tournament_server_credentials  = load_credentials($TOURNAMENT_SERVER_CERT)
+    user_server_credentials        = load_credentials(@config[:user_server_cert])
+    match_server_credentials       = load_credentials(@config[:match_server_cert])
+    tournament_server_credentials  = load_credentials(@config[:tournament_server_cert])
 
-    user_channel        = create_channel($USER_GRPC_SERVER_ADDR, user_server_credentials)
-    match_channel       = create_channel($MATCH_GRPC_SERVER_ADDR, match_server_credentials)
-    tournament_channel  = create_channel($TOURNAMENT_GRPC_SERVER_ADDR, tournament_server_credentials)
+    user_channel        = create_channel(@config[:user_server_addr], user_server_credentials)
+    match_channel       = create_channel(@config[:match_server_addr], match_server_credentials)
+    tournament_channel  = create_channel(@config[:tournament_server_addr], tournament_server_credentials)
 
     @user_stub          = Users::Stub.new(user_channel)
     @match_stub         = Match::Stub.new(match_channel)

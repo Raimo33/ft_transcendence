@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 16:04:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 18:41:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,11 +18,16 @@ require_relative 'EndpointTree'
 require_relative 'SwaggerParser'
 require_relative 'JWTValidator'
 require_relative 'ClientHandler'
+require_relative 'GrpcClient'
+require_relative 'ConfigLoader'
 require_relative 'Logger'
 
 class Server
+  include ConfigLoader
+  include Logger
 
   def initialize(grpc_client)
+    @config = Config.config
     @logger = Logger.logger
     @logger.info('Initializing server...')
 
@@ -41,9 +46,9 @@ class Server
   def run
     Sync do
       @logger.info('Starting server...')
-      endpoint = Async::IO::Endpoint.tcp($BIND_ADDRESS, $PORT)
-      @logger.debug("Server listening on #{$BIND_ADDRESS}:#{$PORT}")
-      semaphore = Async::Semaphore.new($MAX_CONNECTIONS)
+      endpoint = Async::IO::Endpoint.tcp(@config[:bind_address], @config[:port])
+      @logger.debug("Server listening on #{@config[:bind_address]}:#{@config[:port]}")
+      semaphore = Async::Semaphore.new(@config[:max_connections])
 
       Thread.new { process_requests }
 

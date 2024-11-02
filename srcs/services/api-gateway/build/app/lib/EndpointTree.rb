@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 14:59:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 18:36:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,7 +35,7 @@ class EndpointTree
     end    
   end
 
-  # FUTUREPROOFING: this method assumes that only 1 dynamic parameter per path level is allowed
+  # NOTE: this method assumes that only 1 dynamic parameter per path level is allowed
   def find_endpoint(path)
     parts = path.split('/').reject(&:empty?)
     current_node = self

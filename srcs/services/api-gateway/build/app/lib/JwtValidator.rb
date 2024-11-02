@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 16:03:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 18:38:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,9 +16,14 @@ require 'json'
 require 'base64'
 require 'openssl'
 require_relative 'Logger'
+require_relative 'ConfigLoader'
 
 class JwtValidator
-  def initialize
+  include ConfigLoader
+  include Logger
+
+  def initialize(config)
+    @config = config
     @logger = Logger.logger
     @public_key = nil
     @last_fetched = nil
@@ -43,7 +48,7 @@ class JwtValidator
   def decode_token(token)
     public_key = fetch_public_key
 
-    JWT.decode(token, public_key, true, { algorithm: $JWT_ALGORITHM })
+    JWT.decode(token, public_key, true, { algorithm: @config[:jwt_algorithm] })
   rescue StandardError => e
     @logger.error("Error decoding token: #{e.message}")
     @logger.debug(e.backtrace.join("\n"))
@@ -51,10 +56,10 @@ class JwtValidator
   end
 
   def fetch_public_key
-    return @public_key if @public_key && (Time.now - @last_fetched < $JWT_PUB_KEY_TTL)
+    return @public_key if @public_key && (Time.now - @last_fetched < @config[:jwt_key_refresh_interval])
     @logger.debug('Fetching public key from JWKS endpoint')
 
-    uri = URI($JWT_PUB_KEY_URI)
+    uri = URI(@config[:jwt_jwks_uri])
     @logger.debug("Fetching JWKS from #{uri}")
     response = Net::HTTP.get(uri)
     jwks = JSON.parse(response)
@@ -71,14 +76,14 @@ class JwtValidator
 
 
   def validate_claims(decoded_token)
-    exp = decoded_token[0]['exp'] + JWT_EXPIRY_LEEWAY
-    iat = decoded_token[0]['iat'] - JWT_EXPIRY_LEEWAY
+    exp = decoded_token[0]['exp'] + @config[:jwt_clock_skew]
+    iat = decoded_token[0]['iat'] - @config[:jwt_clock_skew]
     aud = decoded_token[0]['aud']
 
     return false unless exp && iat && aud
     now = Time.now.to_i
     return false unless (iat..exp).cover?(now)
-    return false unless aud == $JWT_AUDIENCE
+    return false unless aud == @config[:jwt_audience]
 
     true
   end

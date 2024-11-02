@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/10/31 20:58:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 18:42:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,7 +37,7 @@ WORKDIR /etc/api-gateway/conf.d/
 USER api-gateway
 EXPOSE 3000
 
-ENTRYPOINT ["ruby", "main.rb"]
+ENTRYPOINT ["./main.rb"]
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:3000/api/v1/ping"]
 
 FROM official as pongfumasters
