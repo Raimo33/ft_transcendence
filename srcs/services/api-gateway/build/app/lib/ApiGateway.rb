@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 19:11:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 16:12:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,22 +17,25 @@ require_relative 'Server'
 
 class APIGateway
   def initialize(config_file)
+    @logger = Logger.new(STDOUT)
     @config_loader = ConfigLoader.new(config_file)
-    @config_loader.load_config
-    Logger.create_logger($LOG_LEVEL, $LOG_FILE)
+    @config_loader.load_config  
     @worker_pid = nil
+    @current_pid_file = $PID_FILE
+    @master_pid = Process.pid
+
+    @logger.close
+    Logger.create_logger($LOG_LEVEL, $LOG_FILE)
     @logger = Logger.logger
+
+    File.write(@current_pid_file, @master_pid)
   rescue StandardError => e
-    STDERR.puts "Error during initialization: #{e.message}"
+    @logger.fatal("Error during initialization: #{e.message}")
+    @logger.debug(e.backtrace.join("\n"))
     exit 1
   end
 
   def start_master
-    @logger.info('Starting master process...')
-    master_pid = Process.pid
-    @logger.debug("Master process PID: #{master_pid}")
-    File.write('/run/api-gateway.pid', master_pid)
-
     Signal.trap('SIGHUP') { reload_config }
     Signal.trap('SIGTERM') { shutdown }
 
@@ -42,6 +45,7 @@ class APIGateway
     sleep
   rescue StandardError => e
     @logger.fatal("Error during master process: #{e.message}")
+    @logger.debug(e.backtrace.join("\n"))
   end
 
   private
@@ -56,13 +60,22 @@ class APIGateway
 
   def reload_config
     @config_loader.load_configs
+    return unless @config_loader.configs_changed?   
+
+    if $PID_FILE != @current_pid_file
+      File.delete(@current_pid_file) if File.exist?(@current_pid_file)
+      File.write($PID_FILE, @master_pid)
+      @current_pid_file = $PID_FILE
+    end
+
     if @worker_pid
       Process.kill('TERM', @worker_pid)
       Process.wait(@worker_pid)
       spawn_worker
     end
   rescue StandardError => e
-    @logger.error("Error during config reload: #{e.message}")
+    @logger.error("Error during config reload: #{e.message}\nContinuing with old configuration")
+    @logger.debug(e.backtrace.join("\n"))
   end
 
   def shutdown
@@ -75,7 +88,10 @@ class APIGateway
     end
     exit 0
   rescue StandardError => e
-    @logger.fatal("Error during shutdown: #{e.message}")
+    @logger.fatal("Error during graceful shutdown: #{e.message}")
+    @logger.debug(e.backtrace.join("\n"))
+  ensure
+    File.delete(@current_pid_file) if File.exist?(@current_pid_file)
     exit 1
   end
 end

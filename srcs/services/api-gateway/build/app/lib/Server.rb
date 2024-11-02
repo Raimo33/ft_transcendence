@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 19:10:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 16:04:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,17 +25,17 @@ class Server
   def initialize(grpc_client)
     @logger = Logger.logger
     @logger.info('Initializing server...')
+
     @grpc_client = grpc_client
-    @endpoint_tree = EndpointTree.new('v1')
+    @endpoint_tree = EndpointTree.new('')
     @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
 
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
     @logger.info('Server initialized')
-  rescue => e
-    @logger.fatal("Error initializing server: #{e}")
-    raise
+  rescue StandardError => e
+    raise "Error initializing server: #{e}"
   end
 
   def run
@@ -61,8 +61,9 @@ class Server
     client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator)
     @clients.enqueue(client_handler)
     client_handler.read_requests
-  rescue => e
-    @logger.error("Unable to handle connection: #{socket}. Reason: #{e}")
+  rescue StandardError => e
+    @logger.error("Unable to handle connection: #{socket}: #{e}")
+    @logger.debug(e.backtrace.join("\n"))
   end
 
   def process_requests
@@ -71,9 +72,10 @@ class Server
         begin
           client_handler = @clients.dequeue
           task.async { client_handler.process_requests }
-        rescue => e
+        rescue StandardError => e
           client_info = client_handler&.socket || 'unknown'
-          @logger.error("Unable to process client: #{client_info} requests. Reason: #{e}")
+          @logger.error("Unable to process client: #{client_info}: #{e}")
+          @logger.debug(e.backtrace.join("\n"))
         end
       end
     end

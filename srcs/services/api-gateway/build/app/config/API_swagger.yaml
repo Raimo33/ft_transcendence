@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 15:03:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 14:48:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ info:
   description: REST-ful API to interact with the Pongfumasters gateway.
   version: 1.0.0
 servers:
-  - url: /api/v1
+  - url: pongfumasters.com/api/v1
     description: Main API server
 security:
   - jwtAuth: []

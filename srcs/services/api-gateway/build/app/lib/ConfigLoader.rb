@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 19:12:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 16:13:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ class ConfigLoader
   VALID_CONFIG_KEYS = {
     'bind_address'                  => ->(value) { $BIND_ADDRESS = value },
     'bind_port'                     => ->(value) { $BIND_PORT = value.to_i },
+    'pid_file'                      => ->(value) { $PID_FILE = value },
     'keycloak_pub_key_url'          => ->(value) { $KEYCLOAK_PUB_KEY_URL = value },
     'jwt_pub_key_ttl'               => ->(value) { $JWT_PUB_KEY_TTL = value.to_i },
     'jwt_algorithm'                 => ->(value) { $JWT_ALGORITHM = value },
@@ -29,6 +30,7 @@ class ConfigLoader
     'match_grpc_server_addr'        => ->(value) { $MATCH_GRPC_SERVER_ADDR = value },
     'tournament_grpc_server_addr'   => ->(value) { $TOURNAMENT_GRPC_SERVER_ADDR = value },
     'log_level'                     => ->(value) { $LOG_LEVEL = value }
+    'log_file'                      => ->(value) { $LOG_FILE = value }
   }.freeze
 
   def initialize(config_file)
@@ -41,12 +43,14 @@ class ConfigLoader
     @config = parse_config_file(config_file)
 
     apply_config
+  rescue StandardError => e
+    raise "Error loading config: #{e}"
   end
 
   private
 
   def validate_config_file(file_path)
-    raise "Invalid file extension" unless File.extname(file_path) == '.conf'
+    raise "Invalid config file extension" unless File.extname(file_path) == '.conf'
 
     provided_config = parse_config_file(file_path)
     provided_config.each do |key, value|

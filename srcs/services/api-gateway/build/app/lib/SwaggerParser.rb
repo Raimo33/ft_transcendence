@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 16:21:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 16:04:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,9 +21,8 @@ class SwaggerParser
     @logger.debug("OpenAPI spec file path: #{file_path}")
     @openapi_spec = Openapi3Parser.load_file(file_path)
     @logger.info('OpenAPI spec parsed')
-  rescue Openapi3Parser::Error => e
-    @logger.fatal("Error parsing OpenAPI spec: #{e.message}")
-    raise
+  rescue StandardError => e
+    raise "Error parsing OpenAPI spec: #{e}"
   end
 
   def fill_endpoint_tree(endpoint_tree)

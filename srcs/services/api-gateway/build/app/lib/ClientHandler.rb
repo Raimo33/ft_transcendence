@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 19:05:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/02 16:02:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,12 +24,12 @@ class ClientHandler
   Response = Struct.new(:status_code, :headers, :body)
 
   def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
-    @stream = Async::IO::Stream.new(socket)
-    @endpoint_tree = endpoint_tree
-    @grpc_client = grpc_client
-    @jwt_validator = jwt_validator
-    @request_queue = Async::Queue.new    
-    @logger = Loggger.logger
+    @stream         = Async::IO::Stream.new(socket)
+    @endpoint_tree  = endpoint_tree
+    @grpc_client    = grpc_client
+    @jwt_validator  = jwt_validator
+    @request_queue  = Async::Queue.new    
+    @logger         = Loggger.logger
   end
 
   def read_requests
@@ -40,7 +40,9 @@ class ClientHandler
 
       while request = parse_request(buffer)
         @request_queue.enqueue(request)
-      rescue => e
+      rescue StandardError => e
+        @logger.error("Error parsing request: #{e}")
+        @logger.debug(e.backtrace.join("\n"))
         send_error(e.status_code)
         skip_request(buffer)
       end
@@ -61,7 +63,9 @@ class ClientHandler
 
             last_task&.wait
             last_task = subtask.async { send_response(stream, response) }
-          rescue => e
+          rescue StandardError => e
+            @logger.error("Error processing response: #{e}")
+            @logger.debug(e.backtrace.join("\n"))
             send_error(e.status_code)
         end
       end
@@ -83,7 +87,9 @@ class ClientHandler
             grpc_response = @grpc_client.call(grpc_request)
             response = Mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
             response_queue.enqueue(current_priority, response)
-          rescue => e
+          rescue StandardError => e
+            @logger.error("Error processing request: #{e}")
+            @logger.debug(e.backtrace.join("\n"))
             send_error(e.status_code)
           end
         end
@@ -146,8 +152,7 @@ class ClientHandler
     request.body         = parse_body(expected_request.body_schema, raw_body)
 
     request
-  rescue => e
-    @logger.error("Error while parsing request: #{e.message}")
+  rescue StandardError => e
     raise ActionFailedException::InternalServerError
   end
   
@@ -227,8 +232,6 @@ class ClientHandler
     end
 
     result
-  rescue JSON::ParserError
-    #TODO invalid json object body error
   end
 
   def check_auth(resource, authorization_header)
