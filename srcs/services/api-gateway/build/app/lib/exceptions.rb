@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 08:37:11 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 19:13:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 19:40:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,4 +35,5 @@ module ActionFailedException
   class BadGateway         < ActionFailedException; STATUS_CODE = 502; end
   class ServiceUnavailable < ActionFailedException; STATUS_CODE = 503; end
   class GatewayTimeout     < ActionFailedException; STATUS_CODE = 504; end
+    
 end

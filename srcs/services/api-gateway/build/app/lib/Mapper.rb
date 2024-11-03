@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:36:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 19:47:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -181,6 +181,7 @@ module Mapper
     end
   end
 
+  #NOTE: Rate limiting headers are added later on a client-basis in the ClientHandler
   def self.map_grpc_response_to_response(grpc_response, operation_id)
     case operation_id
     when "registerUser"
@@ -203,7 +204,7 @@ module Mapper
         status: user.status,
         last_active_timestamp: user.last_active_timestamp,
         registered_timestamp: user.registered_timestamp,
-    }.compact if user
+      }.compact if user
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
         "Cache-Control" => "public, max-age=1800" if body,

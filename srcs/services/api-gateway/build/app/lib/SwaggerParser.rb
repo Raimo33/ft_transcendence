@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:11:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 19:09:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,10 +45,10 @@ class SwaggerParser
 
   def build_resource(http_method, operation)
     Resource.new.tap do |r|
-      r.http_method              = http_method
-      r.expected_auth            = requires_auth?(operation)
-      r.expected_request         = extract_request(operation)
-      r.operation_id             = operation.operation_id
+      r.http_method        = http_method
+      r.expected_auth      = requires_auth?(operation)
+      r.expected_request   = extract_request(operation)
+      r.operation_id       = operation.operation_id
     end
   end
 

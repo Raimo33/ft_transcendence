@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:12:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 19:54:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -87,10 +87,12 @@ class ClientHandler
           end
 
           barrier.async do
-            requesting_user_id = @jwt_validator.get_subject(request.headers["authorization"]) if request.headers["authorization"]
-            grpc_request = Mapper.map_request_to_grpc_request(request, resource.operation_id, requesting_user_id)
-            grpc_response = @grpc_client.call(grpc_request)
-            response = Mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
+            jwt_token           = extract_token(request.headers["authorization"])
+            requesting_user_id  = @jwt_validator.get_subject(token) if jwt_token
+            grpc_request        = Mapper.map_request_to_grpc_request(request, resource.operation_id, requesting_user_id)
+            grpc_response       = @grpc_client.call(grpc_request)
+            response            = Mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
+
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e
             @logger.error("Error processing request: #{e}")
@@ -244,8 +246,12 @@ class ClientHandler
     raise ActionFailedException::Unauthorized unless authorization_header
     raise ActionFailedException::BadRequest unless authorization_header.start_with?('Bearer ')
 
-    token = authorization_header.split(' ')[1]&.strip
+    token = extract_token(authorization_header)
     raise ActionFailedException::Unauthorized unless jwt_validator.token_valid?(token)
+  end
+
+  def extract_token(authorization_header)
+    authorization_header&.split(' ')[1]&.strip
   end
 
   def send(data)
@@ -254,12 +260,32 @@ class ClientHandler
 
   def send_response(response)
     @logger.info("Sending response with status code #{response.status_code}")
-    #TODO implementare invio risposta
+    #TODO implementare invio risposta (headers e body inclusi)
   end
 
   def send_error(status_code)
+    message = nil
+
+    case status_code
+      when 400 then message = "Bad Request"
+      when 401 then message = "Unauthorized"
+      when 403 then message = "Forbidden"
+      when 404 then message = "Not Found"
+      when 405 then message = "Method Not Allowed"
+      when 408 then message = "Request Timeout"
+      when 414 then message = "URI Too Long"
+      when 429 then message = "Too Many Requests"
+      when 409 then message = "Conflict"
+      when 501 then message = "Not Implemented"
+      when 502 then message = "Bad Gateway"
+      when 503 then message = "Service Unavailable"
+      when 504 then message = "Gateway Timeout"
+      else          message = "Internal Server Error"
+    end
+
     @logger.info("Sending response with status code #{status_code}") 
-    #TODO switch case? map di error codes e messaggi? type check per ServerError o errori generici?
+    send("HTTP/1.1 #{status_code} #{message}\r\nContent-Length: 0\r\n\r\n")
+
   end
 
 end
