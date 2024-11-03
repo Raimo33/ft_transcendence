@@ -28,7 +28,7 @@ service UserService
     rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
 }
 
-message user_profile
+message UserProfile
 {
     string  id = 1;
     string  display_name = 2;
@@ -37,7 +37,7 @@ message user_profile
     uint64  last_active_timestamp = 5;
     uint64  registered_timestamp = 6;
 }
-message user
+message User
 {
     string  id = 1;
     string  display_name = 2;
@@ -79,7 +79,7 @@ message GetUserProfileRequest
 message GetUserProfileResponse
 {
   int32                 status_code = 1;
-  optional user_profile profile = 2;
+  optional UserProfile  profile = 2;
   string                etag = 3;
 }
 
@@ -113,9 +113,9 @@ message GetPrivateProfileRequest
 }
 message GetPrivateProfileResponse
 {
-    int32                 status_code = 1;
-    optional user_profile profile = 2;
-    string                etag = 3;
+    int32         status_code = 1;
+    optional User profile = 2;
+    string        etag = 3;
 }
 
 // v1/user/profile PATCH

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/01 19:20:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 15:36:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,7 +43,7 @@ module Mapper
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: request[:query_params]["sort_by"],
-        filters: MatchService::PlayerMatchFilters.new(
+        filters: MatchService::player_match_filters.new(
           status: request[:query_params]["filters"]["status"]
         ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )
@@ -129,7 +129,7 @@ module Mapper
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: request[:query_params]["sort_by"],
-        filters: UserService::UserProfileFilters.new(
+        filters: UserService::ProfileFilters.new(
           status: request[:query_params]["filters"]["status"]
         ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )

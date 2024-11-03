@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:10:36 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 15:26:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,7 +38,7 @@ class GrpcClient
     match_channel       = create_channel(@config[:match_server_addr], match_server_credentials)
     tournament_channel  = create_channel(@config[:tournament_server_addr], tournament_server_credentials)
 
-    @user_stub          = Users::Stub.new(user_channel)
+    @user_stub          = User::Stub.new(user_channel)
     @match_stub         = Match::Stub.new(match_channel)
     @tournament_stub    = Tournament::Stub.new(tournament_channel)
 

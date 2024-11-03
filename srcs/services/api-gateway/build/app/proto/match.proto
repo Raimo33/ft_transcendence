@@ -12,23 +12,23 @@ service MatchService
     rpc LeaveMatch         (LeaveMatchRequest)        returns (LeaveMatchResponse) {}
 }
 
-message match_settings
+message MatchSettings
 {
     uint8  ball_speed = 1;
     uint16 max_duration = 2;
     uint8  starting_health = 3;
 }
-message match
+message Match
 {
     string           id = 1;
     repeated string  player_ids = 2;
     string           status = 3;
     uint64           started_timestamp = 4;
     optional uint64  finished_timestamp = 5;
-    match_settings   settings = 6;
+    MatchSettings    settings = 6;
 }
 
-message player_match_filters
+message PLayerMatchFilters
 {
     optional string  status = 1;
 }
@@ -41,13 +41,13 @@ message GetUserMatchesRequest
     optional uint32                limit = 3;
     optional uint32                offset = 4;
     optional string                sort_by = 5;
-    optional player_match_filters  filters = 6;
+    optional PLayerMatchFilters    filters = 6;
     optional string                etag = 7;
 }
 message GetUserMatchesResponse
 {
     int32                    status_code = 1;
-    optional repeated match  matches = 2;
+    optional repeated Match  matches = 2;
     string                   etag = 3;
 }
 
@@ -56,7 +56,7 @@ message CreateMatchRequest
 {
     string                   requesting_user_id = 1;
     repeated string          invited_user_ids = 2;
-    optional match_settings  settings = 3;
+    optional MatchSettings  settings = 3;
 }
 message CreateMatchResponse
 {
@@ -85,7 +85,7 @@ message GetMatchRequest
 message GetMatchResponse
 {
     int32           status_code = 1;
-    optional match  match = 2;
+    optional Match  match = 2;
     string          etag = 3;
 }
 

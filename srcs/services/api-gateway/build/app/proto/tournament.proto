@@ -12,7 +12,7 @@ service TournamentService
     rpc LeaveTournament     (LeaveTournamentRequest)    returns (LeaveTournamentResponse) {}
 }
 
-message tournament
+message Tournament
 {
     string             id = 1;
     string             mode = 2;
@@ -22,7 +22,7 @@ message tournament
     optional uint64    finished_timestamp = 6;
 }
 
-message player_tournament_filters
+message PlayerTournamentFilters
 {
     optional string   mode = 1;
     optional string   status = 2;
@@ -36,13 +36,13 @@ message GetUserTournamentsRequest
     optional uint32                     limit = 3;
     optional uint32                     offset = 4;
     optional string                     sort_by = 5;
-    optional player_tournament_filters  filters = 6;
+    optional PlayerTournamentFilters    filters = 6;
     optional string                     etag = 7;
 }
 message GetUserTournamentsResponse
 {
     int32                        status_code = 1;
-    optional repeated tournament tournaments = 2;
+    optional repeated Tournament tournaments = 2;
     string                       etag = 3;
 }
 
@@ -80,7 +80,7 @@ message GetTournamentRequest
 message GetTournamentResponse
 {
     int32               status_code = 1;
-    optional tournament tournament = 2;
+    optional Tournament tournament = 2;
     string              etag = 3;
 }
 
