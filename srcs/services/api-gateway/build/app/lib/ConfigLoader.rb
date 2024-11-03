@@ -6,34 +6,32 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 18:37:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 14:58:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'set'
-
 module Config
 
-  VALID_CONFIG_KEYS = Set.new([
-    :bind_address,
-    :bind_port,
-    :pid_file,
-    :keycloak_pub_key_url,
-    :jwt_pub_key_ttl,
-    :jwt_algorithm,
-    :jwt_clock_skew,
-    :jwt_audience,
-    :max_connections,
-    :max_body_size,
-    :user_server_cert,
-    :match_server_cert,
-    :tournament_server_cert,
-    :user_grpc_server_addr,
-    :match_grpc_server_addr,
-    :tournament_grpc_server_addr,
-    :log_level,
-    :log_file,
-  ]).freeze
+  VALID_CONFIG_KEYS = {
+    :bind_address                 => 'localhost',
+    :bind_port                    => 8080,
+    :pid_file                     => '/var/run/api-gateway.pid',
+    :keycloak_pub_key_url         => nil,
+    :jwt_pub_key_ttl              => 3600,
+    :jwt_algorithm                => 'RS256',
+    :jwt_clock_skew               => 60,
+    :jwt_audience                 => 'localhost',
+    :max_connections              => 1024,
+    :max_body_size                => 1024 * 1024,
+    :user_server_cert             => nil,
+    :match_server_cert            => nil,
+    :tournament_server_cert       => nil,
+    :user_grpc_server_addr        => nil,
+    :match_grpc_server_addr       => nil,
+    :tournament_grpc_server_addr  => nil,
+    :log_level                    => 'INFO',
+    :log_file                     => '/var/log/api-gateway.log',
+  }.freeze
 
   def self.load(config_file)
     raise "Invalid config file extension" unless File.extname(config_file) == '.conf'
@@ -48,10 +46,7 @@ module Config
       config[key.strip] = value.strip if key && value
     end
 
-    provided_config.each do |key, value|
-      raise "Invalid config key: #{key}" unless VALID_CONFIG_KEYS.include?(key)
-
-    config
+    validate(config)
   end
 
   def self.load_minimal(config_file) #TODO capire, migliorare, error handling
@@ -68,13 +63,46 @@ module Config
     config[:pid_file] ||= DEFAULT_PID_FILE
     config
   end
-
+  
+  
   def self.reload
     load(@config_file)
   end
-
+  
   def self.config
     @config ||= load_config
   end
+  
+  private
+
+  def self.validate(config)
+    unknown_keys = config.keys - VALID_CONFIG_KEYS.keys
+    raise "Unknown config keys: #{unknown_keys.join(', ')}" unless unknown_keys.empty?
+
+    VALID_CONFIG_KEYS.each do |key, default_value|
+      config[key] = default_value if config[key].nil? && !default_value.nil?
+    end
+
+    missing_keys = VALID_CONFIG_KEYS.select { |key, default_value| default_value.nil? && !config.key?(key) }.keys
+    raise "Missing required config keys: #{missing_keys.join(', ')}" unless missing_keys.empty?
+
+    config.each do |key, value|
+      next unless VALID_CONFIG_KEYS.key?(key)
+
+      case VALID_CONFIG_KEYS[key]
+      when Integer
+        config[key] = value.to_i
+      when Float
+        config[key] = value.to_f
+      when TrueClass, FalseClass
+        config[key] = %w[true yes].include?(value.downcase)
+      else
+        config[key] = value
+      end
+    end
+
+    config
+  end
+end
 
 end

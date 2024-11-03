@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
 if $PROGRAM_NAME == __FILE__
-  DaemonControl.new(ARGV).run
+  Launcher.new(ARGV).run
 end

@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    DaemonControl.rb                                   :+:      :+:    :+:    #
+#    Launcher.rb                                        :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 18:34:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 15:00:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ require_relative 'APIGateway'
 
 #TODO handle -t to test conf
 
-class DaemonControl
+class Launcher
   include ConfigLoader
 
   DEFAULT_CONFIG_FILE = '/etc/api-gateway/conf.d/default.conf'
@@ -29,17 +29,12 @@ class DaemonControl
   end
 
   def run
-    unless @options[:signal]
-      start_daemon
+    if @options[:test]
+      test_config
+    elsif @options[:signal]
+      handle_signal
     else
-      unless ['stop', 'reload'].include?(@options[:signal])
-        STDERR.puts "Invalid signal: #{@options[:signal]}"
-        STDERR.puts "Valid signals are: stop, reload"
-        exit 1
-      end
-
-      signal = @options[:signal] == 'reload' ? 'HUP' : 'TERM'
-      send_signal(signal)
+      launch
     end
   end
 
@@ -57,15 +52,17 @@ class DaemonControl
       opts.on('-s SIGNAL', '--signal SIGNAL', 'Send signal to master process (reload|stop)') do |signal|
         options[:signal] = signal
       end
+
+      opts.on('-t', '--test', 'Test the configuration and exit') do
+        options[:test] = true
+      end
     end
 
     parser.parse!(args)
     options
   end
 
-  def start_daemon
-    daemonize
-
+  def launch
     ConfigLoader.load(@config_file)
     File.write(@config[:pid_file], Process.pid)
 
@@ -76,6 +73,28 @@ class DaemonControl
     end
   rescue StandardError => e
     STDERR.puts "Error during daemon startup: #{e.message}"
+  end
+
+  def test_config
+    begin
+      ConfigLoader.load(@config_file)
+      puts "Configuration file #{@config_file} is valid."
+    rescue StandardError => e
+      STDERR.puts "Configuration file test failed: #{e.message}"
+      exit 1
+    end
+    exit 0
+  end
+
+  def handle_signal
+    unless %w[stop reload].include?(@options[:signal])
+      STDERR.puts "Invalid signal: #{@options[:signal]}"
+      STDERR.puts "Valid signals are: stop, reload"
+      exit 1
+    end
+
+    signal = @options[:signal] == 'reload' ? 'HUP' : 'TERM'
+    send_signal(signal)
   end
 
   def send_signal(signal)
@@ -92,19 +111,6 @@ class DaemonControl
       puts "Failed to send signal: #{e.message}"
       exit 1
     end
-  end
-
-  def daemonize
-    exit if fork
-    Process.setsid
-    exit if fork
-
-    Dir.chdir '/'
-    File.umask 0000
-
-    STDIN.reopen '/dev/null'
-    STDOUT.reopen '/dev/null', 'a'
-    STDERR.reopen '/dev/null', 'a'
   end
 
   def read_pid

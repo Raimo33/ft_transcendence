@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 18:42:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 14:46:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ SHELL ["/bin/ash", "-c"]
 RUN apk add --no-cache ruby protobuf
 
 RUN mkdir -p /etc/api-gateway/conf.d
+RUN touch /var/log/api-gateway.log
 
 COPY ./build/app/            /app
 COPY ./build/default.conf    /etc/api-gateway/conf.d/
@@ -24,8 +25,8 @@ COPY ./build/default.conf    /etc/api-gateway/conf.d/
 # COPY ./build/.sh             /usr/local/bin/
 
 RUN adduser -DHS api-gateway
-RUN chown -R api-gateway:api-gateway /app
-RUN chmod +x /usr/local/bin/
+RUN chown -R api-gateway:api-gateway /app /etc/api-gateway /var/log/api-gateway.log
+RUN chmod -R +x /usr/local/bin/
 
 WORKDIR /app
 RUN gem install bundler
