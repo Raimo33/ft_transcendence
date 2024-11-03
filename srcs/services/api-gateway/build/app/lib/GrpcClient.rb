@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 18:38:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 15:10:36 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -44,11 +44,20 @@ class GrpcClient
 
   rescue StandardError => e
     raise "Error initializing grpc client: #{e}"
+  ensure
+    close
   end
 
   def call(grpc_request)
     @logger.debug("Calling grpc method #{grpc_request.method}")
     #TODO deduce stub and call the method based on grpc_request object
+  end
+
+  def close
+    @logger.info('Closing grpc client')
+    [@user_channel, @match_channel, @tournament_channel].each do |channel|
+      channel&.close if defined?(channel) && channel.respond_to?(:close)
+    end
   end
 
   private

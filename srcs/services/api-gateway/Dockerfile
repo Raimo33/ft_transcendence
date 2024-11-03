@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 14:46:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 15:02:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,8 +21,6 @@ RUN touch /var/log/api-gateway.log
 
 COPY ./build/app/            /app
 COPY ./build/default.conf    /etc/api-gateway/conf.d/
-#TODO: aggiungere il comando tipo nginx -t per verificare la correttezza del file di configurazione
-# COPY ./build/.sh             /usr/local/bin/
 
 RUN adduser -DHS api-gateway
 RUN chown -R api-gateway:api-gateway /app /etc/api-gateway /var/log/api-gateway.log

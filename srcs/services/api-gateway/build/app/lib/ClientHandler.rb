@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 18:40:36 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 15:12:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,7 +71,7 @@ class ClientHandler
             last_task = subtask.async { send_response(stream, response) }
           rescue StandardError => e
             @logger.error("Error processing response: #{e}")
-            send_error(e.status_code)
+            send_error(e.status_code)            
         end
       end
       
@@ -231,7 +231,7 @@ class ClientHandler
       if value.is_a?(type)
         result[key] = value
       else
-        raise #TODO invalid body schema error
+        raise ActionFailedException::BadRequest
       end
     end
 

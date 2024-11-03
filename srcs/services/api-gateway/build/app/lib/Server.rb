@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 18:41:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/03 15:12:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,6 +41,8 @@ class Server
     @logger.info('Server initialized')
   rescue StandardError => e
     raise "Error initializing server: #{e}"
+  ensure
+    @grpc_client&.close if defined?(@grpc_client)
   end
 
   def run
@@ -80,7 +82,7 @@ class Server
         rescue StandardError => e
           client_info = client_handler&.socket || 'unknown'
           @logger.error("Unable to process client: #{client_info}: #{e}")
-          @logger.debug(e.backtrace.join("\n"))
+          @logger.debug(e.backtrace.join("\n"))          
         end
       end
     end
