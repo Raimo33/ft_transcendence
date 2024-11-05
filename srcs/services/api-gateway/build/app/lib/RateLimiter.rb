@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/05 16:52:28 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:22:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:49:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ class RateLimiter
     @limits[endpoint] = { limit: limit, period: period }
   end
 
-  def allowed?(client_id, endpoint)
+  def allowed?(client_id, endpoint) #TODO refactor, does not work for client-specific and endpoint-specific limits
     return false unless @limits[endpoint]
 
     limit = @limits[endpoint][:limit]
