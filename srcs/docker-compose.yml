@@ -24,29 +24,6 @@ services:
     depends_on:
     init: true
 
-  redis-edge:
-    build:
-      context: ./services/redis-edge
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: redis-edge
-    environment:
-    volumes:
-      - redis-edge_cert:/etc/ssl/certs/redis-edge.crt:ro
-    secrets:
-      - source: redis-edge_key
-        target: /etc/ssl/private/redis-edge.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - "6379:6379"
-    networks:
-      - edgenet
-    restart: always
-    depends_on:
-    init: true
-
   api-gateway:
     build:
       context: ./services/api-gateway
@@ -60,7 +37,6 @@ services:
       - user_cert:/etc/ssl/certs/user.crt:ro
       - match_cert:/etc/ssl/certs/match.crt:ro
       - tournament_cert:/etc/ssl/certs/tournament.crt:ro
-      - redis-edge_cert:/etc/ssl/certs/redis-edge.crt:ro
       - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
     secrets:
       - source: api-gateway_key
@@ -74,8 +50,6 @@ services:
     restart: always
     depends_on:
       nginx:
-        condition: service_healthy
-      redis-edge:
         condition: service_healthy
     init: true
   
@@ -500,7 +474,6 @@ services:
 #TODO add certs
 volumes:
   nginx-cert:
-  redis-edge_cert:
   api-gateway_cert:
   user_cert:
   match_cert:
@@ -522,7 +495,6 @@ volumes:
 
 secrets:
   nginx-key:        #real
-  redis-edge_key:   #self-signed
   api-gateway_key:  #self-signed
   user_key:         #self-signed
   match_key:        #self-signed
