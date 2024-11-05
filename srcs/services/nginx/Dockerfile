@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/10/23 22:06:31 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 15:50:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,6 @@ RUN apk add --no-cache nginx
 
 WORKDIR /etc/nginx/http.d
 VOLUME ["/etc/nginx/http.d"]
-USER nginx
 EXPOSE 80 443
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
@@ -29,6 +28,7 @@ FROM official as pongfumasters
 
 RUN mkdir -p /shared
 
+USER nginx
 WORKDIR /shared
 VOLUME ["/shared"]
 

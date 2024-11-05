@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/02 14:48:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 16:04:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -99,7 +99,6 @@ paths:
       description: Retrieve the public profile of a user account by providing the user ID.
       parameters:
         - $ref: '#/components/parameters/user_id'
-        - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
@@ -140,7 +139,6 @@ paths:
       description: Retrieve the status of a specific user.
       parameters:
         - $ref: '#/components/parameters/user_id'
-        - $ref: '#/components/parameters/Cache-Control'
       security:
         - jwtAuth: []
       responses:
@@ -186,7 +184,6 @@ paths:
         - $ref: '#/components/parameters/offset'
         - $ref: '#/components/parameters/player_match_sorting_options'
         - $ref: '#/components/parameters/player_match_filter_options'
-        - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
@@ -233,7 +230,6 @@ paths:
         - $ref: '#/components/parameters/offset'
         - $ref: '#/components/parameters/player_tournament_sorting_options'
         - $ref: '#/components/parameters/player_tournament_filter_options'
-        - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
@@ -290,7 +286,6 @@ paths:
       summary: Get current user's profile
       description: Retrieve detailed information about the current user.
       parameters:
-        - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
@@ -785,7 +780,6 @@ paths:
         - $ref: '#/components/parameters/offset'
         - $ref: '#/components/parameters/profile_sorting_options'
         - $ref: '#/components/parameters/profile_filter_options'
-        - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       security:
         - jwtAuth: []
@@ -950,7 +944,6 @@ paths:
       description: Retrieve details about a specific match using its ID.
       parameters:
         - $ref: '#/components/parameters/match_id'
-        - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       responses:
         "200":
@@ -1086,7 +1079,6 @@ paths:
       description: Retrieve details about a specific tournament using its ID.
       parameters:
         - $ref: '#/components/parameters/tournament_id'
-        - $ref: '#/components/parameters/Cache-Control'
         - $ref: '#/components/parameters/If-None-Match'
       responses:
         "200":

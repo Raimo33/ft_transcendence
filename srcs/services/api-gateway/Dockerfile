@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:02:16 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 15:31:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,6 @@ WORKDIR /app/proto
 RUN protoc --ruby_out=./ user.proto match.proto tournament.proto
 
 WORKDIR /etc/api-gateway/conf.d/
-USER api-gateway
 EXPOSE 3000
 
 ENTRYPOINT ["./main.rb"]
@@ -43,6 +42,7 @@ FROM official as pongfumasters
 
 RUN mkdir -p /shared
 
+USER api-gateway
 WORKDIR /shared
 VOLUME ["/shared"]
 
