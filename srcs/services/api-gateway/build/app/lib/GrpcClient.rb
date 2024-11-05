@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 19:39:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:39:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,8 +14,8 @@ require 'grpc'
 require_relative '../proto/users_services_pb'
 require_relative '../proto/match_services_pb'
 require_relative '../proto/tournament_services_pb'
-require_relative 'ConfigLoader'
-require_relative 'Logger'
+require_relative './modules/ConfigLoader'
+require_relative './modules/Logger'
 
 class GrpcClient
   include ConfigLoader

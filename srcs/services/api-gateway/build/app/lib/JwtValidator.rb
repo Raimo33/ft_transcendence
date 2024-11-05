@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 19:36:14 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:39:17 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,8 +15,8 @@ require 'net/http'
 require 'json'
 require 'base64'
 require 'openssl'
-require_relative 'Logger'
-require_relative 'ConfigLoader'
+require_relative './modules/Logger'
+require_relative './modules/ConfigLoader'
 
 class JwtValidator
   include ConfigLoader

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:12:29 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:39:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,8 +19,8 @@ require_relative 'SwaggerParser'
 require_relative 'JWTValidator'
 require_relative 'ClientHandler'
 require_relative 'GrpcClient'
-require_relative 'ConfigLoader'
-require_relative 'Logger'
+require_relative './modules/ConfigLoader'
+require_relative './modules/Logger'
 
 class Server
   include ConfigLoader
@@ -34,10 +34,12 @@ class Server
     @grpc_client = grpc_client
     @endpoint_tree = EndpointTree.new('')
     @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
+    @rate_limiter = RateLimiter.new
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
 
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
+    @swagger_parser.fill_rate_limiter(@rate_limiter)
     @logger.info('Server initialized')
   rescue StandardError => e
     raise "Error initializing server: #{e}"

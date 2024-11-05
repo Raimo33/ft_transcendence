@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 14:35:31 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:38:28 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'GrpcClient'
-require_relative 'Logger'
 require_relative 'Server'
-require_relative 'ConfigLoader'
+require_relative './modules/Logger'
+require_relative './modules/ConfigLoader'
 
 class APIGateway
   include ConfigLoader

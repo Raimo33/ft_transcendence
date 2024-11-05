@@ -6,13 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:00:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:39:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'optparse'
-require_relative 'ConfigLoader'
 require_relative 'APIGateway'
+require_relative './modules/ConfigLoader'
 
 #TODO handle -t to test conf
 
@@ -25,7 +25,12 @@ class Launcher
   def initialize(args)
     @options = parse_options(args)
     @config_file = @options[:config_file] || DEFAULT_CONFIG_FILE
-    @config = ConfigLoader.load_minimal(@config_file)
+
+    minimal_config = ConfigLoader.load_minimal(@config_file)
+    @pid_file = config[:pid_file] || DEFAULT_PID_FILE
+  rescue StandardError => e
+    STDERR.puts "Error during initialization: #{e.message}"
+    exit 1
   end
 
   def run
@@ -64,12 +69,12 @@ class Launcher
 
   def launch
     ConfigLoader.load(@config_file)
-    File.write(@config[:pid_file], Process.pid)
+    File.write(@@pid_file, Process.pid)
 
     begin
       APIGateway.new.start_master
     ensure
-      File.unlink(@config[:pid_file]) if File.exist?(@config[:pid_file])
+      File.unlink(@@pid_file) if File.exist?(@@pid_file)
     end
   rescue StandardError => e
     STDERR.puts "Error during daemon startup: #{e.message}"
@@ -100,7 +105,7 @@ class Launcher
   def send_signal(signal)
     pid = read_pid
     unless pid
-      puts "Cannot read PID file #{@config[:pid_file]} or process is not running"
+      puts "Cannot read PID file #{@@pid_file} or process is not running"
       exit 1
     end
 
@@ -114,8 +119,8 @@ class Launcher
   end
 
   def read_pid
-    return nil unless File.exist?(@config[:pid_file])
-    pid = File.read(@config[:pid_file]).to_i
+    return nil unless File.exist?(@@pid_file)
+    pid = File.read(@@pid_file).to_i
     Process.kill(0, pid)
     pid
   rescue Errno::ESRCH, Errno::EPERM

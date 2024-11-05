@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 19:09:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:41:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'openapi3_parser'
-require_relative 'structs'
-require_relative 'ConfigLoader'
-require_relative 'Logger'
+require_relative './modules/Structs'
+require_relative './modules/ConfigLoader'
+require_relative './modules/Logger'
 
 class SwaggerParser
   include ConfigLoader
@@ -33,6 +33,10 @@ class SwaggerParser
     @openapi_spec.paths.each do |path, path_item|
       endpoint_tree.add_path(path, process_path(path, path_item))
     end
+  end
+
+  def fill_rate_limiter(rate_limiter)
+    #TODO implement
   end
 
   private

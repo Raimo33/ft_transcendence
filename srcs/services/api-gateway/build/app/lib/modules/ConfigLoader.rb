@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 15:07:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:38:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-module Config
+module ConfigLoader
 
   VALID_CONFIG_KEYS = {
     :bind_address                 => 'localhost',
@@ -35,6 +35,7 @@ module Config
 
   def self.load(config_file)
     raise "Invalid config file extension" unless File.extname(config_file) == '.conf'
+    raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
 
     @config_file = config_file
     config = {}
@@ -49,9 +50,11 @@ module Config
     validate(config)
   end
 
-  def self.load_minimal(config_file) #TODO capire, migliorare, error handling
+  def self.load_minimal(config_file)
+    raise "Invalid config file extension" unless File.extname(config_file) == '.conf'
+    raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
+
     config = {}
-    
     File.foreach(config_file) do |line|
       case line.strip
       when /^pid_file\s*=\s*["']?([^"']+)["']?/
@@ -60,11 +63,9 @@ module Config
       # Add other critical paths as needed
     end
 
-    config[:pid_file] ||= DEFAULT_PID_FILE
     config
   end
-  
-  
+
   def self.reload
     load(@config_file)
   end

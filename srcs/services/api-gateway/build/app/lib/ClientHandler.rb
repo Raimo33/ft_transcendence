@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 19:54:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:46:01 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,13 +14,13 @@ require 'async'
 require 'async/io'
 require 'async/queue'
 require 'async/barrier'
-require_relative 'exceptions'
+require_relative './modules/ActionFailedException'
 require_relative 'BlockingPriorityQueue'
-require_relative 'Mapper'
 require_relative 'JwtValidator'
 require_relative 'ConfigLoader'
-require_relative 'Logger'
-require_relative 'structs'
+require_relative './modules/Logger'
+require_relative './modules/Mapper'
+require_relative './modules/Structs'
 
 class ClientHandler
   include ConfigLoader
@@ -89,9 +89,15 @@ class ClientHandler
           barrier.async do
             jwt_token           = extract_token(request.headers["authorization"])
             requesting_user_id  = @jwt_validator.get_subject(token) if jwt_token
-            grpc_request        = Mapper.map_request_to_grpc_request(request, resource.operation_id, requesting_user_id)
-            grpc_response       = @grpc_client.call(grpc_request)
-            response            = Mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
+
+            if @rate_limiter.allowed?(requesting_user_id, request.path)
+              grpc_request        = Mapper.map_request_to_grpc_request(request, resource.operation_id, requesting_user_id)
+              grpc_response       = @grpc_client.call(grpc_request)
+              response            = Mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
+            else
+              response = Response.new(429, {"Content-Length" => "0"}, "")
+            
+            add_rate_limit_headers(response.headers, requesting_user_id, request.path) #TODO adds remaining rate limit headers
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e

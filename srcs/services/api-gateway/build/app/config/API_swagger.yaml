@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 16:04:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 17:45:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,6 +41,9 @@ paths:
   /users:
     post:
       operationId: registerUser
+      x-rate-limit-criteria: #TODO aggiungere a tutte le operazioni
+      x-rate-limit-interval: #TODO //
+      x-rate-limit-limit: #TODO //
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       parameters:
@@ -1548,13 +1551,6 @@ components:
         format: int32
         minimum: 1
       example: 60
-    Retry-After:
-      description: Time in seconds until the client can retry the request.
-      schema:
-        type: integer
-        format: int32
-        minimum: 0
-      example: 60
 
     ETag:
       description: An identifier for a specific version of a resource.
@@ -1759,8 +1755,8 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Reset'
         X-Rate-Limit-Interval:
           $ref: '#/components/headers/X-Rate-Limit-Interval'
-        Retry-After:
-          $ref: '#/components/headers/Retry-After'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
 
     InternalServerError: #HTTP 500
       description: Internal server error. The server encountered an unexpected condition that prevented it from fulfilling the request.
