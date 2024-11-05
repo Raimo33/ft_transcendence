@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/03 19:47:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/05 16:30:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -190,7 +190,7 @@ module Mapper
       body = { user_id: user_id } if user_id
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "private" if body
+        "Cache-Control" => "private" if body,
       }.compact
     
       Response.new(status_code, headers, body)    
