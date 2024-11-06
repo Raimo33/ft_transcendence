@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:39:54 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/06 21:04:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,7 @@ require_relative './modules/Structs'
 
 module Mapper
 
+  #TODO gestire casi di serialization di path_params, query_params, headers
   def self.map_request_to_grpc_request(request, operation_id, requesting_user_id)
     case operation_id
     when "registerUser"

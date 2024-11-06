@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:46:01 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/06 21:29:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -129,22 +129,22 @@ class ClientHandler
     headers_part = buffer.slice!(0, header_end)
     body_start_index = header_end + 4
 
-    request_line, headers_lines = headers_part.split("\r\n", 2)
+    request_line, header_lines = headers_part.split("\r\n", 2)
     request.method, full_path, _ = request_line.split(" ", 3)
     raise ActionFailedException::BadRequest unless request.method && full_path
     raise ActionFailedException::URITooLong if full_path.size > @config[:max_uri_length]
 
-    path, query = full_path.split("?", 2)
-    raise ActionFailedException::BadRequest unless path
+    raw_path, raw_query = full_path.split("?", 2)
+    raise ActionFailedException::BadRequest unless raw_path
 
-    endpoint = @endpoint_tree.find_endpoint(path)
+    endpoint = @endpoint_tree.find_endpoint(raw_path)
     raise ActionFailedException::NotFound unless endpoint
     
     resource = endpoint.resources[request.method]
     raise ActionFailedException::MethodNotAllowed unless resource
 
     expected_request = resource.expected_request
-    request.headers = parse_headers(expected_request.allowed_headers, headers_lines)
+    request.headers = parse_headers(expected_request.allowed_headers, header_lines)
     content_length = request.headers["content-length"]&.to_i
 
     if resource.body_required
@@ -159,15 +159,15 @@ class ClientHandler
 
     raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
 
-    request.path_params  = parse_path_params(expected_request.allowed_path_params, path)
-    request.query_params = parse_query_params(expected_request.allowed_query_params, query)
+    request.path_params  = parse_path_params(expected_request.allowed_path_params, resource.path_template, raw_path)
+    request.query_params = parse_query_params(expected_request.allowed_query_params, raw_query)
     request.body         = parse_body(expected_request.body_schema, raw_body)
 
     request
   rescue StandardError => e
     raise ActionFailedException::InternalServerError
   end
-  
+
   def skip_request(buffer)
     until next_request_index = buffer.index(REQUEST_START_REGEX)
       buffer.clear
@@ -179,69 +179,84 @@ class ClientHandler
     buffer.slice!(0, next_request_index) if next_request_index
   end
 
-  def parse_headers(allowed_headers, headers_lines) #TODO valutare se implementare warning per headers non previsti
+  def parse_headers(allowed_headers, raw_headers)
     headers = {}
-
-    headers_lines.split("\r\n").each do |line|
-      key, value = line.split(": ", 2)
-      headers[key.downcase] = value
+  
+    received_headers = raw_headers.split("\n").each_with_object({}) do |line, hash|
+      name, value = line.split(": ", 2)
+      hash[name.to_sym] = value.strip if name && value
+    end
+  
+    allowed_headers.each do |name, config|
+      raise "Missing required header: #{name}" if config[:required] && !received_headers.key?(name)
+  
+      next unless received_headers.key?(name)
+      
+      value = received_headers[name]
+      schema = config[:schema]
+  
+      if schema[:type] == 'array' && config[:explode]
+        headers[name] = value.split(",").map(&:strip)
+      elsif schema[:type] == 'integer'
+        headers[name] = Integer(value) rescue raise "Invalid integer for header: #{name}"
+      elsif schema[:type] == 'string'
+        headers[name] = value
+      else
+        raise "Unsupported type for header: #{name}"
+      end
     end
 
+    #TODO valutare se aggiungere controlli per header non previsti (WARNING)
+  
     headers
   end
 
-  def parse_path_params(allowed_path_params, path)
-    return {} unless allowed_path_params
-  
-    path_parts = path.split("/")
+  def parse_path_params(allowed_path_params, path_template, raw_path)
+    path_params = {}
+    
+    template_segments = path_template.split('/').reject(&:empty?)
+    path_segments = raw_path.split('/').reject(&:empty?)
 
-    params = {}
-    allowed_path_params.each_with_index do |param, index|
-      next unless path_parts[index]
-      params[param] = path_parts[index]
-    end
+    raise "Path does not match expected template structure." unless template_segments.size == path_segments.size
   
-    params
-  end
-  
-  def parse_query_params(allowed_query_params, query)
-    return {} unless allowed_query_params
-  
-    query_params = query.split("&")
-    params = {}
-  
-    query_params.each do |param|
-      key, value = param.split("=", 2)
-      keys = key.scan(/\w+/)
+    template_segments.each_with_index do |segment, index|
 
-      next unless allowed_query_params.include?(keys[0]) #TODO valutare se implementare warning per query params non previsti
-      current = params
-      keys.each_with_index do |k, index|
-        if index == keys.size - 1
-          current[k] = value
+      if segment.start_with?('{') && segment.end_with?('}')
+        param_name = segment[1..-2].to_sym
+
+        config = allowed_path_params[param_name]
+        raise "Unexpected path parameter: #{param_name}" unless config
+  
+        param_value = path_segments[index]
+        raise "Missing required path parameter: #{param_name}" if config[:required] && param_value.nil?
+        next unless param_value
+
+        schema = config[:schema]
+        case schema[:type]
+        when 'array'
+          path_params[param_name] = param_value.split(",").map(&:strip)
+        when 'integer'
+          path_params[param_name] = Integer(param_value) rescue raise "Invalid integer for path parameter: #{param_name}"
+        when 'string'
+          path_params[param_name] = param_value
         else
-          current[k] ||= {}
-          current = current[k]
+          raise "Unsupported type for path parameter: #{param_name}"
         end
       end
     end
   
+    path_params
+  end  
+
+  def parse_query_params(allowed_query_params, raw_query)
+    #TODO implementare parse query
+  
     params
   end
 
-  def parse_body(body_schema, raw_body)
-    parsed_body = JSON.parse(raw_body)
-    result = {}
-  
-    body_schema.each do |key, type|
-      value = parsed_body[key.to_s]
-  
-      if value.is_a?(type)
-        result[key] = value
-      else
-        raise ActionFailedException::BadRequest
-      end
-    end
+  def parse_body(allowed_body, raw_body)
+    #TODO implementare parse body
+
 
     result
   end

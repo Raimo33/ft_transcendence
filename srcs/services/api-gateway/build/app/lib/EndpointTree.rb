@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:39:03 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/06 21:16:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,9 +35,8 @@ class EndpointTree
     end    
   end
 
-  # NOTE: this method assumes that only 1 dynamic parameter per path level is allowed
-  def find_endpoint(path)
-    parts = path.split('/').reject(&:empty?)
+  def find_endpoint(raw_path)
+    parts = raw_path.split('/').reject(&:empty?)
     current_node = self
 
     parts.each do |part|

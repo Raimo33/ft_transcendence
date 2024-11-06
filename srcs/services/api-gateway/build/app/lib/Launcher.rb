@@ -6,15 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:39:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/06 21:30:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'optparse'
 require_relative 'APIGateway'
 require_relative './modules/ConfigLoader'
-
-#TODO handle -t to test conf
 
 class Launcher
   include ConfigLoader

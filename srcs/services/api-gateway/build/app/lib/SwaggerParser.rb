@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:41:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/06 21:14:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,6 +49,7 @@ class SwaggerParser
 
   def build_resource(http_method, operation)
     Resource.new.tap do |r|
+      r.path_template      = operation.path
       r.http_method        = http_method
       r.expected_auth      = requires_auth?(operation)
       r.expected_request   = extract_request(operation)
@@ -62,42 +63,23 @@ class SwaggerParser
 
   def extract_request(operation)
     ExpectedRequest.new.tap do |r|
-      r.allowed_path_params   = extract_path_params(path)
-      r.allowed_query_params  = extract_query_params(operation)
-      r.allowed_headers       = extract_headers(operation)
-      r.body_type             = extract_request_body(operation)
+      r.allowed_path_params   = extract_request_params(operation, 'path')
+      r.allowed_query_params  = extract_request_params(operation, 'query')
+      r.allowed_headers       = extract_request_params(operation, 'header')
+      r.allowed_body          = extract_request_body(operation)
     end
   end
 
-  def extract_path_params(path)
-    path.scan(/\{([^}]+)\}/).flatten
-  end
-
-  def extract_query_params(operation)
-    {}.tap do |query_params|
-      operation.parameters.each do |parameter|
-        next unless parameter.in == 'query'
+  def extract_request_params(operation, param_type)
+    {}.tap do |params|
+      operation.parameters.each do |param|
+        next unless param.in == param_type
   
-        query_params[parameter.name.to_sym] = {
-          required: parameter.required,
-          style: parameter.style,
-          explode: parameter.explode,
-          schema: parameter.schema
-        }
-      end
-    end
-  end
-  
-  def extract_headers(operation)
-    {}.tap do |headers|
-      operation.parameters.each do |parameter|
-        next unless parameter.in == 'header'
-  
-        headers[parameter.name.to_sym] = {
-          required: parameter.required,
-          style: parameter.style,
-          explode: parameter.explode,
-          schema: parameter.schema
+        params[param.name.to_sym] = {
+          required: param.required,
+          style: param.style,
+          explode: param.explode,
+          schema: param.schema
         }
       end
     end
