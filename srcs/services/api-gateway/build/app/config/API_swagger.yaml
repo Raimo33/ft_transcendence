@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:45:16 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/07 17:44:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,9 +41,9 @@ paths:
   /users:
     post:
       operationId: registerUser
-      x-rate-limit-criteria: #TODO aggiungere a tutte le operazioni
-      x-rate-limit-interval: #TODO //
-      x-rate-limit-limit: #TODO //
+      x-rate-limit-criteria: ipaddr
+      x-rate-limit-interval: 150
+      x-rate-limit-limit: 2
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other optional fields.
       parameters:
@@ -98,6 +98,9 @@ paths:
   /users/{user_id}/profile:
     get:
       operationId: getUserProfile
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60 
+      x-rate-limit-limit: 10
       summary: Get user profile
       description: Retrieve the public profile of a user account by providing the user ID.
       parameters:
@@ -138,6 +141,9 @@ paths:
   /users/{user_id}/status:
     get:
       operationId: getUserStatus
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get user status
       description: Retrieve the status of a specific user.
       parameters:
@@ -179,6 +185,9 @@ paths:
   /users/{user_id}/matches:
     get:
       operationId: getUserMatches
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
       parameters:
@@ -225,6 +234,9 @@ paths:
   /users/{user_id}/tournaments:
     get:
       operationId: getUserTournaments
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
@@ -272,6 +284,9 @@ paths:
   /user:
     delete:
       operationId: deleteAccount
+      x-rate-limit-criteria: ipaddr
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Delete a user account
       description: Permanently delete the account of the current user.
       security:
@@ -286,6 +301,9 @@ paths:
   /user/profile:
     get:
       operationId: getPrivateProfile
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get current user's profile
       description: Retrieve detailed information about the current user.
       parameters:
@@ -324,6 +342,9 @@ paths:
           $ref: '#/components/responses/ContentTooLarge'
     patch:
       operationId: updateProfile
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Update user profile
       description: Update the public profile of the current user.
       parameters:
@@ -357,6 +378,9 @@ paths:
   /user/password:
     put:
       operationId: updatePassword
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 3600
+      x-rate-limit-limit: 3
       summary: Update user password
       description: Update the password of the current user account.
       parameters:
@@ -392,6 +416,9 @@ paths:
   /user/password/reset:
     post:
       operationId: requestPasswordReset
+      x-rate-limit-criteria: ipaddr
+      x-rate-limit-interval: 3600
+      x-rate-limit-limit: 3
       summary: Request password reset
       description: Sends a password reset link to the registered email address.
       parameters:
@@ -419,6 +446,9 @@ paths:
   /user/password/reset/{token}:
     post:
       operationId: checkPasswordResetToken
+      x-rate-limit-criteria: ipaddr
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 2
       summary: Check the password reset token
       description: Check the validity of the password reset token provided by the user.
       parameters:
@@ -435,6 +465,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     patch:
       operationId: resetPassword
+      x-rate-limit-criteria: ipaddr
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 2
       summary: Reset user password
       description: Reset the password of the user account using the provided token.
       parameters:
@@ -467,6 +500,9 @@ paths:
   /user/email:
     patch:
       operationId: updateEmail
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 3
       summary: Update user email
       description: Update the email address of the current user account.
       parameters:
@@ -504,6 +540,9 @@ paths:
   /user/email/verify:
     post:
       operationId: verifyEmail
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 3
       summary: Generate email verification token
       description: Receive via email the verification token to be provided in the next request.
       parameters:
@@ -526,6 +565,9 @@ paths:
   /user/email/verify/{token}:
     post:
       operationId: checkEmailVerificationToken
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 3
       summary: Check the email verification token
       description: Check the validity of the email verification token provided by the user.
       parameters:
@@ -547,6 +589,9 @@ paths:
   /user/2fa:
     post:
       operationId: enable2FA
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 3
       summary: Setup 2fa
       description: Enable two-factor authentication for the current user account.
       parameters:
@@ -587,6 +632,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       operationId: get2FAStatus
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get 2fa status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
@@ -623,6 +671,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
       operationId: disable2FA
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 2
       summary: Disable 2fa
       description: Disable two-factor authentication for a user account.
       security:
@@ -639,6 +690,9 @@ paths:
   /user/2fa/verify:
     post:
       operationId: check2FACode
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 3
       summary: Check 2fa code
       description: Check the validity of the two-factor authentication code provided by the user.
       parameters:
@@ -672,6 +726,9 @@ paths:
   /user/login:
     post:
       operationId: loginUser
+      x-rate-limit-criteria: ipaddr
+      x-rate-limit-interval: 150
+      x-rate-limit-limit: 3
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
@@ -728,6 +785,9 @@ paths:
   /user/logout:
     delete:
       operationId: logoutUser
+      x-rate-limit-criteria: ipaddr
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 3
       summary: User logout
       description: Logs out the current user and invalidates the JWT token.
       security:
@@ -744,6 +804,9 @@ paths:
   /user/friends:
     post:
       operationId: addFriend
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 30
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:
@@ -776,6 +839,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       operationId: getFriends
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get list of friends
       description: Retrieve the list of friends of the current user.
       parameters:
@@ -821,6 +887,9 @@ paths:
   /user/friends/{friend_id}:
     delete:
       operationId: removeFriend
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 30
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
@@ -840,6 +909,9 @@ paths:
   /matches:
     post:
       operationId: createMatch
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 5
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user IDs.
       parameters:
@@ -902,6 +974,9 @@ paths:
   /matches/{match_id}:
     post:
       operationId: joinMatch
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 5
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
       parameters:
@@ -943,6 +1018,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       operationId: getMatch
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
       parameters:
@@ -980,6 +1058,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
       operationId: leaveMatch
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 5
       summary: Leave the current match
       description: Exit and terminate the ongoing match.
       parameters:
@@ -1002,6 +1083,9 @@ paths:
   /tournaments:
     post:
       operationId: createTournament
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 5
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       parameters:
@@ -1054,6 +1138,9 @@ paths:
   /tournaments/{tournament_id}:
     post:
       operationId: joinTournament
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 5
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       parameters:
@@ -1078,6 +1165,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     get:
       operationId: getTournament
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 10
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
       parameters:
@@ -1115,6 +1205,9 @@ paths:
           $ref: '#/components/responses/RequestHeaderFieldsTooLarge'
     delete:
       operationId: leaveTournament
+      x-rate-limit-criteria: user_id
+      x-rate-limit-interval: 60
+      x-rate-limit-limit: 5
       summary: Leave the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:

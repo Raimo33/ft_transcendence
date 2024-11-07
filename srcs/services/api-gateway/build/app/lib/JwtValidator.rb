@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:39:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/07 18:34:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,6 +35,14 @@ class JwtValidator
 
     validate_claims(decoded_token)
   end
+
+  def token_authorized?(token, expected_auth_level)
+    decoded_token = decode_token(token)
+    return false unless decoded_token
+
+    token_auth = decoded_token[0]['auth_level']
+    return token_auth >= expected_auth_level
+  end 
 
   def get_subject(token)
     decoded_token = decode_token(token)
@@ -73,7 +81,6 @@ class JwtValidator
   rescue StandardError => e
     raise "Error fetching public key: #{e}"
   end
-
 
   def validate_claims(decoded_token)
     exp = decoded_token[0]['exp'] + @config[:jwt_clock_skew]

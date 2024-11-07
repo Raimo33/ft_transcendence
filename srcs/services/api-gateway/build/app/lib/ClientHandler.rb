@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/06 21:29:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/07 18:35:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,11 +20,14 @@ require_relative 'JwtValidator'
 require_relative 'ConfigLoader'
 require_relative './modules/Logger'
 require_relative './modules/Mapper'
+require_relative './modules/RequestParser'
 require_relative './modules/Structs'
 
 class ClientHandler
   include ConfigLoader
   include Logger
+  include Mapper
+  include RequestParser
 
   Request = Struct.new(:method, :path_params, :query_params, :headers, :body)
   Response = Struct.new(:status_code, :headers, :body)
@@ -41,11 +44,12 @@ class ClientHandler
 
   def read_requests
     buffer = String.new
+    parser = RequestParser.new
 
     while chunk = @stream.read(4096)
       buffer << chunk
 
-      while request = parse_request(buffer)
+      while request = parser.parse(buffer)
         @request_queue.enqueue(request)
       rescue StandardError => e
         @logger.error("Error parsing request: #{e}")
@@ -87,17 +91,16 @@ class ClientHandler
           end
 
           barrier.async do
-            jwt_token           = extract_token(request.headers["authorization"])
-            requesting_user_id  = @jwt_validator.get_subject(token) if jwt_token
+            check_auth(request.expected_auth_level, request.headers["authorization"])
 
-            if @rate_limiter.allowed?(requesting_user_id, request.path)
-              grpc_request        = Mapper.map_request_to_grpc_request(request, resource.operation_id, requesting_user_id)
+            if @rate_limiter.allowed?(request.caller_identifier, request.operation_id)
+              grpc_request        = Mapper.map_request_to_grpc_request(request, request.operation_id, request.caller_identifier)
               grpc_response       = @grpc_client.call(grpc_request)
-              response            = Mapper.map_grpc_response_to_response(grpc_response, resource.operation_id)
+              response            = Mapper.map_grpc_response_to_response(grpc_response, request.operation_id)
             else
               response = Response.new(429, {"Content-Length" => "0"}, "")
-            
-            add_rate_limit_headers(response.headers, requesting_user_id, request.path) #TODO adds remaining rate limit headers
+
+            add_rate_limit_headers(response.headers, request.caller_identifier, request.path) #TODO adds remaining rate limit headers
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e
@@ -120,54 +123,6 @@ class ClientHandler
 
   private
 
-  def parse_request(buffer)
-    request = Request.new
-
-    header_end = buffer.index("\r\n\r\n")
-    return nil unless header_end
-
-    headers_part = buffer.slice!(0, header_end)
-    body_start_index = header_end + 4
-
-    request_line, header_lines = headers_part.split("\r\n", 2)
-    request.method, full_path, _ = request_line.split(" ", 3)
-    raise ActionFailedException::BadRequest unless request.method && full_path
-    raise ActionFailedException::URITooLong if full_path.size > @config[:max_uri_length]
-
-    raw_path, raw_query = full_path.split("?", 2)
-    raise ActionFailedException::BadRequest unless raw_path
-
-    endpoint = @endpoint_tree.find_endpoint(raw_path)
-    raise ActionFailedException::NotFound unless endpoint
-    
-    resource = endpoint.resources[request.method]
-    raise ActionFailedException::MethodNotAllowed unless resource
-
-    expected_request = resource.expected_request
-    request.headers = parse_headers(expected_request.allowed_headers, header_lines)
-    content_length = request.headers["content-length"]&.to_i
-
-    if resource.body_required
-      raise ActionFailedException::LengthRequired unless content_length
-      raise ActionFailedException::ContentTooLarge if content_length > @config[:max_body_size]
-    end
-
-    check_auth(resource, headers["authorization"])
-
-    total_request_size = body_start_index + content_length
-    return nil if buffer.size < total_request_size
-
-    raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
-
-    request.path_params  = parse_path_params(expected_request.allowed_path_params, resource.path_template, raw_path)
-    request.query_params = parse_query_params(expected_request.allowed_query_params, raw_query)
-    request.body         = parse_body(expected_request.body_schema, raw_body)
-
-    request
-  rescue StandardError => e
-    raise ActionFailedException::InternalServerError
-  end
-
   def skip_request(buffer)
     until next_request_index = buffer.index(REQUEST_START_REGEX)
       buffer.clear
@@ -179,100 +134,15 @@ class ClientHandler
     buffer.slice!(0, next_request_index) if next_request_index
   end
 
-  def parse_headers(allowed_headers, raw_headers)
-    headers = {}
-  
-    received_headers = raw_headers.split("\n").each_with_object({}) do |line, hash|
-      name, value = line.split(": ", 2)
-      hash[name.to_sym] = value.strip if name && value
-    end
-  
-    allowed_headers.each do |name, config|
-      raise "Missing required header: #{name}" if config[:required] && !received_headers.key?(name)
-  
-      next unless received_headers.key?(name)
-      
-      value = received_headers[name]
-      schema = config[:schema]
-  
-      if schema[:type] == 'array' && config[:explode]
-        headers[name] = value.split(",").map(&:strip)
-      elsif schema[:type] == 'integer'
-        headers[name] = Integer(value) rescue raise "Invalid integer for header: #{name}"
-      elsif schema[:type] == 'string'
-        headers[name] = value
-      else
-        raise "Unsupported type for header: #{name}"
-      end
-    end
-
-    #TODO valutare se aggiungere controlli per header non previsti (WARNING)
-  
-    headers
-  end
-
-  def parse_path_params(allowed_path_params, path_template, raw_path)
-    path_params = {}
-    
-    template_segments = path_template.split('/').reject(&:empty?)
-    path_segments = raw_path.split('/').reject(&:empty?)
-
-    raise "Path does not match expected template structure." unless template_segments.size == path_segments.size
-  
-    template_segments.each_with_index do |segment, index|
-
-      if segment.start_with?('{') && segment.end_with?('}')
-        param_name = segment[1..-2].to_sym
-
-        config = allowed_path_params[param_name]
-        raise "Unexpected path parameter: #{param_name}" unless config
-  
-        param_value = path_segments[index]
-        raise "Missing required path parameter: #{param_name}" if config[:required] && param_value.nil?
-        next unless param_value
-
-        schema = config[:schema]
-        case schema[:type]
-        when 'array'
-          path_params[param_name] = param_value.split(",").map(&:strip)
-        when 'integer'
-          path_params[param_name] = Integer(param_value) rescue raise "Invalid integer for path parameter: #{param_name}"
-        when 'string'
-          path_params[param_name] = param_value
-        else
-          raise "Unsupported type for path parameter: #{param_name}"
-        end
-      end
-    end
-  
-    path_params
-  end  
-
-  def parse_query_params(allowed_query_params, raw_query)
-    #TODO implementare parse query
-  
-    params
-  end
-
-  def parse_body(allowed_body, raw_body)
-    #TODO implementare parse body
-
-
-    result
-  end
-
-  def check_auth(resource, authorization_header)
-    return unless resource.auth_required
+  def check_auth(expected_auth_level, authorization_header)
+    return unless resource.expected_auth_level
 
     raise ActionFailedException::Unauthorized unless authorization_header
     raise ActionFailedException::BadRequest unless authorization_header.start_with?('Bearer ')
 
     token = extract_token(authorization_header)
-    raise ActionFailedException::Unauthorized unless jwt_validator.token_valid?(token)
-  end
-
-  def extract_token(authorization_header)
-    authorization_header&.split(' ')[1]&.strip
+    raise ActionFailedException::Unauthorized unless @jwt_validator.token_valid?(token)
+    raise ActionFailedException::Forbidden unless @jwt_validator.token_authorized?(token, expected_auth_level)
   end
 
   def send(data)
@@ -306,7 +176,6 @@ class ClientHandler
 
     @logger.info("Sending response with status code #{status_code}") 
     send("HTTP/1.1 #{status_code} #{message}\r\nContent-Length: 0\r\n\r\n")
-
   end
 
 end

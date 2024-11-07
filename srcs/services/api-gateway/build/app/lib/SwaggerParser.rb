@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/06 21:14:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/07 18:33:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,6 +37,7 @@ class SwaggerParser
 
   def fill_rate_limiter(rate_limiter)
     #TODO implement
+    
   end
 
   private
@@ -49,11 +50,11 @@ class SwaggerParser
 
   def build_resource(http_method, operation)
     Resource.new.tap do |r|
-      r.path_template      = operation.path
-      r.http_method        = http_method
-      r.expected_auth      = requires_auth?(operation)
-      r.expected_request   = extract_request(operation)
-      r.operation_id       = operation.operation_id
+      r.path_template       = operation.path
+      r.http_method         = http_method
+      r.expected_auth_level = requires_auth?(operation)
+      r.expected_request    = extract_request(operation)
+      r.operation_id        = operation.operation_id
     end
   end
 
