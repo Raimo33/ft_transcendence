@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 19:58:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 21:44:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,8 @@ module ConfigLoader
     :log_file     => '/var/log/user.log',
     :user_key     => nil,
     :user_cert    => nil,
+    :query_cert   => nil,
+    :query_addr   => nil,
   }.freeze
 
   def self.load(config_file)

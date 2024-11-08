@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 20:02:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 23:05:24 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,6 @@ module Mapper
     case operation_id
     when "registerUser"
       UserService::RegisterUserRequest.new(
-        requesting_user_id: requesting_user_id,
         email: request[:body]["email"],
         password: request[:body]["password"],
         display_name: request[:body]["display_name"],

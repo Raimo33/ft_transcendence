@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 18:46:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 22:39:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,7 @@ class Launcher
     minimal_config = ConfigLoader.load_minimal(@config_file)
     @pid_file = config[:pid_file] || DEFAULT_PID_FILE
   rescue StandardError => e
-    STDERR.puts "Error during initialization: #{e.message}"
+    STDERR.puts "Error during initialization: #{e}"
     exit 1
   end
 
@@ -75,7 +75,7 @@ class Launcher
       File.unlink(@@pid_file) if File.exist?(@@pid_file)
     end
   rescue StandardError => e
-    STDERR.puts "Error during startup: #{e.message}"
+    STDERR.puts "Error during startup: #{e}"
   end
 
   def test_config
@@ -83,7 +83,7 @@ class Launcher
       ConfigLoader.load(@config_file)
       puts "Configuration file #{@config_file} is valid."
     rescue StandardError => e
-      STDERR.puts "Configuration file test failed: #{e.message}"
+      STDERR.puts "Configuration file test failed: #{e}"
       exit 1
     end
     exit 0
@@ -111,7 +111,7 @@ class Launcher
       Process.kill(signal, pid)
       puts "Sent #{signal} signal to process #{pid}"
     rescue StandardError => e
-      puts "Failed to send signal: #{e.message}"
+      puts "Failed to send signal: #{e}"
       exit 1
     end
   end

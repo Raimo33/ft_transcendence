@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 15:31:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 21:31:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,14 +16,14 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache ruby protobuf
 
-RUN mkdir -p /etc/api-gateway/conf.d
-RUN touch /var/log/api-gateway.log
+RUN mkdir -p /etc/api_gateway/conf.d
+RUN touch /var/log/api_gateway.log
 
 COPY ./build/app/            /app
-COPY ./build/default.conf    /etc/api-gateway/conf.d/
+COPY ./build/default.conf    /etc/api_gateway/conf.d/
 
-RUN adduser -DHS api-gateway
-RUN chown -R api-gateway:api-gateway /app /etc/api-gateway /var/log/api-gateway.log
+RUN adduser -DHS api_gateway
+RUN chown -R api_gateway:api_gateway /app /etc/api_gateway /var/log/api_gateway.log
 RUN chmod -R +x /usr/local/bin/
 
 WORKDIR /app
@@ -32,7 +32,7 @@ RUN bundle install
 WORKDIR /app/proto
 RUN protoc --ruby_out=./ user.proto match.proto tournament.proto
 
-WORKDIR /etc/api-gateway/conf.d/
+WORKDIR /etc/api_gateway/conf.d/
 EXPOSE 3000
 
 ENTRYPOINT ["./main.rb"]
@@ -42,8 +42,8 @@ FROM official as pongfumasters
 
 RUN mkdir -p /shared
 
-USER api-gateway
+USER api_gateway
 WORKDIR /shared
 VOLUME ["/shared"]
 
-CMD ["-c", "/shared/conf/api-gateway.conf"]
+CMD ["-c", "/shared/conf/api_gateway.conf"]

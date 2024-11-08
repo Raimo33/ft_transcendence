@@ -6,31 +6,33 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 18:41:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 22:46:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 module ConfigLoader
 
   VALID_CONFIG_KEYS = {
-    :bind_address                 => 'localhost',
-    :bind_port                    => 8080,
-    :pid_file                     => '/var/run/api-gateway.pid',
-    :keycloak_pub_key_url         => nil,
-    :jwt_pub_key_ttl              => 3600,
-    :jwt_algorithm                => 'RS256',
-    :jwt_clock_skew               => 60,
-    :jwt_audience                 => 'localhost',
-    :max_connections              => 1024,
-    :max_body_size                => 1024 * 1024,
-    :user_server_cert             => nil,
-    :match_server_cert            => nil,
-    :tournament_server_cert       => nil,
-    :user_grpc_server_addr        => nil,
-    :match_grpc_server_addr       => nil,
-    :tournament_grpc_server_addr  => nil,
-    :log_level                    => 'info',
-    :log_file                     => '/var/log/api-gateway.log',
+    :bind_address           => 'localhost',
+    :bind_port              => 8080,
+    :pid_file               => '/var/run/api_gateway.pid',
+    :keycloak_pub_key_url   => nil,
+    :jwt_pub_key_ttl        => 3600,
+    :jwt_algorithm          => 'RS256',
+    :jwt_clock_skew         => 60,
+    :jwt_audience           => 'localhost',
+    :max_connections        => 1024,
+    :max_body_size          => 1024 * 1024,
+    :api_gateway_key        => nil,
+    :api_gateway_cert       => nil,
+    :user_cert              => nil,
+    :match_cert             => nil,
+    :tournament_cert        => nil,
+    :user_addr              => nil,
+    :match_addr             => nil,
+    :tournament_addr        => nil,
+    :log_level              => 'info',
+    :log_file               => '/var/log/api_gateway.log',
   }.freeze
 
   def self.load(config_file)

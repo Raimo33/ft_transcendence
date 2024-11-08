@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 19:38:31 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 23:00:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,8 +29,8 @@ class Server
   def initialize
     @config = ConfigLoader.config
     @logger = Logger.logger
-    @logger.info('Initializing server...')
 
+    @logger.info('Initializing server...')
     @grpc_client = GrpcClient.new
     @endpoint_tree = EndpointTree.new('')
     @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
@@ -38,11 +38,13 @@ class Server
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
 
+    ssl_context = load_ssl_context(@config[:api_gateway_key], @config[:api_gateway_cert])
+
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
     @swagger_parser.fill_rate_limiter(@rate_limiter)
-    @logger.info('Server initialized')
+
   rescue StandardError => e
-    raise "Error initializing server: #{e}"
+    raise "Failed to initialize server: #{e}"
   ensure
     @grpc_client&.close if defined?(@grpc_client)
   end
@@ -51,13 +53,14 @@ class Server
     Sync do
       @logger.info('Starting server...')
       endpoint = Async::IO::Endpoint.tcp(@config[:bind_address], @config[:port])
+      ssl_endpoint = Async::IO::Endpoint.ssl(endpoint, ssl_context)
       @logger.debug("Server listening on #{@config[:bind_address]}:#{@config[:port]}")
       semaphore = Async::Semaphore.new(@config[:max_connections])
 
       Thread.new { process_requests }
 
       loop do
-        endpoint.accept do |socket|
+        ssl_endpoint.accept do |socket|
           semaphore.async { handle_connection(socket) }
       end
     end
@@ -72,7 +75,6 @@ class Server
     client_handler.read_requests
   rescue StandardError => e
     @logger.error("Unable to handle connection: #{socket}: #{e}")
-    @logger.debug(e.backtrace.join("\n"))
   end
 
   def process_requests
@@ -84,8 +86,19 @@ class Server
         rescue StandardError => e
           client_info = client_handler&.socket || 'unknown'
           @logger.error("Unable to process client: #{client_info}: #{e}")
-          @logger.debug(e.backtrace.join("\n"))          
         end
       end
     end
   end
+
+  def load_ssl_context(ssl_key, ssl_cert)
+    @logger.info("Loading SSL context...")
+    ssl_context = OpenSSL::SSL::SSLContext.new
+    ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(ssl_cert))
+    ssl_context.key = OpenSSL::PKey::RSA.new(File.open(ssl_key))
+    ssl_context
+  rescue StandardError => e
+    raise "Failed to load SSL context: #{e}"
+  end
+
+end

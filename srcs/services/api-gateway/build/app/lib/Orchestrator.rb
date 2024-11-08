@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 19:39:49 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 22:39:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,7 @@ class Orchestrator
     @logger = Logger.logger
 
   rescue StandardError => e
-    @logger.fatal("Error during initialization: #{e.message}")
+    @logger.fatal("Error during initialization: #{e}")
     @logger.debug(e.backtrace.join("\n"))
     exit 1
   end
@@ -45,7 +45,7 @@ class Orchestrator
 
     sleep
   rescue StandardError => e
-    @logger.fatal("Error during master process: #{e.message}")
+    @logger.fatal("Error during master process: #{e}")
     @logger.debug(e.backtrace.join("\n"))
   end
 
@@ -76,7 +76,7 @@ class Orchestrator
       spawn_worker
     end
   rescue StandardError => e
-    @logger.error("Error during config reload: #{e.message}")
+    @logger.error("Error during config reload: #{e}")
     @logger.info('Continuing with current configuration')
   end
 
@@ -90,7 +90,7 @@ class Orchestrator
     end
     exit 0
   rescue StandardError => e
-    @logger.fatal("Error during graceful shutdown: #{e.message}")
+    @logger.fatal("Error during graceful shutdown: #{e}")
     @logger.debug(e.backtrace.join("\n"))
   ensure
     File.delete(@current_pid_file) if File.exist?(@current_pid_file)

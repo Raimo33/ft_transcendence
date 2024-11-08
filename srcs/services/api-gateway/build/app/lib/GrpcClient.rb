@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 20:02:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 22:59:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,55 +30,57 @@ class GrpcClient
       'grpc.compression_algorithm' => 'gzip'
     }
 
-    user_server_credentials        = load_credentials(@config[:user_server_cert])
-    match_server_credentials       = load_credentials(@config[:match_server_cert])
-    tournament_server_credentials  = load_credentials(@config[:tournament_server_cert])
+    user_credentials        = load_credentials(@config[:user_cert])
+    match_credentials       = load_credentials(@config[:match_cert])
+    tournament_credentials  = load_credentials(@config[:tournament_cert])
 
-    user_channel        = create_channel(@config[:user_server_addr], user_server_credentials)
-    match_channel       = create_channel(@config[:match_server_addr], match_server_credentials)
-    tournament_channel  = create_channel(@config[:tournament_server_addr], tournament_server_credentials)
+    user_channel        = create_channel(@config[:user_addr], user_credentials)
+    match_channel       = create_channel(@config[:match_addr], match_credentials)
+    tournament_channel  = create_channel(@config[:tournament_addr], tournament_credentials)
 
-    @user_stub          = User::Stub.new(user_channel)
-    @match_stub         = Match::Stub.new(match_channel)
-    @tournament_stub    = Tournament::Stub.new(tournament_channel)
+    @stubs = {
+      user: User::Stub.new(user_channel),
+      match: Match::Stub.new(match_channel),
+      tournament: Tournament::Stub.new(tournament_channel),
+    }.freeze
 
     @request_mapping = {
-      UserService::RegisterUserRequest                  => { stub: @user_stub, method: :register_user },
-      UserService::GetUserProfileRequest                => { stub: @user_stub, method: :get_user_profile },
-      UserService::GetUserStatusRequest                 => { stub: @user_stub, method: :get_user_status },
-      MatchService::GetUserMatchesRequest               => { stub: @match_stub, method: :get_user_matches },
-      TournamentService::GetUserTournamentsRequest      => { stub: @tournament_stub, method: :get_user_tournaments },
-      UserService::DeleteAccountRequest                 => { stub: @user_stub, method: :delete_account },
-      UserService::GetPrivateProfileRequest             => { stub: @user_stub, method: :get_private_profile },
-      UserService::UpdateProfileRequest                 => { stub: @user_stub, method: :update_profile },
-      UserService::UpdatePasswordRequest                => { stub: @user_stub, method: :update_password },
-      UserService::RequestPasswordResetRequest          => { stub: @user_stub, method: :request_password_reset },
-      UserService::CheckPasswordResetTokenRequest       => { stub: @user_stub, method: :check_password_reset_token },
-      UserService::ResetPasswordRequest                 => { stub: @user_stub, method: :reset_password },
-      UserService::UpdateEmailRequest                   => { stub: @user_stub, method: :update_email },
-      UserService::VerifyEmailRequest                   => { stub: @user_stub, method: :verify_email },
-      UserService::CheckEmailVerificationTokenRequest   => { stub: @user_stub, method: :check_email_verification_token },
-      UserService::Enable2FARequest                     => { stub: @user_stub, method: :enable_2fa },
-      UserService::Get2FAStatusRequest                  => { stub: @user_stub, method: :get_2fa_status },
-      UserService::Disable2FARequest                    => { stub: @user_stub, method: :disable_2fa },
-      UserService::Check2FACodeRequest                  => { stub: @user_stub, method: :check_2fa_code },
-      UserService::LoginUserRequest                     => { stub: @user_stub, method: :login_user },
-      UserService::LogoutUserRequest                    => { stub: @user_stub, method: :logout_user },
-      UserService::AddFriendRequest                     => { stub: @user_stub, method: :add_friend },
-      UserService::GetFriendsRequest                    => { stub: @user_stub, method: :get_friends },
-      UserService::RemoveFriendRequest                  => { stub: @user_stub, method: :remove_friend },
-      MatchService::CreateMatchRequest                  => { stub: @match_stub, method: :create_match },
-      MatchService::JoinMatchRequest                    => { stub: @match_stub, method: :join_match },
-      MatchService::GetMatchRequest                     => { stub: @match_stub, method: :get_match },
-      MatchService::LeaveMatchRequest                   => { stub: @match_stub, method: :leave_match },
-      TournamentService::CreateTournamentRequest        => { stub: @tournament_stub, method: :create_tournament },
-      TournamentService::JoinTournamentRequest          => { stub: @tournament_stub, method: :join_tournament },
-      TournamentService::GetTournamentRequest           => { stub: @tournament_stub, method: :get_tournament },
-      TournamentService::LeaveTournamentRequest         => { stub: @tournament_stub, method: :leave_tournament },
+      UserService::RegisterUserRequest                  => { stub: @stubs[:user],       method: :register_user },
+      UserService::GetUserProfileRequest                => { stub: @stubs[:user],       method: :get_user_profile },
+      UserService::GetUserStatusRequest                 => { stub: @stubs[:user],       method: :get_user_status },
+      MatchService::GetUserMatchesRequest               => { stub: @stubs[:match],      method: :get_user_matches },
+      TournamentService::GetUserTournamentsRequest      => { stub: @stubs[:tournament], method: :get_user_tournaments },
+      UserService::DeleteAccountRequest                 => { stub: @stubs[:user],       method: :delete_account },
+      UserService::GetPrivateProfileRequest             => { stub: @stubs[:user],       method: :get_private_profile },
+      UserService::UpdateProfileRequest                 => { stub: @stubs[:user],       method: :update_profile },
+      UserService::UpdatePasswordRequest                => { stub: @stubs[:user],       method: :update_password },
+      UserService::RequestPasswordResetRequest          => { stub: @stubs[:user],       method: :request_password_reset },
+      UserService::CheckPasswordResetTokenRequest       => { stub: @stubs[:user],       method: :check_password_reset_token },
+      UserService::ResetPasswordRequest                 => { stub: @stubs[:user],       method: :reset_password },
+      UserService::UpdateEmailRequest                   => { stub: @stubs[:user],       method: :update_email },
+      UserService::VerifyEmailRequest                   => { stub: @stubs[:user],       method: :verify_email },
+      UserService::CheckEmailVerificationTokenRequest   => { stub: @stubs[:user],       method: :check_email_verification_token },
+      UserService::Enable2FARequest                     => { stub: @stubs[:user],       method: :enable_2fa },
+      UserService::Get2FAStatusRequest                  => { stub: @stubs[:user],       method: :get_2fa_status },
+      UserService::Disable2FARequest                    => { stub: @stubs[:user],       method: :disable_2fa },
+      UserService::Check2FACodeRequest                  => { stub: @stubs[:user],       method: :check_2fa_code },
+      UserService::LoginUserRequest                     => { stub: @stubs[:user],       method: :login_user },
+      UserService::LogoutUserRequest                    => { stub: @stubs[:user],       method: :logout_user },
+      UserService::AddFriendRequest                     => { stub: @stubs[:user],       method: :add_friend },
+      UserService::GetFriendsRequest                    => { stub: @stubs[:user],       method: :get_friends },
+      UserService::RemoveFriendRequest                  => { stub: @stubs[:user],       method: :remove_friend },
+      MatchService::CreateMatchRequest                  => { stub: @stubs[:match],      method: :create_match },
+      MatchService::JoinMatchRequest                    => { stub: @stubs[:match],      method: :join_match },
+      MatchService::GetMatchRequest                     => { stub: @stubs[:match],      method: :get_match },
+      MatchService::LeaveMatchRequest                   => { stub: @stubs[:match],      method: :leave_match },
+      TournamentService::CreateTournamentRequest        => { stub: @stubs[:tournament], method: :create_tournament },
+      TournamentService::JoinTournamentRequest          => { stub: @stubs[:tournament], method: :join_tournament },
+      TournamentService::GetTournamentRequest           => { stub: @stubs[:tournament], method: :get_tournament },
+      TournamentService::LeaveTournamentRequest         => { stub: @stubs[:tournament], method: :leave_tournament },
     }.freeze
 
   rescue StandardError => e
-    raise "Error initializing grpc client: #{e}"
+    raise "Failed to initialize grpc client: #{e}"
   ensure
     close
   end
@@ -94,12 +96,12 @@ class GrpcClient
     @logger.debug("Received response: #{response}")
 
   rescue StandardError => e
-    raise "Error calling grpc method #{method}: #{e}"
+    raise "Failed to call grpc method #{method}: #{e}"
   end
 
   def close
     @logger.info('Closing grpc client')
-    [@user_channel, @match_channel, @tournament_channel].each do |channel|
+    @stubs.each do |channel|
       channel&.close if defined?(channel) && channel.respond_to?(:close)
     end
   end
@@ -111,14 +113,14 @@ class GrpcClient
     @logger.debug("Loading credentials from #{cert_file}")
     GRPC::Core::ChannelCredentials.new(File.read(cert_file))
   rescue StandardError => e
-    raise "Failed to load credentials from #{cert_file}: #{e.message}"
+    raise "Failed to load credentials from #{cert_file}: #{e}"
   end
 
   def create_channel(addr, credentials)
     @logger.debug("Creating channel to #{addr}")
     GRPC::Core::Channel.new(addr, nil, credentials)
   rescue StandardError => e
-    raise "Failed to create channel to #{addr}: #{e.message}"
+    raise "Failed to create channel to #{addr}: #{e}"
   end
 
 end

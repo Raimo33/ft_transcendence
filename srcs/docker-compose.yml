@@ -9,7 +9,8 @@ services:
     container_name: nginx
     environment:
     volumes:
-      - nginx-cert:/etc/ssl/certs
+      - nginx-cert:/etc/ssl/certs/nginx.crt:ro
+      - api_gateway_cert:/etc/ssl/certs/api_gateway.crt:ro
     secrets:
       - source: nginx-key
         target: /etc/ssl/private/nginx.key
@@ -24,23 +25,23 @@ services:
     depends_on:
     init: true
 
-  api-gateway:
+  api_gateway:
     build:
-      context: ./services/api-gateway
+      context: ./services/api_gateway
       dockerfile: Dockerfile
       args:
-    container_name: api-gateway
+    container_name: api_gateway
     environment:
     volumes:
-      - ./services/api-gateway/shared/:/shared/:ro
-      - api-gateway_cert:/etc/ssl/certs/api-gateway.crt:ro
+      - ./services/api_gateway/shared/:/shared/:ro
+      - api_gateway_cert:/etc/ssl/certs/api_gateway.crt:ro
       - user_cert:/etc/ssl/certs/user.crt:ro
       - match_cert:/etc/ssl/certs/match.crt:ro
       - tournament_cert:/etc/ssl/certs/tournament.crt:ro
       - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
     secrets:
-      - source: api-gateway_key
-        target: /etc/ssl/private/api-gateway.key
+      - source: api_gateway_key
+        target: /etc/ssl/private/api_gateway.key
         uid: #TODO uid
         mode: 0400
     ports:
@@ -250,7 +251,7 @@ services:
         uid: #TODO uid
         mode: 0400
     ports:
-      - 
+      - 50052:50052
     networks:
       - datanet
     restart: always
@@ -474,7 +475,7 @@ services:
 #TODO add certs
 volumes:
   nginx-cert:
-  api-gateway_cert:
+  api_gateway_cert:
   user_cert:
   match_cert:
   tournament_cert:
@@ -495,7 +496,7 @@ volumes:
 
 secrets:
   nginx-key:        #real
-  api-gateway_key:  #self-signed
+  api_gateway_key:  #self-signed
   user_key:         #self-signed
   match_key:        #self-signed
   tournament_key:   #self-signed

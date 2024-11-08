@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 13:27:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 22:59:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,7 +52,7 @@ class ClientHandler
       while request = parser.parse_request(buffer, @endpoint_tree, @config)
         @request_queue.enqueue(request)
       rescue StandardError => e
-        @logger.error("Error parsing request: #{e}")
+        @logger.error("Failed to parse request: #{e}")
         send_error(e.status_code)
         skip_request(buffer)
       end
@@ -74,7 +74,7 @@ class ClientHandler
             last_task&.wait
             last_task = subtask.async { send_response(stream, response) }
           rescue StandardError => e
-            @logger.error("Error processing response: #{e}")
+            @logger.error("Failed to process response: #{e}")
             send_error(e.status_code)            
         end
       end
@@ -104,7 +104,7 @@ class ClientHandler
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e
-            @logger.error("Error processing request: #{e}")
+            @logger.error("Failed to process request: #{e}")
             send_error(e.status_code)
           end
         end

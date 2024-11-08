@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 13:52:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 22:59:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,7 @@ class JwtValidator
 
     @http = Net::HTTP.new(@config[:jwt_jwks_uri].split('/')[2], 443)
     @http.use_ssl = true
-    keycloak_cert = OpenSSL::X509::Certificate.new(File.read(@config[:keycloak_server_cert]))
+    keycloak_cert = OpenSSL::X509::Certificate.new(File.read(@config[:keycloak_cert]))
     @http.ssl_context = OpenSSL::SSL::SSLContext.new
     @http.ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
     @http.ssl_context.cert_store = OpenSSL::X509::Store.new
@@ -68,8 +68,7 @@ class JwtValidator
 
     JWT.decode(token, public_key, true, { algorithm: @config[:jwt_algorithm] })
   rescue StandardError => e
-    @logger.error("Error decoding token: #{e.message}")
-    @logger.debug(e.backtrace.join("\n"))
+    @logger.error("Failed to decode token: #{e}")
     nil
   end
 
@@ -88,7 +87,7 @@ class JwtValidator
     @last_fetched = Time.now
     @public_key
   rescue StandardError => e
-    raise "Error fetching public key: #{e}"
+    raise "Failed to fetch public key: #{e}"
   end
 
   def validate_claims(decoded_token)
