@@ -6,12 +6,12 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/06 21:30:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 18:46:17 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'optparse'
-require_relative 'APIGateway'
+require_relative 'Orchestrator'
 require_relative './modules/ConfigLoader'
 
 class Launcher
@@ -70,12 +70,12 @@ class Launcher
     File.write(@@pid_file, Process.pid)
 
     begin
-      APIGateway.new.start_master
+      Orchestrator.new.start_master
     ensure
       File.unlink(@@pid_file) if File.exist?(@@pid_file)
     end
   rescue StandardError => e
-    STDERR.puts "Error during daemon startup: #{e.message}"
+    STDERR.puts "Error during startup: #{e.message}"
   end
 
   def test_config

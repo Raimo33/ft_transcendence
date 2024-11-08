@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/07 17:28:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 20:02:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
-require_relative '../proto/users_services_pb'
-require_relative '../proto/match_services_pb'
-require_relative '../proto/tournament_services_pb'
+require_relative '../proto/user_service_pb'
+require_relative '../proto/match_service_pb'
+require_relative '../proto/tournament_service_pb'
 require_relative './modules/Structs'
 
 module Mapper

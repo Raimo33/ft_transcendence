@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:39:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 19:38:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,12 +26,12 @@ class Server
   include ConfigLoader
   include Logger
 
-  def initialize(grpc_client)
-    @config = Config.config
+  def initialize
+    @config = ConfigLoader.config
     @logger = Logger.logger
     @logger.info('Initializing server...')
 
-    @grpc_client = grpc_client
+    @grpc_client = GrpcClient.new
     @endpoint_tree = EndpointTree.new('')
     @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
     @rate_limiter = RateLimiter.new

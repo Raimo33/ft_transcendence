@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    ApiGateway.rb                                      :+:      :+:    :+:    #
+#    Orchestrator.rb                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 17:38:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 19:39:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ require_relative 'Server'
 require_relative './modules/Logger'
 require_relative './modules/ConfigLoader'
 
-class APIGateway
+class Orchestrator
   include ConfigLoader
   include Logger
 
@@ -53,8 +53,7 @@ class APIGateway
 
   def spawn_worker
     @worker_pid = Process.fork do
-      grpc_client = GrpcClient.new(@config)
-      server = Server.new(@config, grpc_client)
+      server = Server.new
       server.run
     end
   end
