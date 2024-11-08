@@ -1,0 +1,312 @@
+syntax = "proto3";
+
+package user;
+
+
+service UserService
+{
+    rpc RegisterUser                  (RegisterUserRequest)                  returns (RegisterUserResponse) {}
+    rpc GetUserProfile                (GetUserProfileRequest)                returns (GetUserProfileResponse) {}
+    rpc GetUserStatus                 (GetUserStatusRequest)                 returns (GetUserStatusResponse) {}
+    rpc DeleteAccount                 (DeleteAccountRequest)                 returns (DeleteAccountResponse) {}
+    rpc GetPrivateProfile             (GetPrivateProfileRequest)             returns (GetPrivateProfileResponse) {}
+    rpc UpdateProfile                 (UpdateProfileRequest)                 returns (UpdateProfileResponse) {}
+    rpc UpdatePassword                (UpdatePasswordRequest)                returns (UpdatePasswordResponse) {}
+    rpc RequestPasswordReset          (RequestPasswordResetRequest)          returns (RequestPasswordResetResponse) {}
+    rpc CheckPasswordResetToken       (CheckPasswordResetTokenRequest)       returns (CheckPasswordResetTokenResponse) {}
+    rpc ResetPassword                 (ResetPasswordRequest)                 returns (ResetPasswordResponse) {}
+    rpc UpdateEmail                   (UpdateEmailRequest)                   returns (UpdateEmailResponse) {}
+    rpc CheckEmailVerificationToken   (CheckEmailVerificationTokenRequest)   returns (VerifyEmailResponse) {}
+    rpc Enable2FA                     (Enable2FARequest)                     returns (Enable2FAResponse) {}
+    rpc Get2FAStatus                  (Get2FAStatusRequest)                  returns (Get2FAStatusResponse) {}
+    rpc Disable2FA                    (Disable2FARequest)                    returns (Disable2FAResponse) {}
+    rpc Check2FACode                  (Check2FACodeRequest)                  returns (Check2FACodeResponse) {}
+    rpc LoginUser                     (LoginUserRequest)                     returns (LoginUserResponse) {}
+    rpc LogoutUser                    (LogoutUserRequest)                    returns (LogoutUserResponse) {}
+    rpc AddFriend                     (AddFriendRequest)                     returns (AddFriendResponse) {}
+    rpc GetFriends                    (GetFriendsRequest)                    returns (GetFriendsResponse) {}
+    rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
+}
+
+message UserProfile
+{
+    string  id = 1;
+    string  display_name = 2;
+    string  avatar = 3;
+    string  status = 4;
+    uint64  last_active_timestamp = 5;
+    uint64  registered_timestamp = 6;
+}
+message User
+{
+    string  id = 1;
+    string  display_name = 2;
+    string  avatar = 3;
+    string  status = 4;
+    uint64  last_active_timestamp = 5;
+    uint64  registered_timestamp = 6;
+    string  email = 7;
+    bool    two_factor_auth_enabled = 8;
+}
+
+message ProfileFilters
+{
+    optional string status = 1;
+}
+
+// v1/users POST
+message RegisterUserRequest
+{
+    string          requesting_user_id = 1;
+    string          email = 1;
+    string          password = 2;
+    string          display_name = 3;
+    optional string avatar = 4;
+}
+message RegisterUserResponse
+{
+    int32             status_code = 1;
+    optional string   user_id = 2;
+}
+
+// v1/users/{user_id}/profile GET
+message GetUserProfileRequest
+{
+    string requesting_user_id = 1;
+    string user_id = 2;
+    string etag = 3;
+}
+message GetUserProfileResponse
+{
+  int32                 status_code = 1;
+  optional UserProfile  profile = 2;
+  string                etag = 3;
+}
+
+// v1/users/{user_id}/status GET
+message GetUserStatusRequest
+{
+    string  requesting_user_id = 1;
+    string  user_id = 2;
+}
+message GetUserStatusResponse
+{
+    int32            status_code = 1;
+    optional string  user_status = 2;
+}
+
+// v1/user DELETE
+message DeleteAccountRequest
+{
+    string  requesting_user_id = 1;
+}
+message DeleteAccountResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/profile GET
+message GetPrivateProfileRequest
+{
+    string          requesting_user_id = 1;
+    optional string etag = 2; 
+}
+message GetPrivateProfileResponse
+{
+    int32         status_code = 1;
+    optional User profile = 2;
+    string        etag = 3;
+}
+
+// v1/user/profile PATCH
+message UpdateProfileRequest
+{
+    string           requesting_user_id = 1;
+    optional string  display_name = 2;
+    optional string  avatar = 3;
+}
+message UpdateProfileResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/password PUT
+message UpdatePasswordRequest
+{
+    string  requesting_user_id = 1;
+    string  old_password = 2;
+    string  new_password = 3;
+}
+message UpdatePasswordResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/password/reset POST
+message RequestPasswordResetRequest
+{
+    string email = 1;
+}
+message RequestPasswordResetResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/password/reset/{token} POST
+message CheckPasswordResetTokenRequest
+{
+    string  token = 1;
+}
+message CheckPasswordResetTokenResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/password/reset/{token} PATCH
+message ResetPasswordRequest
+{
+    string  token = 1;
+    string  new_password = 2;
+}
+message ResetPasswordResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/email PATCH
+message UpdateEmailRequest
+{
+    string           requesting_user_id = 1;
+    string           new_email = 2;
+    string           current_password = 3;
+    optional string  totp_code = 4;
+}
+message UpdateEmailResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/email/verify POST
+message VerifyEmailRequest
+{
+    string requesting_user_id = 1;
+}
+message VerifyEmailResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/email/verify POST
+message CheckEmailVerificationTokenRequest
+{
+    string  token = 1;
+}
+message VerifyEmailResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/2fa POST
+message Enable2FARequest
+{
+    string  requesting_user_id = 1;
+}
+message Enable2FAResponse
+{
+    int32           status_code = 1;
+    optional string totp_secret = 2;
+}
+
+// v1/users/{user_id}/2fa GET
+message Get2FAStatusRequest
+{
+    string requesting_user_id = 1;
+}
+message Get2FAStatusResponse
+{
+    int32         status_code = 1;
+    optional bool two_factor_auth_enabled = 2;
+}
+
+// v1/user/2fa DELETE
+message Disable2FARequest
+{
+    string requesting_user_id = 1;
+}
+message Disable2FAResponse
+{
+    int32  status_code = 1;
+}
+
+// v1/user/2fa/verify POST
+message Check2FACodeRequest
+{
+    string  requesting_user_id = 1;
+    string  totp_code = 2;
+}
+message Check2FACodeResponse
+{
+    int32  status_code = 1;
+}
+
+// v1/user/login POST
+message LoginUserRequest
+{
+    string          email = 1;
+    string          password = 2;
+    optional string totp_code = 3;
+}
+message LoginUserResponse
+{
+    int32           status_code = 1;
+    optional string jwt_token = 2;
+}
+
+// v1/user/logout DELETE
+message LogoutUserRequest
+{
+    string  requesting_user_id = 1;
+}
+message LogoutUserResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/user/friends POST
+message AddFriendRequest
+{
+    string  requesting_user_id = 1;
+    string  friend_id = 2;
+}
+message AddFriendResponse
+{
+    int32  status_code = 1;
+}
+
+// v1/user/friends GET
+message GetFriendsRequest
+{
+    string                   requesting_user_id = 1;
+    optional uint32          limit = 2;
+    optional uint32          offset = 3;
+    optional string          sort_by = 4;
+    optional ProfileFilters  filters = 5;
+    optional string          etag = 6;
+}
+message GetFriendsResponse
+{
+    int32                     status_code = 1;
+    optional repeated string  friend_ids = 2;
+    string                    etag = 3;
+}
+
+// v1/user/friends/{friend_id} DELETE
+message RemoveFriendRequest
+{
+    string  requesting_user_id = 1;
+    string  friend_id = 2;
+}
+message RemoveFriendResponse
+{
+    int32 status_code = 1;
+}

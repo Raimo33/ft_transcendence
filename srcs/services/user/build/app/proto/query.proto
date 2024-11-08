@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package query;
+
+service MatchService
+{
+    rpc GetUserMatches     (GetUserMatchesRequest)    returns (GetUserMatchesResponse) {}
+    rpc CreateMatch        (CreateMatchRequest)       returns (CreateMatchResponse) {}
+    rpc JoinMatch          (JoinMatchRequest)         returns (JoinMatchResponse) {}
+    rpc GetMatch           (GetMatchRequest)          returns (GetMatchResponse) {}
+    rpc LeaveMatch         (LeaveMatchRequest)        returns (LeaveMatchResponse) {}
+}
+
+message MatchSettings
+{
+    uint8  ball_speed = 1;
+    uint16 max_duration = 2;
+    uint8  starting_health = 3;
+}
+message Match
+{
+    string           id = 1;
+    repeated string  player_ids = 2;
+    string           status = 3;
+    uint64           started_timestamp = 4;
+    optional uint64  finished_timestamp = 5;
+    MatchSettings    settings = 6;
+}
+
+message PLayerMatchFilters
+{
+    optional string  status = 1;
+}
+
+// v1/users/{user_id}/matches GET
+message GetUserMatchesRequest
+{
+    string                         requesting_user_id = 1;
+    string                         user_id = 2;
+    optional uint32                limit = 3;
+    optional uint32                offset = 4;
+    optional string                sort_by = 5;
+    optional PLayerMatchFilters    filters = 6;
+    optional string                etag = 7;
+}
+message GetUserMatchesResponse
+{
+    int32                    status_code = 1;
+    optional repeated Match  matches = 2;
+    string                   etag = 3;
+}
+
+// v1/matches POST
+message CreateMatchRequest
+{
+    string                   requesting_user_id = 1;
+    repeated string          invited_user_ids = 2;
+    optional MatchSettings  settings = 3;
+}
+message CreateMatchResponse
+{
+    int32            status_code = 1;
+    optional string  match_id = 2;
+}
+
+// v1/matches/{match_id} POST
+message JoinMatchRequest
+{
+    string  requesting_user_id = 1;
+    string  match_id = 2;
+}
+message JoinMatchResponse
+{
+    int32 status_code = 1;
+}
+
+// v1/matches/{match_id} GET
+message GetMatchRequest
+{
+    string          requesting_user_id = 1;
+    string          match_id = 2;
+    optional string etag = 3;
+}
+message GetMatchResponse
+{
+    int32           status_code = 1;
+    optional Match  match = 2;
+    string          etag = 3;
+}
+
+// v1/matches/{match_id} DELETE
+message LeaveMatchRequest
+{
+    string  requesting_user_id = 1;
+    string  match_id = 2;
+}
+message LeaveMatchResponse
+{
+    int32 status_code = 1;
+}
