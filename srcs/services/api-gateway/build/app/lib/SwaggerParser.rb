@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/07 18:33:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 13:06:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,22 +31,21 @@ class SwaggerParser
 
   def fill_endpoint_tree(endpoint_tree)
     @openapi_spec.paths.each do |path, path_item|
-      endpoint_tree.add_path(path, process_path(path, path_item))
+      path_item.operations.each do |http_method, operation|
+        endpoint_tree.add_resource(path, build_resource(http_method, operation))
+      end
     end
   end
 
   def fill_rate_limiter(rate_limiter)
-    #TODO implement
-    
+    @openapi_spec.paths.each do |path, path_item|
+      path_item.operations.each do |http_method, operation|
+        rate_limiter.set_limit(operation.operation_id, operation['x-ratelimit-limit'], operation['x-ratelimit-interval'], operation['x-ratelimit-criteria'])
+      end
+    end
   end
 
   private
-
-  def process_path(path, path_item)
-    path_item.operations.each do |http_method, operation|
-      build_resource(http_method, operation)
-    end
-  end
 
   def build_resource(http_method, operation)
     Resource.new.tap do |r|

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/07 18:35:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 13:27:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,7 +49,7 @@ class ClientHandler
     while chunk = @stream.read(4096)
       buffer << chunk
 
-      while request = parser.parse(buffer)
+      while request = parser.parse_request(buffer, @endpoint_tree, @config)
         @request_queue.enqueue(request)
       rescue StandardError => e
         @logger.error("Error parsing request: #{e}")
@@ -100,7 +100,7 @@ class ClientHandler
             else
               response = Response.new(429, {"Content-Length" => "0"}, "")
 
-            add_rate_limit_headers(response.headers, request.caller_identifier, request.path) #TODO adds remaining rate limit headers
+            add_rate_limit_headers(response.headers, request.caller_identifier, request.path)
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e
@@ -138,20 +138,30 @@ class ClientHandler
     return unless resource.expected_auth_level
 
     raise ActionFailedException::Unauthorized unless authorization_header
-    raise ActionFailedException::BadRequest unless authorization_header.start_with?('Bearer ')
 
     token = extract_token(authorization_header)
     raise ActionFailedException::Unauthorized unless @jwt_validator.token_valid?(token)
     raise ActionFailedException::Forbidden unless @jwt_validator.token_authorized?(token, expected_auth_level)
   end
 
-  def send(data)
-    stream.write(data)
+  def add_rate_limit_headers(headers, caller_identifier, path)
+    headers["X-RateLimit-Limit"]     = @rate_limiter.limit(caller_identifier, path).to_s
+    headers["X-RateLimit-Remaining"] = @rate_limiter.remaining(caller_identifier, path).to_s
+    headers["X-RateLimit-Reset"]     = @rate_limiter.reset(caller_identifier, path).to_s
+    headers["X-RateLimit-Interval"]  = @rate_limiter.interval(caller_identifier, path).to_s
   end
 
-  def send_response(response)
+  def extract_token(authorization_header)
+    raise ActionFailedException::BadRequest unless authorization_header&.start_with?('Bearer ')
+
+    authorization_header.sub('Bearer ', '').strip
+  end
+
+  def send_response(response)    
+    headers = response.headers.map { |k, v| "#{k}: #{v}" }.join("\r\n")
+
     @logger.info("Sending response with status code #{response.status_code}")
-    #TODO implementare invio risposta (headers e body inclusi)
+    stream.write("HTTP/1.1 #{response.status_code}\r\n#{headers}\r\n\r\n#{response.body}")
   end
 
   def send_error(status_code)
@@ -174,8 +184,8 @@ class ClientHandler
       else          message = "Internal Server Error"
     end
 
-    @logger.info("Sending response with status code #{status_code}") 
-    send("HTTP/1.1 #{status_code} #{message}\r\nContent-Length: 0\r\n\r\n")
+    @logger.warn("Sending response with status code #{status_code}") 
+    stream.write("HTTP/1.1 #{status_code} #{message}\r\nContent-Length: 0\r\n\r\n")
   end
 
 end

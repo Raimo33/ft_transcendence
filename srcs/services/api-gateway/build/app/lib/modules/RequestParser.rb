@@ -6,13 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/07 18:16:50 by craimond          #+#    #+#              #
-#    Updated: 2024/11/07 18:21:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/08 13:40:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 module RequestParser
 
-  def self.parse_request(buffer)
+  def self.parse_request(buffer, endpoint_tree, config)
     request = Request.new
 
     header_end = buffer.index("\r\n\r\n")
@@ -24,12 +24,12 @@ module RequestParser
     request_line, header_lines = headers_part.split("\r\n", 2)
     request.http_method, full_path, _ = request_line.split(" ", 3)
     raise ActionFailedException::BadRequest unless request.method && full_path
-    raise ActionFailedException::URITooLong if full_path.size > @config[:max_uri_length]
+    raise ActionFailedException::URITooLong if full_path.size > config[:max_uri_length]
 
     raw_path, raw_query = full_path.split("?", 2)
     raise ActionFailedException::BadRequest unless raw_path
 
-    endpoint = @endpoint_tree.find_endpoint(raw_path)
+    endpoint = endpoint_tree.find_endpoint(raw_path)
     raise ActionFailedException::NotFound unless endpoint
     
     resource = endpoint.resources[request.http_method]
@@ -41,7 +41,7 @@ module RequestParser
 
     if resource.body_required
       raise ActionFailedException::LengthRequired unless content_length
-      raise ActionFailedException::ContentTooLarge if content_length > @config[:max_body_size]
+      raise ActionFailedException::ContentTooLarge if content_length > config[:max_body_size]
     end
 
     check_auth(resource, headers["authorization"])
@@ -90,6 +90,9 @@ module RequestParser
         raise "Unsupported type for header: #{name}"
       end
     end
+
+    extra_headers = received_headers.keys - allowed_headers.keys
+    @logger.warn("Received unexpected headers: #{extra_headers.join(', ')}") unless extra_headers.empty?
   
     headers
   end
@@ -187,6 +190,9 @@ module RequestParser
         end
       end
     end
+
+    extra_params = received_query_params.keys - allowed_query_params.keys
+    @logger.warn("Received unexpected query parameters: #{extra_params.join(', ')}") unless extra_params.empty?
   
     params
   end
@@ -199,8 +205,14 @@ module RequestParser
     rescue JSON::ParserError
       raise "Invalid JSON in request body"
     end
+
+    allowed_properties = allowed_body[:schema][:properties].keys
   
-    allowed_body.each do |name, config|
+    extra_keys = received_body.keys - allowed_properties
+    raise "Unexpected parameters in request body: #{extra_keys.join(', ')}" unless extra_keys.empty?
+  
+    allowed_properties.each do |name|
+      config = allowed_body[:schema][:properties][name]
       schema = config[:schema]
   
       if config[:required] && !received_body.key?(name)
@@ -211,11 +223,15 @@ module RequestParser
   
       value = received_body[name]
   
-      case schema[:type]
+      case config[:type]
       when 'object'
         if value.is_a?(Hash)
           nested_object = {}
-          schema[:properties].each do |nested_name, nested_config|
+          allowed_nested_keys = config[:properties].keys
+          extra_nested_keys = value.keys - allowed_nested_keys
+          raise "Unexpected parameters in #{name}: #{extra_nested_keys.join(', ')}" unless extra_nested_keys.empty?
+  
+          config[:properties].each do |nested_name, nested_config|
             if nested_config[:required] && !value.key?(nested_name)
               raise "Missing required field in #{name}: #{nested_name}"
             end
@@ -229,8 +245,8 @@ module RequestParser
   
       when 'array'
         if value.is_a?(Array)
-          if schema[:items]
-            item_type = schema[:items][:type]
+          if config[:items]
+            item_type = config[:items][:type]
             result[name] = value.map do |item|
               parse_value(item, item_type, name)
             end
@@ -242,7 +258,7 @@ module RequestParser
         end
   
       when 'string', 'integer', 'boolean'
-        result[name] = parse_value(value, schema[:type], name)
+        result[name] = parse_value(value, config[:type], name)
   
       else
         raise "Unsupported type for body parameter: #{name}"
@@ -250,7 +266,7 @@ module RequestParser
     end
   
     result
-  end
+  end  
   
   def parse_value(value, type, param_name)
     case type
