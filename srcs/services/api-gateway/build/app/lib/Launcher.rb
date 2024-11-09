@@ -10,15 +10,15 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'optparse'
-require_relative 'Orchestrator'
-require_relative './modules/ConfigLoader'
+require "optparse"
+require_relative "Orchestrator"
+require_relative "./modules/ConfigLoader"
 
 class Launcher
   include ConfigLoader
 
-  DEFAULT_CONFIG_FILE = '/etc/api_gateway/conf.d/default.conf'
-  DEFAULT_PID_FILE = '/var/run/api_gateway.pid'
+  DEFAULT_CONFIG_FILE = "/etc/api_gateway/conf.d/default.conf"
+  DEFAULT_PID_FILE = "/var/run/api_gateway.pid"
 
   def initialize(args)
     @options = parse_options(args)
@@ -48,15 +48,15 @@ class Launcher
     parser = OptionParser.new do |opts|
       opts.banner = "Usage: #{$PROGRAM_NAME} [-c config] [-s signal]"
       
-      opts.on('-c CONFIG', '--config CONFIG', 'Configuration file path') do |config|
+      opts.on("-c CONFIG", "--config CONFIG", "Configuration file path") do |config|
         options[:config_file] = config
       end
       
-      opts.on('-s SIGNAL', '--signal SIGNAL', 'Send signal to master process (reload|stop)') do |signal|
+      opts.on("-s SIGNAL", "--signal SIGNAL", "Send signal to master process (reload|stop)") do |signal|
         options[:signal] = signal
       end
 
-      opts.on('-t', '--test', 'Test the configuration and exit') do
+      opts.on("-t", "--test", "Test the configuration and exit") do
         options[:test] = true
       end
     end
@@ -96,7 +96,7 @@ class Launcher
       exit 1
     end
 
-    signal = @options[:signal] == 'reload' ? 'HUP' : 'TERM'
+    signal = @options[:signal] == "reload" ? "HUP" : "TERM"
     send_signal(signal)
   end
 

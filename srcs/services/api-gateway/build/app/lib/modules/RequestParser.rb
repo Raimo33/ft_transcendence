@@ -80,11 +80,11 @@ module RequestParser
       value = received_headers[name]
       schema = config[:schema]
   
-      if schema[:type] == 'array' && config[:explode]
+      if schema[:type] == "array" && config[:explode]
         headers[name] = value.split(",").map(&:strip)
-      elsif schema[:type] == 'integer'
+      elsif schema[:type] == "integer"
         headers[name] = Integer(value) rescue raise "Invalid integer for header: #{name}"
-      elsif schema[:type] == 'string'
+      elsif schema[:type] == "string"
         headers[name] = value
       else
         raise "Unsupported type for header: #{name}"
@@ -122,11 +122,11 @@ module RequestParser
 
         schema = config[:schema]
         case schema[:type]
-        when 'array'
+        when "array"
           path_params[param_name] = param_value.split(",").map(&:strip)
-        when 'integer'
+        when "integer"
           path_params[param_name] = Integer(param_value) rescue raise "Invalid integer for path parameter: #{param_name}"
-        when 'string'
+        when "string"
           path_params[param_name] = param_value
         else
           raise "Unsupported type for path parameter: #{param_name}"
@@ -148,7 +148,7 @@ module RequestParser
     allowed_query_params.each do |name, config|
       schema = config[:schema]
 
-      if schema[:type] == 'object' && config[:style] == 'deepObject' && !config[:explode]
+      if schema[:type] == "object" && config[:style] == "deepObject" && !config[:explode]
         object_params = {}
   
         received_query_params.each do |full_key, value|
@@ -157,9 +157,9 @@ module RequestParser
   
             if schema[:properties].key?(property_name)
               case schema[:properties][property_name][:type]
-              when 'integer'
+              when "integer"
                 object_params[property_name] = Integer(value) rescue raise "Invalid integer for #{name}[#{property_name}]"
-              when 'string'
+              when "string"
                 object_params[property_name] = value
               else
                 raise "Unsupported type for #{name}[#{property_name}]"
@@ -179,11 +179,11 @@ module RequestParser
   
         value = received_query_params[name]
         case schema[:type]
-        when 'array'
+        when "array"
           params[name] = config[:explode] ? value.split(",").map(&:strip) : [value]
-        when 'integer'
+        when "integer"
           params[name] = Integer(value) rescue raise "Invalid integer for query parameter: #{name}"
-        when 'string'
+        when "string"
           params[name] = value
         else
           raise "Unsupported type for query parameter: #{name}"
@@ -224,7 +224,7 @@ module RequestParser
       value = received_body[name]
   
       case config[:type]
-      when 'object'
+      when "object"
         if value.is_a?(Hash)
           nested_object = {}
           allowed_nested_keys = config[:properties].keys
@@ -243,7 +243,7 @@ module RequestParser
           raise "Invalid type for body parameter: #{name}, expected object"
         end
   
-      when 'array'
+      when "array"
         if value.is_a?(Array)
           if config[:items]
             item_type = config[:items][:type]
@@ -257,7 +257,7 @@ module RequestParser
           raise "Invalid type for body parameter: #{name}, expected array"
         end
   
-      when 'string', 'integer', 'boolean'
+      when "string", "integer", "boolean"
         result[name] = parse_value(value, config[:type], name)
   
       else
@@ -270,13 +270,13 @@ module RequestParser
   
   def parse_value(value, type, param_name)
     case type
-    when 'integer'
+    when "integer"
       Integer(value) rescue raise "Invalid integer for body parameter: #{param_name}"
-    when 'string'
+    when "string"
       value.is_a?(String) ? value : raise("Invalid string for body parameter: #{param_name}")
-    when 'boolean'
-      return true if value == true || value.to_s.downcase == 'true'
-      return false if value == false || value.to_s.downcase == 'false'
+    when "boolean"
+      return true if value == true || value.to_s.downcase == "true"
+      return false if value == false || value.to_s.downcase == "false"
       raise "Invalid boolean for body parameter: #{param_name}"
     else
       raise "Unsupported type for body parameter: #{param_name}"

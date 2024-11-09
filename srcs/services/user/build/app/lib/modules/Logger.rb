@@ -10,15 +10,15 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'logger'
+require "logger"
 
 module Logger
 
   LOG_LEVELS_MAP = {
-    'debug' => Logger::DEBUG,
-    'info' => Logger::INFO,
-    'warn' => Logger::WARN,
-    'error' => Logger::ERROR
+    "debug" => Logger::DEBUG,
+    "info" => Logger::INFO,
+    "warn" => Logger::WARN,
+    "error" => Logger::ERROR
   }.freeze
 
   def self.create(log_level, log_file)

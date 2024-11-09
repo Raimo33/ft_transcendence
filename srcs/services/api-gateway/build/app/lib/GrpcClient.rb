@@ -10,12 +10,12 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'grpc'
-require_relative '../proto/user_service_pb'
-require_relative '../proto/match_service_pb'
-require_relative '../proto/tournament_service_pb'
-require_relative './modules/ConfigLoader'
-require_relative './modules/Logger'
+require "grpc"
+require_relative "../proto/user_service_pb"
+require_relative "../proto/match_service_pb"
+require_relative "../proto/tournament_service_pb"
+require_relative "./modules/ConfigLoader"
+require_relative "./modules/Logger"
 
 class GrpcClient
   include ConfigLoader
@@ -24,10 +24,10 @@ class GrpcClient
   def initialize
     @config = ConfigLoader.config
     @logger = Logger.logger
-    @logger.info('Initializing grpc client')
+    @logger.info("Initializing grpc client")
 
     options = {
-      'grpc.compression_algorithm' => 'gzip'
+      "grpc.compression_algorithm" => "gzip"
     }
 
     user_credentials        = load_credentials(@config[:user_cert])
@@ -103,7 +103,7 @@ class GrpcClient
   end
 
   def close
-    @logger.info('Closing grpc client')
+    @logger.info("Closing grpc client")
     @stubs.each do |channel|
       channel&.close if defined?(channel) && channel.respond_to?(:close)
     end

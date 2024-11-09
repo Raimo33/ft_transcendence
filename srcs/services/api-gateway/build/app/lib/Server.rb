@@ -10,17 +10,17 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'async'
-require 'async/io'
-require 'async/queue'
-require 'async/semaphore'
-require_relative 'EndpointTree'
-require_relative 'SwaggerParser'
-require_relative 'JWTValidator'
-require_relative 'ClientHandler'
-require_relative 'GrpcClient'
-require_relative './modules/ConfigLoader'
-require_relative './modules/Logger'
+require "async"
+require "async/io"
+require "async/queue"
+require "async/semaphore"
+require_relative "EndpointTree"
+require_relative "SwaggerParser"
+require_relative "JWTValidator"
+require_relative "ClientHandler"
+require_relative "GrpcClient"
+require_relative "./modules/ConfigLoader"
+require_relative "./modules/Logger"
 
 class Server
   include ConfigLoader
@@ -30,10 +30,10 @@ class Server
     @config = ConfigLoader.config
     @logger = Logger.logger
 
-    @logger.info('Initializing server...')
+    @logger.info("Initializing server...")
     @grpc_client = GrpcClient.new
     @endpoint_tree = EndpointTree.new('')
-    @swagger_parser = SwaggerParser.new('/app/config/openapi.yaml')
+    @swagger_parser = SwaggerParser.new("/app/config/openapi.yaml")
     @rate_limiter = RateLimiter.new
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
@@ -51,7 +51,7 @@ class Server
 
   def run
     Sync do
-      @logger.info('Starting server...')
+      @logger.info("Starting server...")
       endpoint = Async::IO::Endpoint.tcp(@config[:bind_address], @config[:port])
       ssl_endpoint = Async::IO::Endpoint.ssl(endpoint, ssl_context)
       @logger.debug("Server listening on #{@config[:bind_address]}:#{@config[:port]}")
@@ -84,7 +84,7 @@ class Server
           client_handler = @clients.dequeue
           task.async { client_handler.process_requests }
         rescue StandardError => e
-          client_info = client_handler&.socket || 'unknown'
+          client_info = client_handler&.socket || "unknown"
           @logger.error("Unable to process client: #{client_info}: #{e}")
         end
       end

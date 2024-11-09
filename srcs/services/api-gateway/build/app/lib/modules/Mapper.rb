@@ -10,11 +10,11 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'grpc'
-require_relative '../proto/user_service_pb'
-require_relative '../proto/match_service_pb'
-require_relative '../proto/tournament_service_pb'
-require_relative './modules/Structs'
+require "grpc"
+require_relative "../proto/user_service_pb"
+require_relative "../proto/match_service_pb"
+require_relative "../proto/tournament_service_pb"
+require_relative "./modules/Structs"
 
 module Mapper
 

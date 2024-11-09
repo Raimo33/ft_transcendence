@@ -10,9 +10,9 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'grpc'
-require_relative './modules/ConfigLoader'
-require_relative './modules/Logger'
+require "grpc"
+require_relative "./modules/ConfigLoader"
+require_relative "./modules/Logger"
 
 class GrpcServer
   include ConfigLoader
@@ -22,7 +22,7 @@ class GrpcServer
     @logger = Logger.logger
     @config = ConfigLoader.config
 
-    @logger.info('Initializing gRPC server...')
+    @logger.info("Initializing gRPC server...")
     @server = GRPC::RpcServer.new
     @server.add_http2_port("#{@config[:host]}:#{@config[:port]}", load_ssl_context(@config[:user_key], @config[:user_cert]))
     @server.handle(UserServiceHandler)

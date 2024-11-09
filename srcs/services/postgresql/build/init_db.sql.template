@@ -1,8 +1,8 @@
 CREATE DATABASE pongfumasters WITH
 OWNER = --TODO: Add owner name here
-ENCODING = 'UTF8'
-LC_COLLATE = 'en_US.UTF-8'
-LC_CTYPE = 'en_US.UTF-8'
+ENCODING = "UTF8"
+LC_COLLATE = "en_US.UTF-8"
+LC_CTYPE = "en_US.UTF-8"
 TEMPLATE = template0
 CONNECTION LIMIT = -1;
 
@@ -69,13 +69,13 @@ CREATE INDEX idx_game_match_outcome_started_timestamp ON GameMatch(outcome, star
 CREATE INDEX idx_game_match_outcome_finished_timestamp ON GameMatch(outcome, finished_timestamp);
 
 
-CREATE TYPE tournament_play_mode AS ENUM ('single-elimination', 'knockout', 'king_of_the_hill', 'ladder', 'round_robin');
+CREATE TYPE tournament_play_mode AS ENUM ("single-elimination", "knockout", "king_of_the_hill", "ladder", "round_robin");
 CREATE TYPE tournament_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
 CREATE TABLE GameTournament
 (
     id                   uuid  NOT NULL,
-    play_mode            tournament_play_mode DEFAULT 'single-elimination' NOT NULL,
+    play_mode            tournament_play_mode DEFAULT "single-elimination" NOT NULL,
     current_status       tournament_status DEFAULT 'O' NOT NULL,
     started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
     finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
@@ -91,7 +91,7 @@ CREATE INDEX idx_game_tournament_mode_started_timestamp ON GameTournament(play_m
 CREATE INDEX idx_game_tournament_mode_finished_timestamp ON GameTournament(play_mode, finished_timestamp);
 
 
-CREATE TYPE friendship_status AS ENUM ('pending', 'accepted', 'blocked', 'rejected');
+CREATE TYPE friendship_status AS ENUM ("pending", "accepted", "blocked", "rejected");
 
 CREATE TABLE Friendships
 (

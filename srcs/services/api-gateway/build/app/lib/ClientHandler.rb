@@ -10,18 +10,18 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'async'
-require 'async/io'
-require 'async/queue'
-require 'async/barrier'
-require_relative './modules/ActionFailedException'
-require_relative 'BlockingPriorityQueue'
-require_relative 'JwtValidator'
-require_relative 'ConfigLoader'
-require_relative './modules/Logger'
-require_relative './modules/Mapper'
-require_relative './modules/RequestParser'
-require_relative './modules/Structs'
+require "async"
+require "async/io"
+require "async/queue"
+require "async/barrier"
+require_relative "./modules/ActionFailedException"
+require_relative "BlockingPriorityQueue"
+require_relative "JwtValidator"
+require_relative "ConfigLoader"
+require_relative "./modules/Logger"
+require_relative "./modules/Mapper"
+require_relative "./modules/RequestParser"
+require_relative "./modules/Structs"
 
 class ClientHandler
   include ConfigLoader
@@ -152,9 +152,9 @@ class ClientHandler
   end
 
   def extract_token(authorization_header)
-    raise ActionFailedException::BadRequest unless authorization_header&.start_with?('Bearer ')
+    raise ActionFailedException::BadRequest unless authorization_header&.start_with?("Bearer ")
 
-    authorization_header.sub('Bearer ', '').strip
+    authorization_header.sub("Bearer ", "").strip
   end
 
   def send_response(response)

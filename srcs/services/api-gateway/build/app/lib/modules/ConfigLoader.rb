@@ -13,14 +13,14 @@
 module ConfigLoader
 
   VALID_CONFIG_KEYS = {
-    :bind_address           => 'localhost',
+    :bind_address           => "localhost",
     :bind_port              => 8080,
-    :pid_file               => '/var/run/api_gateway.pid',
+    :pid_file               => "/var/run/api_gateway.pid",
     :auth_pub_key_url   => nil,
     :jwt_pub_key_ttl        => 3600,
-    :jwt_algorithm          => 'RS256',
+    :jwt_algorithm          => "RS256",
     :jwt_clock_skew         => 60,
-    :jwt_audience           => 'localhost',
+    :jwt_audience           => "localhost",
     :max_connections        => 1024,
     :max_body_size          => 1024 * 1024,
     :api_gateway_key        => nil,
@@ -31,12 +31,12 @@ module ConfigLoader
     :user_addr              => nil,
     :match_addr             => nil,
     :tournament_addr        => nil,
-    :log_level              => 'info',
-    :log_file               => '/var/log/api_gateway.log',
+    :log_level              => "info",
+    :log_file               => "/var/log/api_gateway.log",
   }.freeze
 
   def self.load(config_file)
-    raise "Invalid config file extension" unless File.extname(config_file) == '.conf'
+    raise "Invalid config file extension" unless File.extname(config_file) == ".conf"
     raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
 
     @config_file = config_file
@@ -53,7 +53,7 @@ module ConfigLoader
   end
 
   def self.load_minimal(config_file)
-    raise "Invalid config file extension" unless File.extname(config_file) == '.conf'
+    raise "Invalid config file extension" unless File.extname(config_file) == ".conf"
     raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
 
     config = {}

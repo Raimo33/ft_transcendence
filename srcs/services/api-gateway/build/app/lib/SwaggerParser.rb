@@ -10,10 +10,10 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'openapi3_parser'
-require_relative './modules/Structs'
-require_relative './modules/ConfigLoader'
-require_relative './modules/Logger'
+require "openapi3_parser"
+require_relative "./modules/Structs"
+require_relative "./modules/ConfigLoader"
+require_relative "./modules/Logger"
 
 class SwaggerParser
   include ConfigLoader
@@ -21,10 +21,10 @@ class SwaggerParser
 
   def initialize(file_path)
     @logger = Logger.logger
-    @logger.info('Parsing OpenAPI spec...')
+    @logger.info("Parsing OpenAPI spec...")
     @logger.debug("OpenAPI spec file path: #{file_path}")
     @openapi_spec = Openapi3Parser.load_file(file_path)
-    @logger.info('OpenAPI spec parsed')
+    @logger.info("OpenAPI spec parsed")
   rescue StandardError => e
     raise "Failed to parse OpenAPI spec: #{e}"
   end
@@ -40,7 +40,7 @@ class SwaggerParser
   def fill_rate_limiter(rate_limiter)
     @openapi_spec.paths.each do |path, path_item|
       path_item.operations.each do |http_method, operation|
-        rate_limiter.set_limit(operation.operation_id, operation['x-ratelimit-limit'], operation['x-ratelimit-interval'], operation['x-ratelimit-criteria'])
+        rate_limiter.set_limit(operation.operation_id, operation["x-ratelimit-limit"], operation["x-ratelimit-interval"], operation["x-ratelimit-criteria"])
       end
     end
   end
@@ -63,9 +63,9 @@ class SwaggerParser
 
   def extract_request(operation)
     ExpectedRequest.new.tap do |r|
-      r.allowed_path_params   = extract_request_params(operation, 'path')
-      r.allowed_query_params  = extract_request_params(operation, 'query')
-      r.allowed_headers       = extract_request_params(operation, 'header')
+      r.allowed_path_params   = extract_request_params(operation, "path")
+      r.allowed_query_params  = extract_request_params(operation, "query")
+      r.allowed_headers       = extract_request_params(operation, "header")
       r.allowed_body          = extract_request_body(operation)
     end
   end
@@ -88,7 +88,7 @@ class SwaggerParser
   def extract_request_body(operation)
     return nil unless operation.request_body
   
-    content = operation.request_body.content['application/json']
+    content = operation.request_body.content["application/json"]
     return nil unless content
   
     {

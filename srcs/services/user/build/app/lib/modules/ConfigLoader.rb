@@ -6,16 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 19:23:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 19:57:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 module ConfigLoader
 
   VALID_CONFIG_KEYS = {
-    :log_level                   => 'info',
-    :log_file                    => '/var/log/user.log',
-    :pid_file                    => '/var/run/user.pid',
+    :log_level                   => "info",
+    :log_file                    => "/var/log/user.log",
+    :pid_file                    => "/var/run/user.pid",
     :user_key                    => nil,
     :user_cert                   => nil,
     :query_cert                  => nil,
@@ -26,11 +26,12 @@ module ConfigLoader
     :redis_core_addr             => nil,
     :display_name_max_length     => 25,
     :display_name_min_length     => 3,
-    :display_name_bad_words_file => '/etc/default_display_name_bad_words.txt',
+    :display_name_format         => "^[a-zA-Z0-9_ ]+$",
+    :bad_words_file              => "/etc/default_bad_words.txt",
   }.freeze
 
   def self.load(config_file)
-    raise "Invalid config file extension" unless File.extname(config_file) == '.conf'
+    raise "Invalid config file extension" unless File.extname(config_file) == ".conf"
     raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
 
     @config_file = config_file
@@ -47,7 +48,7 @@ module ConfigLoader
   end
 
   def self.load_minimal(config_file)
-    raise "Invalid config file extension" unless File.extname(config_file) == '.conf'
+    raise "Invalid config file extension" unless File.extname(config_file) == ".conf"
     raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
 
     config = {}

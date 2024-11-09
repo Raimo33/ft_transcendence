@@ -10,7 +10,7 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'async'
+require "async"
 
 class BlockingPriorityQueue
   def initialize

@@ -10,10 +10,10 @@
 #                                                                              #
 # **************************************************************************** #
 
-require_relative 'GrpcClient'
-require_relative 'Server'
-require_relative './modules/Logger'
-require_relative './modules/ConfigLoader'
+require_relative "GrpcClient"
+require_relative "Server"
+require_relative "./modules/Logger"
+require_relative "./modules/ConfigLoader"
 
 class Orchestrator
   include ConfigLoader
@@ -37,10 +37,10 @@ class Orchestrator
   end
 
   def start_master
-    Signal.trap('SIGHUP') { reload_config }
-    Signal.trap('SIGTERM') { shutdown }
+    Signal.trap("SIGHUP") { reload_config }
+    Signal.trap("SIGTERM") { shutdown }
 
-    @logger.info('Starting worker process...')
+    @logger.info("Starting worker process...")
     spawn_worker
 
     sleep
@@ -71,21 +71,21 @@ class Orchestrator
     @config = new_config
 
     if @worker_pid
-      Process.kill('TERM', @worker_pid)
+      Process.kill("TERM", @worker_pid)
       Process.wait(@worker_pid)
       spawn_worker
     end
   rescue StandardError => e
     @logger.error("Error during config reload: #{e}")
-    @logger.info('Continuing with current configuration')
+    @logger.info("Continuing with current configuration")
   end
 
   def shutdown
-    @logger.info('Shutting down...')
+    @logger.info("Shutting down...")
     if @worker_pid
-      @logger.debug('Terminating worker process {}'.format(@worker_pid))
-      Process.kill('TERM', @worker_pid)
-      @logger.debug('Waiting for worker process {} to terminate'.format(@worker_pid))
+      @logger.debug("Terminating worker process {}".format(@worker_pid))
+      Process.kill("TERM", @worker_pid)
+      @logger.debug("Waiting for worker process {} to terminate".format(@worker_pid))
       Process.wait(@worker_pid)
     end
     exit 0

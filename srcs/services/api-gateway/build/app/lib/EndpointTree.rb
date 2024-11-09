@@ -10,7 +10,7 @@
 #                                                                              #
 # **************************************************************************** #
 
-require_relative './modules/Structs'
+require_relative "./modules/Structs"
 
 class EndpointTree
   attr_accessor :part, :children, :resources

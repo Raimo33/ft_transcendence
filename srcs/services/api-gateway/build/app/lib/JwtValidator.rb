@@ -10,14 +10,14 @@
 #                                                                              #
 # **************************************************************************** #
 
-require 'jwt'
-require 'net/http'
-require 'json'
-require 'base64'
-require 'openssl'
-require_relative '../proto/auth_service_pb'
-require_relative './modules/Logger'
-require_relative './modules/ConfigLoader'
+require "jwt"
+require "net/http"
+require "json"
+require "base64"
+require "openssl"
+require_relative "../proto/auth_service_pb"
+require_relative "./modules/Logger"
+require_relative "./modules/ConfigLoader"
 
 class JwtValidator
   include ConfigLoader
@@ -42,7 +42,7 @@ class JwtValidator
     decoded_token = decode_token(token)
     return false unless decoded_token
 
-    token_auth = decoded_token[0]['auth_level']
+    token_auth = decoded_token[0]["auth_level"]
     return token_auth >= expected_auth_level
   end 
 
@@ -50,7 +50,7 @@ class JwtValidator
     decoded_token = decode_token(token)
     return false unless decoded_token
 
-    decoded_token[0]['sub']
+    decoded_token[0]["sub"]
   end
 
   private
@@ -72,7 +72,7 @@ class JwtValidator
   
     return nil unless response&.certificate
   
-    @logger.debug('Parsing public key from JWKS')
+    @logger.debug("Parsing public key from JWKS")
     @public_key = OpenSSL::X509::Certificate.new(Base64.decode64(response.certificate)).public_key
     @algorithm = response.algorithm
     @last_fetched = Time.now
@@ -82,9 +82,9 @@ class JwtValidator
   end
 
   def validate_claims(decoded_token)
-    exp = decoded_token[0]['exp'] + @config[:jwt_clock_skew]
-    iat = decoded_token[0]['iat'] - @config[:jwt_clock_skew]
-    aud = decoded_token[0]['aud']
+    exp = decoded_token[0]["exp"] + @config[:jwt_clock_skew]
+    iat = decoded_token[0]["iat"] - @config[:jwt_clock_skew]
+    aud = decoded_token[0]["aud"]
 
     return false unless exp && iat && aud
     now = Time.now.to_i
