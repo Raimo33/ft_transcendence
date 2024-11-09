@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 23:05:24 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 11:42:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,44 @@ require_relative '../proto/tournament_service_pb'
 require_relative './modules/Structs'
 
 module Mapper
+
+  EXCEPTIONS_TO_STATUS_CODE_MAP = {
+    ActionFailedException::BadRequest          => 400,
+    ActionFailedException::Unauthorized        => 401,
+    ActionFailedException::Forbidden           => 403,
+    ActionFailedException::NotFound            => 404,
+    ActionFailedException::MethodNotAllowed    => 405,
+    ActionFailedException::RequestTimeout      => 408,
+    ActionFailedException::Conflict            => 409,
+    ActionFailedException::URITooLong          => 414,
+    ActionFailedException::TooManyRequests     => 429,
+    ActionFailedException::InternalServer      => 500,
+    ActionFailedException::NotImplemented      => 501,
+    ActionFailedException::BadGateway          => 502,
+    ActionFailedException::ServiceUnavailable  => 503,
+    ActionFailedException::GatewayTimeout      => 504
+  }.freeze
+
+  STATUS_CODE_TO_MESSAGE_MAP = {
+    200 => "OK",
+    201 => "Created",
+    204 => "No Content",
+    304 => "Not Modified",
+    400 => "Bad Request",
+    401 => "Unauthorized",
+    403 => "Forbidden",
+    404 => "Not Found",
+    405 => "Method Not Allowed",
+    408 => "Request Timeout",
+    409 => "Conflict",
+    414 => "URI Too Long",
+    429 => "Too Many Requests",
+    500 => "Internal Server Error",
+    501 => "Not Implemented",
+    502 => "Bad Gateway",
+    503 => "Service Unavailable",
+    504 => "Gateway Timeout"
+  }.freeze
 
   def self.map_request_to_grpc_request(request, operation_id, requesting_user_id)
     case operation_id
@@ -184,17 +222,21 @@ module Mapper
   def self.map_grpc_response_to_response(grpc_response, operation_id)
     case operation_id
     when "registerUser"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       user_id = grpc_response.user_id
-      body = { user_id: user_id } if user_id
+      body = { user_id: user_id }
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "private" if body,
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "private",
       }.compact
     
       Response.new(status_code, headers, body)    
     when "getUserProfile"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       user = grpc_response.user
       body = {
         user_id: user.user_id,
@@ -203,26 +245,30 @@ module Mapper
         status: user.status,
         last_active_timestamp: user.last_active_timestamp,
         registered_timestamp: user.registered_timestamp,
-      }.compact if user
+      }.compact
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "public, max-age=1800" if body,
-        "ETag" => grpc_response.etag if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "public, max-age=1800",
+        "ETag" => grpc_response.etag
       }.compact
     
       Response.new(status_code, headers, body)    
     when "getUserStatus"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       status = grpc_response.status
-      body = { status: status } if status
+      body = { status: status }
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "public, max-age=300" if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "public, max-age=300"
       }.compact
     
       Response.new(status_code, headers, body)    
     when "getUserMatches"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       matches = grpc_response.matches || []
       body = matches.map do |match|
         {
@@ -239,14 +285,16 @@ module Mapper
         }.compact
       end.presence || nil
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "public, max-age=300" if body,
-        "ETag" => grpc_response.etag if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "public, max-age=300",
+        "ETag" => grpc_response.etag
       }.compact
     
       Response.new(status_code, headers, body)    
     when "getUserTournaments"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       tournaments = grpc_response.tournaments || []
       body = tournaments.map do |tournament|
         {
@@ -259,20 +307,19 @@ module Mapper
         }.compact
       end.presence || nil
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "public, max-age=300" if body,
-        "ETag" => grpc_response.etag if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "public, max-age=300",
+        "ETag" => grpc_response.etag
       }.compact
     
       Response.new(status_code, headers, body)
     when "deleteAccount"
-      status_code = grpc_response.status_code
-      body = nil
-      headers = {}
-
-      Response.new(status_code, headers, body)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "getPrivateProfile"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       user = grpc_response.user
       body = {
         id: user.id,
@@ -283,81 +330,102 @@ module Mapper
         registered_timestamp: user.registered_timestamp,
         email: user.email,
         two_factor_auth_enabled: user.two_factor_auth_enabled
-      }.compact if user
+      }.compact
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "private, must-revalidate" if body,
-        "ETag" => grpc_response.etag if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "private, must-revalidate",
+        "ETag" => grpc_response.etag
       }.compact
 
       Response.new(status_code, headers, body)
     when "updateProfile"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "updatePassword"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "requestPasswordReset"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "checkPasswordResetToken"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "resetPassword"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "updateEmail"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "verifyEmail"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "checkEmailVerificationToken"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "enable2FA"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       totp_secret = grpc_response.totp_secret
-      body = { totp_secret: totp_secret } if totp_secret
+      body = { totp_secret: totp_secret }
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "no-store" if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "no-store"
       }.compact
 
       Response.new(status_code, headers, body)
     when "get2FAStatus"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       two_factor_auth_enabled = grpc_response.two_factor_auth_enabled
       body = { two_factor_auth_enabled: two_factor_auth_enabled } if two_factor_auth_enabled
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "private, no-cache" if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "private, no-cache"
       }.compact
 
       Response.new(status_code, headers, body)
     when "disable2FA"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "check2FACode"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "loginUser"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       jwt_token = grpc_response.jwt_token
-      body = { jwt_token: jwt_token } if jwt_token
+      body = { jwt_token: jwt_token }
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "no-store" if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "no-store"
       }.compact
 
       Response.new(status_code, headers, body)
     when "logoutUser"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "addFriend"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     when "getFriends"
-      status_code = grpc_response.status_code
+      status_code = grpc_response.status_code || 500
+      return Response.new(status_code, {}, nil) if status_code >= 400
+
       friend_ids = grpc_response.friend_ids
-      body = { friend_ids: friend_ids } if friend_ids
+      body = { friend_ids: friend_ids }
       headers = {
-        "Content-Length" => body.to_json.bytesize.to_s if body,
-        "Cache-Control" => "private, max-age=300" if body
-        "ETag" => grpc_response.etag if body
+        "Content-Length" => body.to_json.bytesize.to_s,
+        "Cache-Control" => "private, max-age=300"
+        "ETag" => grpc_response.etag
       }.compact
 
       Response.new(status_code, headers, body)
     when "removeFriend"
-      Response.new(grpc_response.status_code, {}, nil)
+      status_code = grpc_response.status_code || 500
+      Response.new(status_code, {}, nil)
     else
       raise ActionFailedException::NotImplemented
     end

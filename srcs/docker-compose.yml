@@ -38,7 +38,7 @@ services:
       - user_cert:/etc/ssl/certs/user.crt:ro
       - match_cert:/etc/ssl/certs/match.crt:ro
       - tournament_cert:/etc/ssl/certs/tournament.crt:ro
-      - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
+      - auth_cert:/etc/ssl/certs/auth.crt:ro
     secrets:
       - source: api_gateway_key
         target: /etc/ssl/private/api_gateway.key
@@ -64,7 +64,7 @@ services:
     environment:
     volumes:
       - user_cert:/etc/ssl/certs/user.crt:ro
-      - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
+      - auth_cert:/etc/ssl/certs/auth.crt:ro
       - query_cert:/etc/ssl/certs/query.crt:ro
       - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
     secrets:
@@ -133,20 +133,20 @@ services:
     depends_on:
     init: true
   
-  keycloak:
+  auth:
     build:
-      context: ./services/keycloak
+      context: ./services/auth
       dockerfile: Dockerfile
       args:
     
-    container_name: keycloak
+    container_name: auth
     environment:
     volumes:
-      - keycloak_cert:/etc/ssl/certs/keycloak.crt:ro
+      - auth_cert:/etc/ssl/certs/auth.crt:ro
       - redis-core_cert:/etc/ssl/certs/redis-core.crt:ro
     secrets:
-      - source: keycloak_key
-        target: /etc/ssl/certs/keycloak.key
+      - source: auth_key
+        target: /etc/ssl/certs/auth.key
         uid: #TODO uid
         mode: 0400
     ports:
@@ -479,7 +479,7 @@ volumes:
   user_cert:
   match_cert:
   tournament_cert:
-  keycloak_cert:
+  auth_cert:
   matchmaking_cert:
   game-state_cert:
   ai_cert:
@@ -500,7 +500,7 @@ secrets:
   user_key:         #self-signed
   match_key:        #self-signed
   tournament_key:   #self-signed
-  keycloak_key:     #self-signed
+  auth_key:     #self-signed
   matchmaking_key:  #self-signed
   game-state_key:   #self-signed
   ai_key:           #self-signed

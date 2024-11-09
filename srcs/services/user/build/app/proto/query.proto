@@ -5,5 +5,5 @@ package query;
 
 service QueryService
 {
-  
+  #TODO add rpcs
 }

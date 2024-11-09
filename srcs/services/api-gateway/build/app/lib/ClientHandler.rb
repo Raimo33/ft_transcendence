@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 22:59:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 11:51:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -157,35 +157,22 @@ class ClientHandler
     authorization_header.sub('Bearer ', '').strip
   end
 
-  def send_response(response)    
+  def send_response(response)
+    return send_error(500) unless response
+    return send_error(response.status_code) if response.status_code >= 400
+
     headers = response.headers.map { |k, v| "#{k}: #{v}" }.join("\r\n")
+    message = Mapper::STATUS_CODE_TO_MESSAGE_MAP[response.status_code] || "OK"
 
     @logger.info("Sending response with status code #{response.status_code}")
-    stream.write("HTTP/1.1 #{response.status_code}\r\n#{headers}\r\n\r\n#{response.body}")
+    stream.write("HTTP/1.1 #{response.status_code} #{message}\r\n#{headers}\r\n\r\n#{response.body}")
   end
-
+  
   def send_error(status_code)
-    message = nil
-
-    case status_code
-      when 400 then message = "Bad Request"
-      when 401 then message = "Unauthorized"
-      when 403 then message = "Forbidden"
-      when 404 then message = "Not Found"
-      when 405 then message = "Method Not Allowed"
-      when 408 then message = "Request Timeout"
-      when 414 then message = "URI Too Long"
-      when 429 then message = "Too Many Requests"
-      when 409 then message = "Conflict"
-      when 501 then message = "Not Implemented"
-      when 502 then message = "Bad Gateway"
-      when 503 then message = "Service Unavailable"
-      when 504 then message = "Gateway Timeout"
-      else          message = "Internal Server Error"
-    end
-
-    @logger.warn("Sending response with status code #{status_code}") 
-    stream.write("HTTP/1.1 #{status_code} #{message}\r\nContent-Length: 0\r\n\r\n")
+    message = Mapper::STATUS_CODE_TO_MESSAGE_MAP[status_code] || "Internal Server Error"
+    
+    @logger.warn("Sending response with status code #{status_code}")
+    stream.write("HTTP/1.1 #{status_code} #{message}\r\n\r\n")
   end
 
 end

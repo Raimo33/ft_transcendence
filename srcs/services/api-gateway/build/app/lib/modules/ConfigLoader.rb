@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 22:46:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 10:36:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ module ConfigLoader
     :bind_address           => 'localhost',
     :bind_port              => 8080,
     :pid_file               => '/var/run/api_gateway.pid',
-    :keycloak_pub_key_url   => nil,
+    :auth_pub_key_url   => nil,
     :jwt_pub_key_ttl        => 3600,
     :jwt_algorithm          => 'RS256',
     :jwt_clock_skew         => 60,

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 09:35:46 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 10:36:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,11 +30,11 @@ class JwtValidator
 
     @http = Net::HTTP.new(@config[:jwt_jwks_uri].split('/')[2], 443)
     @http.use_ssl = true
-    keycloak_cert = OpenSSL::X509::Certificate.new(File.read(@config[:keycloak_cert]))
+    auth_cert = OpenSSL::X509::Certificate.new(File.read(@config[:auth_cert]))
     @http.ssl_context = OpenSSL::SSL::SSLContext.new
     @http.ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
     @http.ssl_context.cert_store = OpenSSL::X509::Store.new
-    @http.ssl_context.cert_store.add_cert(keycloak_cert)
+    @http.ssl_context.cert_store.add_cert(auth_cert)
 
     @jwks_uri = URI(@config[:jwt_jwks_uri])
   end
