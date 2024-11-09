@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package auth;
+
+
+service ApiGatewayAuthService
+{
+  rpc GetJwks(GetJwksRequest) returns (GetJwksResponse) {}
+}
+
+message GetJwksRequest
+{
+}
+message GetJwksResponse
+{
+  string certificate = 1;
+  string algorithm = 2;
+}

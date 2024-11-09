@@ -6,19 +6,27 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 21:44:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 19:23:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 module ConfigLoader
 
   VALID_CONFIG_KEYS = {
-    :log_level    => 'info',
-    :log_file     => '/var/log/user.log',
-    :user_key     => nil,
-    :user_cert    => nil,
-    :query_cert   => nil,
-    :query_addr   => nil,
+    :log_level                   => 'info',
+    :log_file                    => '/var/log/user.log',
+    :pid_file                    => '/var/run/user.pid',
+    :user_key                    => nil,
+    :user_cert                   => nil,
+    :query_cert                  => nil,
+    :auth_cert                   => nil,
+    :redis_core_cert             => nil,
+    :query_addr                  => nil,
+    :auth_addr                   => nil,
+    :redis_core_addr             => nil,
+    :display_name_max_length     => 25,
+    :display_name_min_length     => 3,
+    :display_name_bad_words_file => '/etc/default_display_name_bad_words.txt',
   }.freeze
 
   def self.load(config_file)

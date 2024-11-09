@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 22:59:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 17:52:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,15 +33,18 @@ class GrpcClient
     user_credentials        = load_credentials(@config[:user_cert])
     match_credentials       = load_credentials(@config[:match_cert])
     tournament_credentials  = load_credentials(@config[:tournament_cert])
+    auth_credentials        = load_credentials(@config[:auth_cert])
 
     user_channel        = create_channel(@config[:user_addr], user_credentials)
     match_channel       = create_channel(@config[:match_addr], match_credentials)
     tournament_channel  = create_channel(@config[:tournament_addr], tournament_credentials)
+    auth_channel        = create_channel(@config[:auth_addr], auth_credentials)
 
     @stubs = {
       user: User::Stub.new(user_channel),
       match: Match::Stub.new(match_channel),
       tournament: Tournament::Stub.new(tournament_channel),
+      auth: Auth::Stub.new(auth_channel)
     }.freeze
 
     @request_mapping = {

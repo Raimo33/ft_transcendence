@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package auth;
+
+
+service UserAuthService
+{
+  rpc CheckDomain(CheckDomainRequest) returns (CheckDomainResponse) {}
+}
+
+message CheckDomainRequest
+{
+  string domain = 1;
+}
+message CheckDomainResponse
+{
+  bool is_allowed = 1;
+}
+

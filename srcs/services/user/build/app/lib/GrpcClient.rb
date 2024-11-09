@@ -6,13 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 23:00:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 18:18:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative '../proto/query_service_pb'
-require_relative '../proto/tournament_service_pb'
+require_relative '../proto/auth_service_pb'
 require_relative './modules/ConfigLoader'
 require_relative './modules/Logger'
 
@@ -30,11 +30,14 @@ class GrpcClient
     }
 
     query_credentials  = load_credentials(@config[:query_cert])
+    auth_credentials   = load_credentials(@config[:auth_cert])
 
     user_channel  = create_channel(@config[:query_addr], query_credentials)
+    auth_channel  = create_channel(@config[:auth_addr], auth_credentials)
 
     @stubs = {
       query: QueryService::Stub.new(user_channel),
+      auth: AuthService::Stub.new(auth_channel)
     }.freeze
 
     @request_mapping = {

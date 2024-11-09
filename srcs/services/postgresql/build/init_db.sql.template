@@ -6,7 +6,7 @@ LC_CTYPE = 'en_US.UTF-8'
 TEMPLATE = template0
 CONNECTION LIMIT = -1;
 
-\c ${DB_NAME}
+\c pongfumasters
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TYPE user_status AS ENUM ('O', 'F'); -- O: online, F: offline
@@ -27,7 +27,8 @@ CREATE TABLE User
     CONSTRAINT unq_usr_email UNIQUE (email),
     CONSTRAINT unq_usr_display_name UNIQUE (display_name),
 
-    CONSTRAINT chk_email CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
+    CONSTRAINT chk_email CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$'),
+    CONSTRAINT chk_display_name CHECK (LENGTH(display_name) <= 25 AND LENGTH(display_name) > 3 AND display_name ~ '^[a-zA-Z0-9_]+$'),
     CONSTRAINT chk_avatar CHECK (LENGTH(avatar) <= 5242880),
     CONSTRAINT chk_last_active_timestamp CHECK (last_active_timestamp <= NOW()),
     CONSTRAINT chk_registered_timestamp CHECK (registered_timestamp <= NOW())

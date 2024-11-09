@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 10:36:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 18:23:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ require 'net/http'
 require 'json'
 require 'base64'
 require 'openssl'
+require_relative '../proto/auth_service_pb'
 require_relative './modules/Logger'
 require_relative './modules/ConfigLoader'
 
@@ -22,21 +23,12 @@ class JwtValidator
   include ConfigLoader
   include Logger
 
-  def initialize(config)
+  def initialize(config, grpc_client)
     @config = config
     @logger = Logger.logger
+    @grpc_client = grpc_client
     @public_key = nil
     @last_fetched = nil
-
-    @http = Net::HTTP.new(@config[:jwt_jwks_uri].split('/')[2], 443)
-    @http.use_ssl = true
-    auth_cert = OpenSSL::X509::Certificate.new(File.read(@config[:auth_cert]))
-    @http.ssl_context = OpenSSL::SSL::SSLContext.new
-    @http.ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    @http.ssl_context.cert_store = OpenSSL::X509::Store.new
-    @http.ssl_context.cert_store.add_cert(auth_cert)
-
-    @jwks_uri = URI(@config[:jwt_jwks_uri])
   end
 
   def token_valid?(token)
@@ -66,7 +58,7 @@ class JwtValidator
   def decode_token(token)
     public_key = fetch_public_key
 
-    JWT.decode(token, public_key, true, { algorithm: @config[:jwt_algorithm] })
+    JWT.decode(token, public_key, true, { algorithm: @algorithm })
   rescue StandardError => e
     @logger.error("Failed to decode token: #{e}")
     nil
@@ -74,15 +66,15 @@ class JwtValidator
 
   def fetch_public_key
     return @public_key if @public_key && (Time.now - @last_fetched < @config[:jwt_key_refresh_interval])
-
-    @logger.debug("Fetching JWKS from #{@jwks_uri}")
-    response = @http.get(@jwks_uri)
-    jwks = JSON.parse(response.body)
-
-    return nil unless jwks&.dig('keys', 0, 'x5c', 0)
-
+  
+    @logger.debug("Fetching JWKS from Auth service")
+    response = @grpc_client.call(ApiGatewayAuthService::GetJwksRequest.new)
+  
+    return nil unless response&.certificate
+  
     @logger.debug('Parsing public key from JWKS')
-    @public_key = OpenSSL::X509::Certificate.new(Base64.decode64(jwks['keys'][0]['x5c'][0])).public_key
+    @public_key = OpenSSL::X509::Certificate.new(Base64.decode64(response.certificate)).public_key
+    @algorithm = response.algorithm
     @last_fetched = Time.now
     @public_key
   rescue StandardError => e
