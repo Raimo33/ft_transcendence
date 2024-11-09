@@ -8,11 +8,12 @@ CONNECTION LIMIT = -1;
 
 \c ${DB_NAME}
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TYPE user_status AS ENUM ('O', 'F'); -- O: online, F: offline
 
-CREATE  TABLE User
+CREATE TABLE User
 (
-    id                     uuid  NOT NULL,
+    id                     uuid  NOT NULL DEFAULT gen_random_uuid(),
     email                  text  NOT NULL,
     psw                    text  NOT NULL,
     display_name           varchar(25) NOT NULL,
@@ -37,7 +38,7 @@ CREATE INDEX idx_usr_last_active_timestamp ON User(last_active_timestamp);
 
 CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
-CREATE  TABLE GameMatch
+CREATE TABLE GameMatch
 (
     id                   uuid NOT NULL,
     current_status       match_status DEFAULT 'O' NOT NULL,
@@ -70,7 +71,7 @@ CREATE INDEX idx_game_match_outcome_finished_timestamp ON GameMatch(outcome, fin
 CREATE TYPE tournament_play_mode AS ENUM ('single-elimination', 'knockout', 'king_of_the_hill', 'ladder', 'round_robin');
 CREATE TYPE tournament_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
-CREATE  TABLE GameTournament
+CREATE TABLE GameTournament
 (
     id                   uuid  NOT NULL,
     play_mode            tournament_play_mode DEFAULT 'single-elimination' NOT NULL,
@@ -108,7 +109,7 @@ CREATE INDEX idx_friendships_user1_status ON Friendships(user_id_1, status);
 CREATE INDEX idx_friendships_user2_status ON Friendships(user_id_2, status);
 
 
-CREATE  TABLE UserMatches
+CREATE TABLE UserMatches
 (
     user_id              uuid  NOT NULL,
     match_id             uuid  NOT NULL,
@@ -123,7 +124,7 @@ CREATE INDEX idx_usermatches_user_id ON UserMatches(user_id);
 CREATE INDEX idx_usermatches_match_id_position ON UserMatches(match_id, position);
 
 
-CREATE  TABLE UserTournaments
+CREATE TABLE UserTournaments
 (
     user_id              uuid  NOT NULL,
     tournament_id        uuid  NOT NULL,

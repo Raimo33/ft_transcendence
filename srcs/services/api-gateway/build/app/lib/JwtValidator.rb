@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 22:59:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 09:35:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,7 +74,6 @@ class JwtValidator
 
   def fetch_public_key
     return @public_key if @public_key && (Time.now - @last_fetched < @config[:jwt_key_refresh_interval])
-    @logger.debug('Fetching public key from JWKS endpoint')
 
     @logger.debug("Fetching JWKS from #{@jwks_uri}")
     response = @http.get(@jwks_uri)
