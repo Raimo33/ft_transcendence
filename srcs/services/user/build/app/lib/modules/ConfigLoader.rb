@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 19:57:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 23:47:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,15 @@ module ConfigLoader
     :redis_core_addr             => nil,
     :display_name_max_length     => 25,
     :display_name_min_length     => 3,
-    :display_name_format         => "^[a-zA-Z0-9_ ]+$",
+    :display_name_charset        => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_",
+    :password_min_length         => 8,
+    :password_max_length         => 64,
+    :password_charset            => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*-_=+,.<>?",
+    :password_special_charset    => "!@#$%&*-_=+,.<>?",
+    :password_min_uppercase      => 1,
+    :password_min_lowercase      => 1,
+    :password_min_digits         => 1,
+    :password_min_special        => 1,
     :bad_words_file              => "/etc/default_bad_words.txt",
   }.freeze
 

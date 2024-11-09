@@ -6,10 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 10:36:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 00:10:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
+#TODO REFACTOR: hash of hashes for VALID_CONFIG_KEYS e come struct @config
 module ConfigLoader
 
   VALID_CONFIG_KEYS = {

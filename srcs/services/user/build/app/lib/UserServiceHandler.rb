@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 20:01:35 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:04:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/09 23:47:24 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,21 +74,27 @@ class UserServiceHandler < UserService::Service
   end
 
   def check_display_name(display_name)
-    @min_length  ||= @config[:display_name_min_length]
-    @max_length  ||= @config[:display_name_max_length]
-    @format      ||= Regexp.new(@config[:display_name_format])
+    @dn_format ||= crete_regex_format(@config[:display_name_charset], @config[:display_name_min_length], @config[:display_name_max_length])
 
-    raise "Invalid display name length" unless request.display_name.length.between?(@min_length, @max_length)
-    raise "Invalid display name format" unless @format.match?(display_name)
-
+    raise "Invalid display name format" unless @dn_format.match?(display_name)
     @bad_words.each do |word|
       raise "Invalid display name" if display_name.downcase.include?(word)
     end
   end
 
   def check_password(password)
-    #TODO check password format
+    @psw_format ||= create_regex_format(@config[:password_charset], @config[:password_min_length], @config[:password_max_length])
+  
+    raise "Invalid password format" unless @psw_format.match?(password)
+  
+    raise "Invalid password format" unless password.scan(/[A-Z]/).count >= @config[:password_min_uppercase]
+    raise "Invalid password format" unless password.scan(/[a-z]/).count >= @config[:password_min_lowercase]
+    raise "Invalid password format" unless password.scan(/[0-9]/).count >= @config[:password_min_digits]
+  
+    special_chars = @config[:password_special_chars]
+    raise "Invalid password format" unless password.scan(/[#{Regexp.escape(special_chars)}]/).count >= @config[:password_min_special]
   end
+  
 
   def check_avatar(avatar)
     #TODO formato + size
@@ -102,6 +108,11 @@ class UserServiceHandler < UserService::Service
     File.readlines(@config[:bad_words_file]).map(&:strip).map(&:downcase)
   rescue StandardError => e
     @logger.error("Failed to load bad words: #{e}")
+  end
+
+  def create_regex_format(charset, min_length, max_length)
+    charset = Regexp.escape(charset)
+    Regexp.new("^[#{charset}]{#{min_length},#{max_length}}$")
   end
 
 end
