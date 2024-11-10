@@ -6,13 +6,17 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/07 18:16:50 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 13:40:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 18:12:17 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-module RequestParser
+class RequestParser
 
-  def self.parse_request(buffer, endpoint_tree, config)
+  def initialize
+    @logger = ConfigurableLogger.instance.logger
+  end
+
+  def parse_request(buffer, endpoint_tree, config)
     request = Request.new
 
     header_end = buffer.index("\r\n\r\n")

@@ -6,38 +6,37 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 18:18:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 18:16:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
+require_relative "ConfigLoader"
 require_relative "../proto/query_service_pb"
 require_relative "../proto/auth_service_pb"
-require_relative "./modules/ConfigLoader"
-require_relative "./modules/Logger"
+require_relative "ConfigurableLogger"
 
 class GrpcClient
-  include ConfigLoader
-  include Logger
+  
 
   def initialize
     @config = ConfigLoader.config
-    @logger = Logger.logger
+    @logger = ConfigurableLogger.instance.logger
     @logger.info("Initializing grpc client")
 
     options = {
       "grpc.compression_algorithm" => "gzip"
     }
 
-    query_credentials  = load_credentials(@config[:query_cert])
-    auth_credentials   = load_credentials(@config[:auth_cert])
+    query_credentials  = load_credentials(@config[credentials][:certs][:query])
+    auth_credentials   = load_credentials(@config[credentials][:certs][:auth])
 
-    user_channel  = create_channel(@config[:query_addr], query_credentials)
-    auth_channel  = create_channel(@config[:auth_addr], auth_credentials)
+    user_channel  = create_channel(@config[:addresses][:query], query_credentials)
+    auth_channel  = create_channel(@config[:addresses][:auth], auth_credentials)
 
     @stubs = {
-      query: QueryService::Stub.new(user_channel),
-      auth: AuthService::Stub.new(auth_channel)
+      query:  QueryService::Stub.new(user_channel),
+      auth:   AuthService::Stub.new(auth_channel)
     }.freeze
 
     @request_mapping = {

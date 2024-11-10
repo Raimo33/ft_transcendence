@@ -6,39 +6,37 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 17:52:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 18:12:17 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
+require_relative "ConfigLoader"
+require_relative "ConfigurableLogger"
 require_relative "../proto/user_service_pb"
 require_relative "../proto/match_service_pb"
 require_relative "../proto/tournament_service_pb"
-require_relative "./modules/ConfigLoader"
-require_relative "./modules/Logger"
 
 class GrpcClient
-  include ConfigLoader
-  include Logger
 
   def initialize
-    @config = ConfigLoader.config
-    @logger = Logger.logger
+    @config = ConfigLoader.instance.config
+    @logger = ConfigurableLogger.instance.logger
     @logger.info("Initializing grpc client")
 
     options = {
       "grpc.compression_algorithm" => "gzip"
     }
 
-    user_credentials        = load_credentials(@config[:user_cert])
-    match_credentials       = load_credentials(@config[:match_cert])
-    tournament_credentials  = load_credentials(@config[:tournament_cert])
-    auth_credentials        = load_credentials(@config[:auth_cert])
+    user_credentials        = load_credentials(@config[:credentials][:certs][:user])
+    match_credentials       = load_credentials(@config[:credentials][:certs][:match])
+    tournament_credentials  = load_credentials(@config[:credentials][:certs][:tournament])
+    auth_credentials        = load_credentials(@config[:credentials][:certs][:auth])
 
-    user_channel        = create_channel(@config[:user_addr], user_credentials)
-    match_channel       = create_channel(@config[:match_addr], match_credentials)
-    tournament_channel  = create_channel(@config[:tournament_addr], tournament_credentials)
-    auth_channel        = create_channel(@config[:auth_addr], auth_credentials)
+    user_channel        = create_channel(@config[:addresses][:user], user_credentials)
+    match_channel       = create_channel(@config[:addresses][:match], match_credentials)
+    tournament_channel  = create_channel(@config[:addresses][:tournament], tournament_credentials)
+    auth_channel        = create_channel(@config[:addresses][:auth], auth_credentials)
 
     @stubs = {
       user: User::Stub.new(user_channel),

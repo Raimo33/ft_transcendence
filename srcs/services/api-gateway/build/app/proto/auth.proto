@@ -13,6 +13,6 @@ message GetJwksRequest
 }
 message GetJwksResponse
 {
-  string certificate = 1;
-  string algorithm = 2;
+  required string certificate  = 1;
+  required string algorithm    = 2;
 }

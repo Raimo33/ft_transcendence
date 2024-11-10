@@ -6,27 +6,25 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 20:01:35 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 23:47:24 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 18:25:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
 require "async"
 require "email_validator"
-require_relative "./modules/Logger"
-require_relative "./modules/ConfigLoader"
+require_relative "ConfigLoader"
+require_relative "ConfigurableLogger"
 require_relative "../proto/user_service_pb"
 
 class UserServiceHandler < UserService::Service
-  include Logger
-  include ConfigLoader
+  
   include EmailValidator
 
   def initialize(grpc_client)
     @grpc_client = grpc_client
-    @logger = Logger.logger
+    @logger = ConfigurableLogger.instance.logger
     @config = ConfigLoader.config
-    @bad_words = load_bad_words
   end
 
   def register_user(request, _metadata)
@@ -38,8 +36,8 @@ class UserServiceHandler < UserService::Service
     Async do |task|
       task.async { check_email(request.email) }
       task.async { check_password(request.password) }
+      task.async { check_avatar(request.avatar) } if request.avatar
       check_display_name(request.display_name)
-      check_avatar(request.avatar) if request.avatar
     rescue StandardError => e
       @logger.error("Failed to validate user data: #{e}")
       return UserService::RegisterUserResponse.new(status_code: 400)
@@ -74,45 +72,65 @@ class UserServiceHandler < UserService::Service
   end
 
   def check_display_name(display_name)
-    @dn_format ||= crete_regex_format(@config[:display_name_charset], @config[:display_name_min_length], @config[:display_name_max_length])
+    @dn_format       ||= crete_regex_format(@config[:display_name][:min_length], @config[:display_name][:max_length], @config[:display_name][:charset], @config[:display_name][:policy])
+    @dn_banned_words ||= load_words(@config[:display_name][:banned_words_file]).map(&:downcase).freeze
 
-    raise "Invalid display name format" unless @dn_format.match?(display_name)
-    @bad_words.each do |word|
+    raise "Invalid display name format" unless @dn_format =~ display_name
+    @banned_words.each do |word|
       raise "Invalid display name" if display_name.downcase.include?(word)
     end
   end
 
   def check_password(password)
-    @psw_format ||= create_regex_format(@config[:password_charset], @config[:password_min_length], @config[:password_max_length])
-  
-    raise "Invalid password format" unless @psw_format.match?(password)
-  
-    raise "Invalid password format" unless password.scan(/[A-Z]/).count >= @config[:password_min_uppercase]
-    raise "Invalid password format" unless password.scan(/[a-z]/).count >= @config[:password_min_lowercase]
-    raise "Invalid password format" unless password.scan(/[0-9]/).count >= @config[:password_min_digits]
-  
-    special_chars = @config[:password_special_chars]
-    raise "Invalid password format" unless password.scan(/[#{Regexp.escape(special_chars)}]/).count >= @config[:password_min_special]
+    @psw_format           ||= create_regex_format(@config[:password][:min_length], @config[:password][:max_length], @config[:password][:charset], @config[:password][:policy])
+    @psw_banned_passwords ||= load_words(@config[:password][:banned_passwords_file]).map(&:downcase).freeze
+
+    raise "Invalid password format" unless @psw_format =~ password
+    @psw_banned_passwords.each do |banned_password|
+      raise "Invalid password" if password == banned_password
+    end
   end
-  
 
   def check_avatar(avatar)
-    #TODO formato + size
+    return unless avatar
+
+    decoded_image = @image_decoder.decode(avatar)
+
+    raise "Invalid avatar" unless decoded_image
+    #TODO check dimensioni file e formato immagine (512x512, jpeg/png)
   end
 
   def hash_password(password)
     #TODO hash password (auth? async?)
   end
 
-  def load_bad_words
-    File.readlines(@config[:bad_words_file]).map(&:strip).map(&:downcase)
+  def load_words(file)
+    File.readlines(file).map { |line| line.strip.chomp }
   rescue StandardError => e
-    @logger.error("Failed to load bad words: #{e}")
+    @logger.error("Failed to load words from file #{file}: #{e}")
   end
 
-  def create_regex_format(charset, min_length, max_length)
-    charset = Regexp.escape(charset)
-    Regexp.new("^[#{charset}]{#{min_length},#{max_length}}$")
+  def create_regex_format(min_length, max_length, charset, policy)
+    length_regex = "^.{#{min_length},#{max_length}}$"
+
+    lowercase_pattern  = "[#{charset[:lowercase]}]"
+    uppercase_pattern  = "[#{charset[:uppercase]}]"
+    digits_pattern     = "[#{charset[:digits]}]"
+    special_pattern    = "[#{charset[:special]}]"
+
+    min_uppercase    = "(?=(.*#{uppercase_pattern}){#{policy[:min_uppercase]},})"
+    min_lowercase    = "(?=(.*#{lowercase_pattern}){#{policy[:min_lowercase]},})"
+    min_digits       = "(?=(.*#{digits_pattern}){#{policy[:min_digits]},})"
+    min_special      = "(?=(.*#{special_pattern}){#{policy[:min_special]},})"
+
+    final_regex = "^#{length_regex}#{min_uppercase}#{min_lowercase}#{min_digits}#{min_special}$"
+
+    final_regex
+  end
+
+  def decode_image(image)
+    #TODO decode image class con piu formati supportati (guardare conf)
+    #TODO ASYNC
   end
 
 end

@@ -9,88 +9,88 @@ service TournamentService
   rpc CreateTournament      (CreateTournamentRequest)     returns (CreateTournamentResponse) {}
   rpc JoinTournament        (JoinTournamentRequest)       returns (JoinTournamentResponse) {}
   rpc GetTournament         (GetTournamentRequest)        returns (GetTournamentResponse) {}
-  rpc LeaveTournament     (LeaveTournamentRequest)    returns (LeaveTournamentResponse) {}
+  rpc LeaveTournament       (LeaveTournamentRequest)      returns (LeaveTournamentResponse) {}
 }
 
 message Tournament
 {
-  string             id = 1;
-  string             mode = 2;
-  repeated string    match_ids = 3;
-  string             status = 4;
-  uint64             started_timestamp = 5;
-  optional uint64    finished_timestamp = 6;
+  required string           id                  = 1;
+  required string           mode                = 2;
+  required repeated string  match_ids           = 3;
+  required string           status              = 4;
+  required uint64           started_timestamp   = 5;
+  optional uint64           finished_timestamp  = 6;
 }
 
 message PlayerTournamentFilters
 {
-  optional string   mode = 1;
-  optional string   status = 2;
+  optional string   mode    = 1;
+  optional string   status  = 2;
 }
 
 // v1/users/{user_id}/tournaments GET
 message GetUserTournamentsRequest
 {
-  string                              requesting_user_id = 1;
-  string                              user_id = 2;
-  optional uint32                     limit = 3;
-  optional uint32                     offset = 4;
-  optional string                     sort_by = 5;
-  optional PlayerTournamentFilters    filters = 6;
-  optional string                     etag = 7;
+  required string                     requesting_user_id  = 1;
+  required string                     user_id             = 2;
+  optional uint32                     limit               = 3;
+  optional uint32                     offset              = 4;
+  optional string                     sort_by             = 5;
+  optional PlayerTournamentFilters    filters             = 6;
+  optional string                     etag                = 7;
 }
 message GetUserTournamentsResponse
 {
-  uint16                        status_code = 1;
+  required uint16               status_code = 1;
   optional repeated Tournament  tournaments = 2;
-  string                        etag = 3;
+  required string               etag        = 3;
 }
 
 // v1/tournaments POST
 message CreateTournamentRequest
 {
-  string           requesting_user_id = 1;
-  repeated string  invided_users_ids = 2;
-  optional string  mode = 3;
+  required string           requesting_user_id  = 1;
+  required repeated string  invided_users_ids   = 2;
+  optional string           mode                = 3;
 }
 message CreateTournamentResponse
 {
-  uint16           status_code = 1;
-  optional string  tournament_id = 2;
+  required uint16  status_code    = 1;
+  optional string  tournament_id  = 2;
 }
 
 // v1/tournaments/{tournament_id} POST
 message JoinTournamentRequest
 {
-  string  requesting_user_id = 1;
-  string  tournament_id = 2;
+  required string  requesting_user_id = 1;
+  required string  tournament_id      = 2;
 }
 message JoinTournamentResponse
 {
-  uint16  status_code = 1;
+  required uint16  status_code = 1;
 }
 
 // v1/tournaments/{tournament_id} GET
 message GetTournamentRequest
 {
-  string          requesting_user_id = 1;
-  string          tournament_id = 2;
-  optional string etag = 3;
+  required string requesting_user_id  = 1;
+  required string tournament_id       = 2;
+  optional string etag                = 3;
 }
 message GetTournamentResponse
 {
-  uint16              status_code = 1;
-  optional Tournament tournament = 2;
-  string              etag = 3;
+  required uint16     status_code   = 1;
+  optional Tournament tournament    = 2;
+  required string     etag          = 3;
 }
 
 // v1/tournaments/{tournament_id} DELETE
 message LeaveTournamentRequest
 {
-  string requesting_user_id = 1;
-  string tournament_id = 2;
+  required string requesting_user_id  = 1;
+  required string tournament_id       = 2;
 }
 message LeaveTournamentResponse
 {
-  uint16 status_code = 1;
+  required uint16 status_code = 1;
 }

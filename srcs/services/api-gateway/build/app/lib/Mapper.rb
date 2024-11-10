@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 11:42:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 17:53:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,8 @@ require_relative "../proto/match_service_pb"
 require_relative "../proto/tournament_service_pb"
 require_relative "./modules/Structs"
 
-module Mapper
+class Mapper
+  include Singleton
 
   EXCEPTIONS_TO_STATUS_CODE_MAP = {
     ActionFailedException::BadRequest          => 400,
@@ -56,7 +57,11 @@ module Mapper
     504 => "Gateway Timeout"
   }.freeze
 
-  def self.map_request_to_grpc_request(request, operation_id, requesting_user_id)
+  def initialize
+  
+  end
+
+  def map_request_to_grpc_request(request, operation_id, requesting_user_id)
     case operation_id
     when "registerUser"
       UserService::RegisterUserRequest.new(
@@ -219,7 +224,7 @@ module Mapper
   end
 
   #NOTE: Rate limiting headers are added later on a client-basis in the ClientHandler
-  def self.map_grpc_response_to_response(grpc_response, operation_id)
+  def map_grpc_response_to_response(grpc_response, operation_id)
     case operation_id
     when "registerUser"
       status_code = grpc_response.status_code || 500

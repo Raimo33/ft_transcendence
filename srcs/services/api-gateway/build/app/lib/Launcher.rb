@@ -6,16 +6,15 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 22:59:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 17:43:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "optparse"
+require_relative "ConfigLoader"
 require_relative "Orchestrator"
-require_relative "./modules/ConfigLoader"
 
 class Launcher
-  include ConfigLoader
 
   DEFAULT_CONFIG_FILE = "/etc/api_gateway/conf.d/default.conf"
   DEFAULT_PID_FILE = "/var/run/api_gateway.pid"
@@ -24,7 +23,7 @@ class Launcher
     @options = parse_options(args)
     @config_file = @options[:config_file] || DEFAULT_CONFIG_FILE
 
-    minimal_config = ConfigLoader.load_minimal(@config_file)
+    config = ConfigLoader.instance.load(@config_file)
     @pid_file = config[:pid_file] || DEFAULT_PID_FILE
   rescue StandardError => e
     STDERR.puts "Error during initialization: #{e}"
@@ -66,7 +65,6 @@ class Launcher
   end
 
   def launch
-    ConfigLoader.load(@config_file)
     File.write(@@pid_file, Process.pid)
 
     begin
@@ -80,7 +78,7 @@ class Launcher
 
   def test_config
     begin
-      ConfigLoader.load(@config_file)
+      ConfigLoader.instance.load(@config_file)
       puts "Configuration file #{@config_file} is valid."
     rescue StandardError => e
       STDERR.puts "Configuration file test failed: #{e}"

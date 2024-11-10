@@ -6,33 +6,27 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 22:39:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/10 18:16:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative "GrpcClient"
 require_relative "Server"
-require_relative "./modules/Logger"
-require_relative "./modules/ConfigLoader"
+require_relative "ConfigLoader"
+require_relative "ConfigurableLogger"
 
 class Orchestrator
-  include ConfigLoader
-  include Logger
 
   def initialize
-    @logger = Logger.new(STDOUT)
-
     @config = ConfigLoader.config
     @worker_pid = nil
     @master_pid = Process.pid
 
-    @logger.close
-    Logger.create(@config[:log_file], @config[:log_level])
-    @logger = Logger.logger
+    ConfigurableLogger.instance(@config[:log_level], @config[:log_output])
+    @logger = ConfigurableLogger.instance.logger
 
   rescue StandardError => e
-    @logger.fatal("Error during initialization: #{e}")
-    @logger.debug(e.backtrace.join("\n"))
+    STDERR.puts "Error during initialization: #{e}"
     exit 1
   end
 
