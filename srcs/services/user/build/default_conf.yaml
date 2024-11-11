@@ -12,12 +12,12 @@ credentials:
     user:       /etc/ssl/certs/user.crt
     query:      /etc/ssl/certs/query.crt
     auth:       /etc/ssl/certs/auth.crt
-    redis_core: /etc/ssl/certs/redis_core.crt
+    redis: /etc/ssl/certs/redis.crt
 
 addresses:
-  query:        uery.corenet:50052
-  auth:         auth.corenet:50052
-  redis_core:   redis_core:6379
+  query: query.datanet:50052
+  auth:  auth.corenet:50052
+  redis: redis.datanet:6379
 
 display_name:
   min_length: 3

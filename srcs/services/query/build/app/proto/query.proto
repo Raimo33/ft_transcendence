@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package query;
+
+
+service QueryService
+{
+  rpc Create(CreateRequest)  returns (CreateResponse);
+  rpc Read(ReadRequest)      returns (ReadResponse);
+  rpc Update(UpdateRequest)  returns (UpdateResponse);
+  rpc Delete(DeleteRequest)  returns (DeleteResponse);
+}
+
+
+message CreateRequest
+{
+  required string               table_name  = 1;
+  required map<string, string>  values      = 2;
+}
+message CreateResponse
+{
+  enum status
+  {
+    OK                        = 0;
+    INVALID_TABLE             = 1;
+    DUPLICATE_ENTRY           = 2;
+    FOREIGN_KEY_VIOLATION     = 3;
+    CHECK_VIOLATION           = 4;
+    SYNTAX_ERROR              = 5;
+    UNDEFINED_TABLE           = 6;
+    UNDEFINED_COLUMN          = 7;
+    UNDEFINED_FUNCTION        = 8;
+    INVALID_DATA_TYPE         = 18;
+    NULL_VALUE_NOT_ALLOWED    = 19;
+    DATA_OUT_OF_RANGE         = 20;
+    VALIDATION_ERROR          = 21;
+    INTERNAL_ERROR            = 22;
+  }
+
+  required Status status = 1;
+  required string message = 2;
+}
+
+message ReadRequest
+{
+  required string      table_name  = 1;
+  map<string, string>  filters     = 2;
+  string               sort_by     = 3;
+  int32                limit       = 4;
+  int32                offset      = 5;
+}
+message ReadResponse
+{
+  enum Status
+  {
+    OK                      = 0;
+    NO_RESULTS              = 1;
+    INVALID_QUERY           = 2;
+    INVALID_FILTERS         = 3;
+    INVALID_SORT_BY         = 4;
+    MALFORMED_REQUEST       = 5;
+    QUERY_TOO_COMPLEX       = 6;
+    UNKNOWN_ERROR           = 7;
+  }
+  
+  required Status              status = 1;
+  repeated map<string, string> records = 1;
+}
+
+message UpdateRequest
+{
+  required string               table_name  = 1;
+  required map<string, string>  values      = 2;
+  required map<string, string>  conditions  = 3;
+}
+message UpdateResponse
+{
+  bool success = 1;
+  string message = 2;
+}
+
+message DeleteRequest
+{
+  required string               table_name = 1;
+  required map<string, string>  conditions = 2;
+}
+message DeleteResponse
+{
+  bool success = 1;
+  string message = 2;
+}
+
+
+
+
+
