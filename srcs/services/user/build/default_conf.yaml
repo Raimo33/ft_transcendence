@@ -45,14 +45,14 @@ password:
   banned_passwords_file: /etc/default_banned_passwords.txt
 
 avatar:
-  max_size: 1048576
+  max_size: 5242880
   max_dimensions:
     width:  512
     height: 512
   allowed_types:
     - image/jpeg
     - image/png
-    - image/gif
-    - image/bmp
     - image/webp
   default: /etc/default_avatar.jpg
+  compression_quality: 80
+  standard_format: jpeg
