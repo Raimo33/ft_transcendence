@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:27:29 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 15:56:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ require "base64"
 require "openssl"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
-require_relative "../proto/auth_service_pb"
+require_relative "../proto/auth_api_gateway_service_pb"
 
 class JwtValidator
 

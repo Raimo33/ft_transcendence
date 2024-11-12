@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package auth;
+package auth.user;
 
 
-service UserAuthService
+service AuthUserService
 {
-  rpc CheckDomain(CheckDomainRequest) returns (CheckDomainResponse) {}
+
 }
 
 message CheckDomainRequest

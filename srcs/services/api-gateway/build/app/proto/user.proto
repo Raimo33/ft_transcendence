@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package user;
+package user.api_gateway;
 
 
-service UserService
+service UserAPIGatewayService
 {
   rpc RegisterUser                  (RegisterUserRequest)                  returns (RegisterUserResponse) {}
   rpc GetUserProfile                (GetUserProfileRequest)                returns (GetUserProfileResponse) {}

@@ -6,17 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:28:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 16:02:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "openapi3_parser"
 require_relative "ConfigLoader"
-require_relative "./modules/Structs"
 require_relative "ConfigurableLogger"
+require_relative "./modules/Structs"
 
 class SwaggerParser
-  
 
   def initialize(file_path)
     @logger = ConfigurableLogger.instance.logger

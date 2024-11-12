@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:29:31 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 14:43:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ class GrpcServer
 
     bind_address, port = @config[:bind].split(":")
     @server.add_http2_port("#{bind_address}:#{port}", load_ssl_context(@config[:credentials][:keys][:user], @config[:credentials][:certs][:user]))
-    @server.handle(UserServiceHandler)
+    @server.handle(UserAPIGatewayServiceHandler)
   rescue StandardError => e
     raise "Failed to initialize gRPC server: #{e}"    
   end

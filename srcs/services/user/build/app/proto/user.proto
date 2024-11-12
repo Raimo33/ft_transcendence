@@ -26,6 +26,7 @@ service UserService
   rpc AddFriend                     (AddFriendRequest)                     returns (AddFriendResponse) {}
   rpc GetFriends                    (GetFriendsRequest)                    returns (GetFriendsResponse) {}
   rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
+  //TODO: Add more RPCs
 }
 
 message UserProfile

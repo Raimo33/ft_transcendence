@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:28:02 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 15:56:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
-require_relative "../proto/user_service_pb"
-require_relative "../proto/match_service_pb"
-require_relative "../proto/tournament_service_pb"
+require_relative "../proto/user_api_gateway_service_pb"
+require_relative "../proto/match_api_gateway_service_pb"
+require_relative "../proto/tournament_api_gateway_service_pb"
 require_relative "./modules/Structs"
 
 class Mapper
@@ -64,158 +64,158 @@ class Mapper
   def map_request_to_grpc_request(request, operation_id, requesting_user_id)
     case operation_id
     when "registerUser"
-      UserService::RegisterUserRequest.new(
+      UserAPIGatewayService::RegisterUserRequest.new(
         email: request[:body]["email"],
         password: request[:body]["password"],
         display_name: request[:body]["display_name"],
         avatar: request[:body]["avatar"] )
     when "getUserProfile"
-      UserService::GetUserProfileRequest.new(
+      UserAPIGatewayService::GetUserProfileRequest.new(
         requesting_user_id: requesting_user_id,
         user_id: request[:path_params]["user_id"],
         etag: request[:headers]["if-none-match"] )
     when "getUserStatus"
-      UserService::GetUserStatusRequest.new(
+      UserAPIGatewayService::GetUserStatusRequest.new(
         requesting_user_id: requesting_user_id,
         user_id: request[:path_params]["user_id"] )
     when "getUserMatches"
-      MatchService::GetUserMatchesRequest.new(
+      MatchAPIGatewayService::GetUserMatchesRequest.new(
         requesting_user_id: requesting_user_id,
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: request[:query_params]["sort_by"],
-        filters: MatchService::player_match_filters.new(
+        filters: MatchAPIGatewayService::player_match_filters.new(
           status: request[:query_params]["filters"]["status"]
         ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )
     when "getUserTournaments"
-      TournamentService::GetUserTournamentsRequest.new(
+      TournamentAPIGatewayService::GetUserTournamentsRequest.new(
         requesting_user_id: requesting_user_id,
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: request[:query_params]["sort_by"],
-        filters: TournamentService::PlayerTournamentFilters.new(
+        filters: TournamentAPIGatewayService::PlayerTournamentFilters.new(
           mode: request[:query_params]["filters"]["mode"],
           status: request[:query_params]["filters"]["status"]
         ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )
     when "deleteAccount"
-      UserService::DeleteAccountRequest.new(
+      UserAPIGatewayService::DeleteAccountRequest.new(
         requesting_user_id: requesting_user_id, )
     when "getPrivateProfile"
-      UserService::GetPrivateProfileRequest.new(
+      UserAPIGatewayService::GetPrivateProfileRequest.new(
         requesting_user_id: requesting_user_id,
         etag: request[:headers]["if-none-match"] )
     when "updateProfile"
-      UserService::UpdateProfileRequest.new(
+      UserAPIGatewayService::UpdateProfileRequest.new(
         requesting_user_id: requesting_user_id,
         display_name: request[:body]["display_name"],
         avatar: request[:body]["avatar"] )
     when "updatePassword"
-      UserService::UpdatePasswordRequest.new(
+      UserAPIGatewayService::UpdatePasswordRequest.new(
         requesting_user_id: requesting_user_id,
         old_password: request[:body]["old_password"],
         new_password: request[:body]["new_password"] )
     when "requestPasswordReset"
-      UserService::RequestPasswordResetRequest.new(
+      UserAPIGatewayService::RequestPasswordResetRequest.new(
         email: request[:body]["email"] )
     when "checkPasswordResetToken"
-      UserService::CheckPasswordResetTokenRequest.new(
+      UserAPIGatewayService::CheckPasswordResetTokenRequest.new(
         token: request[:path_params]["token"] )
     when "resetPassword"
-      UserService::ResetPasswordRequest.new(
+      UserAPIGatewayService::ResetPasswordRequest.new(
         token: request[:path_params]["token"],
         new_password: request[:body]["new_password"], )
     when "updateEmail"
-      UserService::UpdateEmailRequest.new(
+      UserAPIGatewayService::UpdateEmailRequest.new(
         requesting_user_id: requesting_user_id,
         new_email: request[:body]["new_email"],
         current_password: request[:body]["current_password"],
         totp_code: request[:body]["totp_code"] )
     when "verifyEmail"
-      UserService::VerifyEmailRequest.new(
+      UserAPIGatewayService::VerifyEmailRequest.new(
         requesting_user_id: requesting_user_id )
     when "checkEmailVerificationToken"
-      UserService::CheckEmailVerificationTokenRequest.new(
+      UserAPIGatewayService::CheckEmailVerificationTokenRequest.new(
         token: request[:path_params]["token"] )
     when "enable2FA"
-      UserService::Enable2FARequest.new(
+      UserAPIGatewayService::Enable2FARequest.new(
         requesting_user_id: requesting_user_id )
     when "get2FAStatus"
-      UserService::Get2FAStatusRequest.new(
+      UserAPIGatewayService::Get2FAStatusRequest.new(
         requesting_user_id: requesting_user_id )
     when "disable2FA"
-      UserService::Disable2FARequest.new(
+      UserAPIGatewayService::Disable2FARequest.new(
         requesting_user_id: requesting_user_id )
     when "check2FACode"
-      UserService::Check2FACodeRequest.new(
+      UserAPIGatewayService::Check2FACodeRequest.new(
         requesting_user_id: requesting_user_id,
         totp_code: request[:body]["totp_code"] )
     when "loginUser"
-      UserService::LoginUserRequest.new(
+      UserAPIGatewayService::LoginUserRequest.new(
         email: request[:body]["email"],
         password: request[:body]["password"],
         totp_code: request[:body]["totp_code"] )
     when "logoutUser"
-      UserService::LogoutUserRequest.new(
+      UserAPIGatewayService::LogoutUserRequest.new(
         requesting_user_id: requesting_user_id )
     when "addFriend"
-      UserService::AddFriendRequest.new(
+      UserAPIGatewayService::AddFriendRequest.new(
         requesting_user_id: requesting_user_id,
         friend_id: request[:body]["friend_id"] )
     when "getFriends"
-      UserService::GetFriendsRequest.new(
+      UserAPIGatewayService::GetFriendsRequest.new(
         requesting_user_id: requesting_user_id,
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"],
         sort_by: request[:query_params]["sort_by"],
-        filters: UserService::ProfileFilters.new(
+        filters: UserAPIGatewayService::ProfileFilters.new(
           status: request[:query_params]["filters"]["status"]
         ).compact if request[:query_params]["filters"],
         etag: request[:headers]["if-none-match"] )
     when "removeFriend"
-      UserService::RemoveFriendRequest.new(
+      UserAPIGatewayService::RemoveFriendRequest.new(
         requesting_user_id: requesting_user_id,
         friend_id: request[:path_params]["friend_id"] )
     when "createMatch"
-      MatchService::CreateMatchRequest.new(
+      MatchAPIGatewayService::CreateMatchRequest.new(
         requesting_user_id: requesting_user_id,
         invited_user_ids: request[:body]["invited_user_ids"],
-        settings: MatchService::MatchSettings.new(
+        settings: MatchAPIGatewayService::MatchSettings.new(
           ball_speed: request[:body]["settings"]["ball_speed"],
           max_duration: request[:body]["settings"]["max_duration"],
           starting_health: request[:body]["settings"]["starting_health"] ) if request[:body]["settings"] )
     when "joinMatch"
-      MatchService::JoinMatchRequest.new(
+      MatchAPIGatewayService::JoinMatchRequest.new(
         requesting_user_id: requesting_user_id,
         match_id: request[:path_params]["match_id"] )
     when "getMatch"
-      MatchService::GetMatchRequest.new(
+      MatchAPIGatewayService::GetMatchRequest.new(
         requesting_user_id: requesting_user_id,
         match_id: request[:path_params]["match_id"],
         etag: request[:headers]["if-none-match"] )
     when "leaveMatch"
-      MatchService::LeaveMatchRequest.new(
+      MatchAPIGatewayService::LeaveMatchRequest.new(
         requesting_user_id: requesting_user_id,
         match_id: request[:path_params]["match_id"] )
     when "createTournament"
-      TournamentService::CreateTournamentRequest.new(
+      TournamentAPIGatewayService::CreateTournamentRequest.new(
         requesting_user_id: requesting_user_id,
         invited_user_ids: request[:body]["invited_user_ids"],
         mode: TOURNAMENT_MODES_STRING_TO_ENUM_MAP[request[:body]["mode"]] )
     when "joinTournament"
-      TournamentService::JoinTournamentRequest.new(
+      TournamentAPIGatewayService::JoinTournamentRequest.new(
         requesting_user_id: requesting_user_id,
         tournament_id: request[:path_params]["tournament_id"] )
     when "getTournament"
-      TournamentService::GetTournamentRequest.new(
+      TournamentAPIGatewayService::GetTournamentRequest.new(
         requesting_user_id: requesting_user_id,
         tournament_id: request[:path_params]["tournament_id"],
         etag: request[:headers]["if-none-match"] )
     when "leaveTournament"
-      TournamentService::LeaveTournamentRequest.new(
+      TournamentAPIGatewayService::LeaveTournamentRequest.new(
         requesting_user_id: requesting_user_id,
         tournament_id: request[:path_params]["tournament_id"] )
     else

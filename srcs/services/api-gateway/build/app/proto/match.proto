@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package match;
+package match.api_gateway;
 
 
-service MatchService
+service MatchAPIGatewayService
 {
   rpc GetUserMatches     (GetUserMatchesRequest)    returns (GetUserMatchesResponse) {}
   rpc CreateMatch        (CreateMatchRequest)       returns (CreateMatchResponse) {}

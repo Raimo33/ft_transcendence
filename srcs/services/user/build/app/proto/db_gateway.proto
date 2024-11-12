@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package db_gateway;
+package db_gateway.user;
 
 
-service DBGatewayService
+service DBGatewayUserService
 {
-  #TODO add rpcs
+  //TODO add only rpcs that are used by the user service
 }

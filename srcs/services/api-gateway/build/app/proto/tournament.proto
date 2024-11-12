@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package tournament;
+package tournament.api_gateway;
 
 
-service TournamentService
+service TournamentAPIGatewayService
 {
   rpc GetUserTournaments    (GetUserTournamentsRequest)   returns (GetUserTournamentsResponse) {}
   rpc CreateTournament      (CreateTournamentRequest)     returns (CreateTournamentResponse) {}

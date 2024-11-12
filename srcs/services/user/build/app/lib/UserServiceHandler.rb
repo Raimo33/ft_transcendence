@@ -1,7 +1,7 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    UserServiceHandler.rb                              :+:      :+:    :+:    #
+#    UserAPIGatewayServiceHandler.rb                              :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
@@ -17,7 +17,7 @@ require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
 require_relative "../proto/user_service_pb"
 
-class UserServiceHandler < UserService::Service
+class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   include EmailValidator
 
   def initialize(grpc_client)
@@ -30,7 +30,7 @@ class UserServiceHandler < UserService::Service
     @logger.debug("Received registration request: #{request.inspect}")
 
     required_fields = [request.email, request.password, request.display_name]
-    return UserService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
+    return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
 
     Async do |task|
       task.async { check_email(request.email) }
@@ -38,7 +38,7 @@ class UserServiceHandler < UserService::Service
       check_display_name(request.display_name)
       check_avatar(request.avatar) if request.avatar
     rescue StandardError => e
-      return UserService::RegisterUserResponse.new(status_code: 400)
+      return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400)
     ensure
       task.stop
     end
@@ -54,10 +54,10 @@ class UserServiceHandler < UserService::Service
     end
 
     db_response = @grpc_client. #TODO chiamare il servizio db_gateway che converte richiesta in query SQL
-    UserService::RegisterUserResponse.new(status_code: db_response.status_code) 
+    UserAPIGatewayService::RegisterUserResponse.new(status_code: db_response.status_code) 
   rescue StandardError => e
     @logger.error("Failed to register user: #{e}")
-    UserService::RegisterUserResponse.new(status_code: 500)
+    UserAPIGatewayService::RegisterUserResponse.new(status_code: 500)
   end
 
   private    

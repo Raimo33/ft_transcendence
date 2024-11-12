@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package auth;
+package auth.api_gateway;
 
 
-service ApiGatewayAuthService
+service AuthAPIGatewayService
 {
   rpc GetJwks(GetJwksRequest) returns (GetJwksResponse) {}
 }

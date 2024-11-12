@@ -1,393 +1,266 @@
 syntax = "proto3";
 
-package database.v1;
+package db_gateway;
 
-option go_package = "database/v1";
+//TODO capire tutto, aggiungere required e optional, 
 
-// QueryType indicates the kind of query being executed
-enum QueryType {
-  UNKNOWN = 0;
-  SELECT = 1;
-  INSERT = 2;
-  UPDATE = 3;
-  DELETE = 4;
-  CREATE = 5;
-  ALTER = 6;
-  DROP = 7;
-  TRUNCATE = 8;
-  EXPLAIN = 9;
-  ANALYZE = 10;
-  VACUUM = 11;
-  GRANT = 12;
-  REVOKE = 13;
-  BEGIN = 14;
-  COMMIT = 15;
-  ROLLBACK = 16;
-  SAVEPOINT = 17;
-  WITH = 18;  // For CTEs
+service DBGatewayService
+{
+  rpc ExecuteQuery      (Query)                      returns (QueryResult) {}
+  rpc StreamQuery       (Query)                      returns (stream QueryResult) {}
+  rpc ExecuteBatch      (stream Query)               returns (stream QueryResult) {}
+  rpc Transaction       (TransactionRequest)         returns (TransactionResponse) {}
+  rpc PrepareStatement  (Query)                      returns (PreparedStatementResponse) {}
+  rpc ExecutePrepared   (PreparedStatementRequest)   returns (QueryResult) {}
+  rpc GetMetadata       (MetadataRequest)            returns (MetadataResponse) {}
+  rpc Listen            (ListenRequest)              returns (stream NotificationResponse) {}
 }
 
-// Represents a database savepoint
-message Savepoint {
-  string name = 1;
+enum QueryType
+{
+  UNKNOWN   = 0;
+  SELECT    = 1;
+  INSERT    = 2;
+  UPDATE    = 3;
+  DELETE    = 4;
+  CREATE    = 5;
+  ALTER     = 6;
+  DROP      = 7;
+  TRUNCATE  = 8;
+  EXPLAIN   = 9;
+  ANALYZE   = 10;
+  VACUUM    = 11;
+  GRANT     = 12;
+  REVOKE    = 13;
+  BEGIN     = 14;
+  COMMIT    = 15;
+  ROLLBACK  = 16;
+  SAVEPOINT = 17;
+  WITH      = 18;
+}
+
+message Savepoint
+{
+  string name           = 1;
   string transaction_id = 2;
 }
 
-// Advanced query options
-message QueryOptions {
-  // Timeout in milliseconds
-  int32 timeout_ms = 1;
-  // Maximum rows to return
-  int32 row_limit = 2;
-  // Cursor-based pagination
-  string cursor = 3;
-  // Whether to use prepared statements
-  bool use_prepared = 4;
-  // Statement name for prepared statements
-  string statement_name = 5;
-  // Read consistency level
-  ConsistencyLevel consistency_level = 6;
+message QueryOptions
+{
+  int32             timeout_ms        = 1;
+  int32             row_limit         = 2;
+  string            cursor            = 3;
+  bool              use_prepared      = 4;
+  string            statement_name    = 5;
+  ConsistencyLevel  consistency_level = 6;
 }
 
-enum ConsistencyLevel {
-  DEFAULT = 0;
-  STRONG = 1;
-  EVENTUAL = 2;
+enum ConsistencyLevel
+{
+  DEFAULT   = 0;
+  STRONG    = 1;
+  EVENTUAL  = 2;
 }
 
-// Query represents a flexible database query
-message Query {
-  // SQL query text
-  string query = 1;
-  
-  // Named parameters for the query
-  map<string, Value> parameters = 2;
-  
-  // Optional transaction ID if part of a transaction
-  string transaction_id = 3;
-
-  // Query type for optimization and validation
-  QueryType type = 4;
-
-  // Advanced query options
-  QueryOptions options = 5;
-
-  // For CTEs and complex queries
-  repeated Query with_queries = 6;
-
-  // For batch operations
-  repeated Query batch_queries = 7;
+message Query
+{
+  string              query           = 1;
+  map<string, Value>  parameters      = 2;
+  string              transaction_id  = 3;
+  QueryType           type            = 4;
+  QueryOptions        options         = 5;
+  repeated Query      with_queries    = 6;
+  repeated Query      batch_queries   = 7;
 }
 
-// Value represents any possible parameter value
-message Value {
-  oneof kind {
-    string string_value = 1;
-    int64 int_value = 2;
-    double float_value = 3;
-    bool bool_value = 4;
-    bytes bytes_value = 5;
-    // For arrays/lists
-    repeated Value array_value = 6;
-    // For objects/structs
-    map<string, Value> object_value = 7;
-    // For null values
-    bool is_null = 8;
-    // For JSON data
-    string json_value = 9;
-    // For geometric types
-    GeometricValue geometric_value = 10;
-    // For interval type
-    IntervalValue interval_value = 11;
-    // For network types (inet, cidr)
-    string network_value = 12;
-    // For range types
-    RangeValue range_value = 13;
-    // For enum types
-    string enum_value = 14;
+message Value
+{
+  oneof kind
+  {
+    string              string_value    = 1;
+    int64               int_value       = 2;
+    double              float_value     = 3;
+    bool                bool_value      = 4;
+    bytes               bytes_value     = 5;
+    repeated Value      array_value     = 6;
+    map<string, Value>  object_value    = 7;
+    bool                is_null         = 8;
+    string              json_value      = 9;
+    IntervalValue       interval_value  = 11;
+    string              network_value   = 12;
+    RangeValue          range_value     = 13;
+    string              enum_value      = 14;
+    //add more types as needed
   }
 }
 
-// Geometric types support
-message GeometricValue {
-  oneof shape {
-    Point point = 1;
-    Line line = 2;
-    Box box = 3;
-    Path path = 4;
-    Polygon polygon = 5;
-    Circle circle = 6;
-  }
-}
-
-message Point {
-  double x = 1;
-  double y = 2;
-}
-
-message Line {
-  Point start = 1;
-  Point end = 2;
-}
-
-message Box {
-  Point top_right = 1;
-  Point bottom_left = 2;
-}
-
-message Path {
-  repeated Point points = 1;
-  bool closed = 2;
-}
-
-message Polygon {
-  repeated Point points = 1;
-}
-
-message Circle {
-  Point center = 1;
-  double radius = 2;
-}
-
-// Interval type support
-message IntervalValue {
-  int32 years = 1;
-  int32 months = 2;
-  int32 days = 3;
-  int32 hours = 4;
-  int32 minutes = 5;
-  int32 seconds = 6;
+message IntervalValue
+{
+  int32 years        = 1;
+  int32 months       = 2;
+  int32 days         = 3;
+  int32 hours        = 4;
+  int32 minutes      = 5;
+  int32 seconds      = 6;
   int32 milliseconds = 7;
 }
 
-// Range type support
-message RangeValue {
-  Value lower_bound = 1;
-  Value upper_bound = 2;
-  bool lower_inclusive = 3;
-  bool upper_inclusive = 4;
+message RangeValue
+{
+  Value lower_bound     = 1;
+  Value upper_bound     = 2;
+  bool lower_inclusive  = 3;
+  bool upper_inclusive  = 4;
 }
 
-// Enhanced error handling
-message Error {
+message Error
+{
   int32 code = 1;
   string message = 2;
-  // Additional error details
-  string detail = 3;
-  string hint = 4;
-  string position = 5;
-  string internal_position = 6;
-  string internal_query = 7;
-  string where = 8;
-  string schema_name = 9;
-  string table_name = 10;
-  string column_name = 11;
-  string data_type_name = 12;
-  string constraint_name = 13;
-  ErrorSeverity severity = 14;
-  // Stack trace for debugging
-  string stack_trace = 15;
+  //add more error information as needed
 }
 
-enum ErrorSeverity {
-  DEBUG = 0;
-  INFO = 1;
-  NOTICE = 2;
-  WARNING = 3;
-  ERROR = 4;
-  FATAL = 5;
-  PANIC = 6;
+message QueryResult
+{
+  repeated ColumnDefinition  columns        = 1;
+  repeated Row               rows           = 2;
+  int64                      affected_rows  = 3;
+  Error                      error          = 4;
+  PaginationInfo             pagination     = 6;
+  repeated Row               returning_rows = 7;
 }
 
-message QueryResult {
-  // Column definitions
-  repeated ColumnDefinition columns = 1;
-  
-  // Rows of data
-  repeated Row rows = 2;
-  
-  // Number of rows affected (for INSERT/UPDATE/DELETE)
-  int64 affected_rows = 3;
-  
-  // Optional error information
-  Error error = 4;
-
-  // Query execution statistics
-  QueryStats stats = 5;
-
-  // Pagination information
-  PaginationInfo pagination = 6;
-
-  // For RETURNING clauses
-  repeated Row returning_rows = 7;
-
-  // For EXPLAIN output
-  string explain_plan = 8;
+message PaginationInfo
+{
+  string  next_cursor   = 1;
+  bool    has_more      = 2;
+  int32   total_rows    = 3;
+  int32   page_size     = 4;
+  int32   current_page  = 5;
 }
 
-message QueryStats {
-  // Timing information
-  int64 planning_time_ms = 1;
-  int64 execution_time_ms = 2;
-  
-  // Resource usage
-  int64 rows_processed = 3;
-  int64 memory_usage_bytes = 4;
-  
-  // I/O statistics
-  int64 block_reads = 5;
-  int64 block_hits = 6;
+message ColumnDefinition
+{
+  string          name            = 1;
+  string          type            = 2;
+  bool            nullable        = 3;
+  string          default_value   = 4;
+  bool            is_primary_key  = 5;
+  repeated string constraints     = 6;
+  string          table_name      = 7;
+  string          schema_name     = 8;
 }
 
-message PaginationInfo {
-  string next_cursor = 1;
-  bool has_more = 2;
-  int32 total_rows = 3;
-  int32 page_size = 4;
-  int32 current_page = 5;
-}
-
-message ColumnDefinition {
-  string name = 1;
-  string type = 2;
-  bool nullable = 3;
-  string default_value = 4;
-  bool is_primary_key = 5;
-  repeated string constraints = 6;
-  string table_name = 7;
-  string schema_name = 8;
-}
-
-message Row {
+message Row
+{
   repeated Value values = 1;
 }
 
-message TransactionRequest {
-  oneof action {
-    bool begin = 1;
-    bool commit = 2;
-    bool rollback = 3;
-    Savepoint savepoint = 4;
-    string rollback_to_savepoint = 5;
+message TransactionRequest
+{
+  oneof action
+  {
+    bool      begin                 = 1;
+    bool      commit                = 2;
+    bool      rollback              = 3;
   }
-  
-  // Transaction isolation level
-  IsolationLevel isolation_level = 6;
-  
-  // Transaction access mode
-  bool read_only = 7;
-  
-  // Transaction deferrable mode
-  bool deferrable = 8;
+
+  IsolationLevel  isolation_level = 6;
+  bool            read_only = 7;
+  bool            deferrable = 8;
 }
 
-enum IsolationLevel {
-  READ_UNCOMMITTED = 0;
-  READ_COMMITTED = 1;
-  REPEATABLE_READ = 2;
-  SERIALIZABLE = 3;
+enum IsolationLevel
+{
+  READ_UNCOMMITTED  = 0;
+  READ_COMMITTED    = 1;
+  REPEATABLE_READ   = 2;
+  SERIALIZABLE      = 3;
 }
 
-message TransactionResponse {
-  string transaction_id = 1;
-  Error error = 2;
-  TransactionStatus status = 3;
+message TransactionResponse
+{
+  string            transaction_id  = 1;
+  Error             error           = 2;
+  TransactionStatus status          = 3;
 }
 
-enum TransactionStatus {
-  UNKNOWN = 0;
+enum TransactionStatus
+{
   IN_PROGRESS = 1;
-  COMMITTED = 2;
+  COMMITTED   = 2;
   ROLLED_BACK = 3;
-  FAILED = 4;
+  FAILED      = 4;
 }
 
-// The main database service
-service DatabaseService {
-  // Execute a single query
-  rpc ExecuteQuery(Query) returns (QueryResult) {}
-  
-  // Stream multiple query results
-  rpc StreamQuery(Query) returns (stream QueryResult) {}
-  
-  // Execute multiple queries in a batch
-  rpc ExecuteBatch(stream Query) returns (stream QueryResult) {}
-  
-  // Manage transactions
-  rpc Transaction(TransactionRequest) returns (TransactionResponse) {}
-
-  // Prepare a statement
-  rpc PrepareStatement(Query) returns (PreparedStatementResponse) {}
-
-  // Execute a prepared statement
-  rpc ExecutePrepared(PreparedStatementRequest) returns (QueryResult) {}
-
-  // Get database metadata
-  rpc GetMetadata(MetadataRequest) returns (MetadataResponse) {}
-
-  // Listen for database notifications
-  rpc Listen(ListenRequest) returns (stream NotificationResponse) {}
+message PreparedStatementRequest
+{
+  string              statement_name  = 1;
+  map<string, Value>  parameters      = 2;
+}
+message PreparedStatementResponse
+{
+  string                        statement_name  = 1;
+  repeated ParameterDescription parameters      = 2;
+  Error                         error           = 3;
 }
 
-message PreparedStatementResponse {
-  string statement_name = 1;
-  repeated ParameterDescription parameters = 2;
-  Error error = 3;
+message ParameterDescription
+{
+  string  name      = 1;
+  string  type      = 2;
+  bool    nullable  = 3;
 }
 
-message ParameterDescription {
-  string name = 1;
-  string type = 2;
-  bool nullable = 3;
-}
-
-message PreparedStatementRequest {
-  string statement_name = 1;
-  map<string, Value> parameters = 2;
-}
-
-message MetadataRequest {
+message MetadataRequest
+{
   string schema_pattern = 1;
-  string table_pattern = 2;
+  string table_pattern  = 2;
   string column_pattern = 3;
 }
-
-message MetadataResponse {
+message MetadataResponse
+{
   repeated SchemaInfo schemas = 1;
-  Error error = 2;
+  Error               error   = 2;
 }
 
-message SchemaInfo {
-  string name = 1;
+message SchemaInfo
+{
+  string             name   = 1;
   repeated TableInfo tables = 2;
 }
 
-message TableInfo {
-  string name = 1;
-  repeated ColumnDefinition columns = 2;
-  repeated IndexInfo indexes = 3;
-  repeated ConstraintInfo constraints = 4;
+message TableInfo
+{
+  string                    name        = 1;
+  repeated ColumnDefinition columns     = 2;
+  repeated IndexInfo        indexes     = 3;
+  repeated ConstraintInfo   constraints = 4;
 }
 
-message IndexInfo {
-  string name = 1;
-  repeated string columns = 2;
-  bool is_unique = 3;
-  string type = 4;
+message IndexInfo
+{
+  string          name      = 1;
+  repeated string columns   = 2;
+  bool            is_unique = 3;
+  string          type      = 4;
 }
 
-message ConstraintInfo {
-  string name = 1;
-  string type = 2;
+message ConstraintInfo
+{
+  string name       = 1;
+  string type       = 2;
   string definition = 3;
 }
 
-message ListenRequest {
+message ListenRequest
+{
   string channel = 1;
 }
 
-message NotificationResponse {
-  string channel = 1;
-  string payload = 2;
-  int64 pid = 3;
+message NotificationResponse
+{
+  string  channel = 1;
+  string  payload = 2;
+  int64   pid     = 3;
 }

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:33:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 15:56:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ require_relative "Orchestrator"
 class Launcher
 
   DEFAULT_CONFIG_FILE = "/etc/api_gateway/conf.d/default_config.yaml"
-  DEFAULT_PID_FILE = "/var/run/api_gateway.pid"
+  DEFAULT_PID_FILE    = "/var/run/api_gateway.pid"
 
   def initialize(args)
     @options = parse_options(args)
