@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 17:56:07 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:22:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -91,16 +91,17 @@ class ClientHandler
           end
 
           barrier.async do
-            check_auth(request.expected_auth_level, request.headers["authorization"])
+            check_auth(request.resource.expected_auth_level, request.headers["authorization"])
 
-            if @rate_limiter.allowed?(request.caller_identifier, request.operation_id)
-              grpc_request        = Mapper.map_request_to_grpc_request(request, request.operation_id, request.caller_identifier)
-              grpc_response       = @grpc_client.call(grpc_request)
-              response            = Mapper.map_grpc_response_to_response(grpc_response, request.operation_id)
+            caller_id = extract_caller_id(request.headers)
+            if @rate_limiter.allowed?(request.resource.operation_id, caller_id)
+              grpc_request   = Mapper.map_request_to_grpc_request(request, request.operation_id, request.caller_id)
+              grpc_response  = @grpc_client.call(grpc_request)
+              response       = Mapper.map_grpc_response_to_response(grpc_response, request.operation_id)
             else
               response = Response.new(429, {"Content-Length" => "0"}, "")
 
-            add_rate_limit_headers(response.headers, request.caller_identifier, request.path)
+            add_rate_limit_headers(response.headers, request.caller_id, request.path)
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e
@@ -135,26 +136,31 @@ class ClientHandler
   end
 
   def check_auth(expected_auth_level, authorization_header)
-    return unless resource.expected_auth_level
-
     raise ActionFailedException::Unauthorized unless authorization_header
 
     token = extract_token(authorization_header)
     raise ActionFailedException::Unauthorized unless @jwt_validator.token_valid?(token)
-    raise ActionFailedException::Forbidden unless @jwt_validator.token_authorized?(token, expected_auth_level)
-  end
-
-  def add_rate_limit_headers(headers, caller_identifier, path)
-    headers["X-RateLimit-Limit"]     = @rate_limiter.limit(caller_identifier, path).to_s
-    headers["X-RateLimit-Remaining"] = @rate_limiter.remaining(caller_identifier, path).to_s
-    headers["X-RateLimit-Reset"]     = @rate_limiter.reset(caller_identifier, path).to_s
-    headers["X-RateLimit-Interval"]  = @rate_limiter.interval(caller_identifier, path).to_s
+    raise ActionFailedException::Forbidden    unless @jwt_validator.token_authorized?(token, expected_auth_level)
   end
 
   def extract_token(authorization_header)
     raise ActionFailedException::BadRequest unless authorization_header&.start_with?("Bearer ")
 
     authorization_header.sub("Bearer ", "").strip
+  end
+
+  def extract_caller_id(headers)
+    jwt_token = extract_token(headers["authorization"])
+
+    jwt_token || headers["x-real-ip"] || headers["x-forwarded-for"]
+  end
+
+  #NOTE: outgoing headers so no need to lowercase them
+  def add_rate_limit_headers(headers, caller_id, path)
+    headers["X-RateLimit-Limit"]     = @rate_limiter.limit(caller_id, path).to_s
+    headers["X-RateLimit-Remaining"] = @rate_limiter.remaining(caller_id, path).to_s
+    headers["X-RateLimit-Reset"]     = @rate_limiter.reset(caller_id, path).to_s
+    headers["X-RateLimit-Interval"]  = @rate_limiter.interval(caller_id, path).to_s
   end
 
   def send_response(response)

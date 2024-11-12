@@ -9,10 +9,10 @@ services:
     container_name: nginx
     environment:
     volumes:
-      - nginx-cert:/etc/ssl/certs/nginx.crt:ro
+      - nginx_cert:/etc/ssl/certs/nginx.crt:ro
       - api_gateway_cert:/etc/ssl/certs/api_gateway.crt:ro
     secrets:
-      - source: nginx-key
+      - source: nginx_key
         target: /etc/ssl/private/nginx.key
         uid: #TODO uid
         mode: 0400
@@ -65,7 +65,7 @@ services:
     volumes:
       - user_cert:/etc/ssl/certs/user.crt:ro
       - auth_cert:/etc/ssl/certs/auth.crt:ro
-      - query_cert:/etc/ssl/certs/query.crt:ro
+      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
       - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
     secrets:
       - source: user_key
@@ -91,8 +91,8 @@ services:
     environment:
     volumes:
       - match_cert:/etc/ssl/certs/match.crt:ro
-      - game-state_cert:/etc/ssl/certs/game-state.crt:ro
-      - query_cert:/etc/ssl/certs/query.crt:ro
+      - game_state_cert:/etc/ssl/certs/game_state.crt:ro
+      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
       - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
     secrets:
       - source: match_key
@@ -117,8 +117,8 @@ services:
     environment:
     volumes:
       - tournament_cert:/etc/ssl/certs/tournament.crt:ro
-      - game-state_cert:/etc/ssl/certs/game-state.crt:ro
-      - query_cert:/etc/ssl/certs/query.crt:ro
+      - game_state_cert:/etc/ssl/certs/game_state.crt:ro
+      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
       - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
     secrets:
       - source: tournament_key
@@ -168,7 +168,7 @@ services:
     volumes:
       - matchmaking_cert:/etc/ssl/certs/matchmaking.crt:ro
       - ai_cert:/etc/ssl/certs/ai.crt:ro
-      - query_cert:/etc/ssl/certs/query.crt:ro
+      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
       - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
     secrets:
       - source: matchmaking_key
@@ -183,21 +183,21 @@ services:
     depends_on:
     init: true
   
-  game-state:
+  game_state:
     build:
-      context: ./services/game-state
+      context: ./services/game_state
       dockerfile: Dockerfile
       args:
     
-    container_name: game-state
+    container_name: game_state
     environment:
     volumes:
       - ai_cert:/etc/ssl/certs/ai.crt:ro
       - nginx_cert:/etc/ssl/certs/nginx.crt:ro
       - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
     secrets:
-      - source: game-state_key
-        target: /etc/ssl/certs/game-state.key
+      - source: game_state_key
+        target: /etc/ssl/certs/game_state.key
         uid: #TODO uid
         mode: 0400
     ports:
@@ -218,7 +218,7 @@ services:
     environment:
     volumes:
       - ai_cert:/etc/ssl/certs/ai.crt:ro
-      - game-state_cert:/etc/ssl/certs/game-state.crt:ro
+      - game_state_cert:/etc/ssl/certs/game_state.crt:ro
       - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
     secrets: 
       - source: ai_key
@@ -233,21 +233,21 @@ services:
     depends_on:
     init: true
   
-  query:
+  db_gateway:
     build:
-      context: ./services/query
+      context: ./services/db_gateway
       dockerfile: Dockerfile
       args:
     
-    container_name: query
+    container_name: db_gateway
     environment:
     volumes:
-      - query_cert:/etc/ssl/certs/query.crt:ro
+      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
       - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
       - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
     secrets:
-      - source: query_key
-        target: /etc/ssl/certs/query.key
+      - source: db_gateway_key
+        target: /etc/ssl/certs/db_gateway.key
         uid: #TODO uid
         mode: 0400
     ports:
@@ -474,16 +474,16 @@ services:
 
 #TODO add certs
 volumes:
-  nginx-cert:
+  nginx_cert:
   api_gateway_cert:
   user_cert:
   match_cert:
   tournament_cert:
   auth_cert:
   matchmaking_cert:
-  game-state_cert:
+  game_state_cert:
   ai_cert:
-  query_cert:
+  db_gateway_cert:
   postgresql_cert:
   blockchain_cert:
   redis_core_cert:
@@ -495,25 +495,25 @@ volumes:
   kibana_cert:
 
 secrets:
-  nginx-key:        #real
-  api_gateway_key:  #self-signed
-  user_key:         #self-signed
-  match_key:        #self-signed
-  tournament_key:   #self-signed
-  auth_key:     #self-signed
-  matchmaking_key:  #self-signed
-  game-state_key:   #self-signed
-  ai_key:           #self-signed
-  query_key:        #self-signed
-  postgresql_key:   #self-signed
-  blockchain_key:   #self-signed
-  redis_core_key:   #self-signed
-  geth_key:         #self-signed
-  prometheus_key:   #self-signed
-  grafana_key:      #self-signed
-  logstash_key:     #self-signed
-  elasticsearch_key: #self-signed
-  kibana_key:       #self-signed
+  nginx_key:
+  api_gateway_key:
+  user_key:
+  match_key:
+  tournament_key:
+  auth_key:
+  matchmaking_key:
+  game_state_key:
+  ai_key:
+  db_gateway_key:
+  postgresql_key:
+  blockchain_key:
+  redis_core_key:
+  geth_key:
+  prometheus_key:
+  grafana_key:
+  logstash_key:
+  elasticsearch_key:
+  kibana_key:
 
 networks:
   edgenet:

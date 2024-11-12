@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 08:33:22 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 19:57:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 11:41:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,10 +18,10 @@ module ConfigLoader
     :pid_file                    => "/var/run/user.pid",
     :user_key                    => nil,
     :user_cert                   => nil,
-    :query_cert                  => nil,
+    :db_gateway_cert                  => nil,
     :auth_cert                   => nil,
     :redis_core_cert             => nil,
-    :query_addr                  => nil,
+    :db_gateway_addr                  => nil,
     :auth_addr                   => nil,
     :redis_core_addr             => nil,
     :display_name_max_length     => 25,

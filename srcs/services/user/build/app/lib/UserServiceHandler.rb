@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 20:01:35 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:04:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 11:41:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -47,7 +47,7 @@ class UserServiceHandler < UserService::Service
       task.stop
     end
 
-    response = @grpc_client. #TODO chiamare il servizio query che converte richiesta in query SQL
+    response = @grpc_client. #TODO chiamare il servizio db_gateway che converte richiesta in query SQL
     UserService::RegisterUserResponse.new(status_code: response 
     rescue StandardError => e
       @logger.error("Failed to register user: #{e}")

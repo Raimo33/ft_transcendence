@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/07 18:16:50 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 13:40:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:11:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -44,8 +44,6 @@ module RequestParser
       raise ActionFailedException::ContentTooLarge if content_length > config[:max_body_size]
     end
 
-    check_auth(resource, headers["authorization"])
-
     total_request_size = body_start_index + content_length
     return nil if buffer.size < total_request_size
 
@@ -54,8 +52,7 @@ module RequestParser
     request.path_params       = parse_path_params(expected_request.allowed_path_params, resource.path_template, raw_path)
     request.query_params      = parse_query_params(expected_request.allowed_query_params, raw_query)
     request.body              = parse_body(expected_request.body_schema, raw_body)
-    request.caller_identifier = extract_caller_identifier(request.headers)
-    request.operation_id      = resource.operation_id
+    request.resource          = resource
 
     request
   end
@@ -281,16 +278,6 @@ module RequestParser
     else
       raise "Unsupported type for body parameter: #{param_name}"
     end
-  end
-
-  def extract_caller_identifier(headers)
-    jwt_token = extract_token(headers["authorization"])
-
-    jwt_token || headers["x-forwarded-for"] || headers["x-real-ip"]
-  end
-
-  def extract_token(authorization_header)
-    authorization_header&.split(' ')[1]&.strip
   end
 
 end
