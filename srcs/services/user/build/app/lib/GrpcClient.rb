@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:37:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:50:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ class GrpcClient
     }
 
     db_gateway_credentials  = load_credentials(@config[credentials][:certs][:db_gateway])
-    auth_credentials   = load_credentials(@config[credentials][:certs][:auth])
+    auth_credentials        = load_credentials(@config[credentials][:certs][:auth])
 
     user_channel  = create_channel(@config[:addresses][:db_gateway], db_gateway_credentials)
     auth_channel  = create_channel(@config[:addresses][:auth], auth_credentials)

@@ -10,14 +10,14 @@ credentials:
     user: /etc/ssl/private/user.key
   certs:
     user:       /etc/ssl/certs/user.crt
-    db_gateway:      /etc/ssl/certs/db_gateway.crt
+    db_gateway: /etc/ssl/certs/db_gateway.crt
     auth:       /etc/ssl/certs/auth.crt
-    redis: /etc/ssl/certs/redis.crt
+    redis:      /etc/ssl/certs/redis.crt
 
 addresses:
-  db_gateway:        uery.corenet:50052
-  auth:         auth.corenet:50052
-  redis:   redis:6379
+  db_gateway:  uery.corenet:50052
+  auth:        auth.corenet:50052
+  redis:       redis:6379
 
 display_name:
   min_length: 3

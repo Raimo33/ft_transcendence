@@ -25,7 +25,7 @@ class ConfigLoader
       certs:
       {
         user:       String,
-        db_gateway:      String, 
+        db_gateway: String, 
         auth:       String,
         redis: String
       }
@@ -33,7 +33,7 @@ class ConfigLoader
   
     addresses:
     {
-      db_gateway:      String,
+      db_gateway: String,
       auth:       String,
       redis: String
     },
