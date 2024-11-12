@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:09:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:28:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,16 +19,14 @@ require_relative "SwaggerParser"
 require_relative "JWTValidator"
 require_relative "ClientHandler"
 require_relative "GrpcClient"
-require_relative "./modules/ConfigLoader"
-require_relative "./modules/Logger"
+require_relative "ConfigLoader"
+require_relative "ConfigurableLogger"
 
 class Server
-  include ConfigLoader
-  include Logger
 
   def initialize
     @config = ConfigLoader.config
-    @logger = Logger.logger
+    @logger = ConfigurableLogger.instance.logger
 
     @logger.info("Initializing server...")
     @grpc_client = GrpcClient.new
@@ -38,7 +36,7 @@ class Server
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
 
-    ssl_context = load_ssl_context(@config[:api_gateway_key], @config[:api_gateway_cert])
+    ssl_context = load_ssl_context(@config[:credentials][:certs][:api_gateway], @config[:credentials][:keys][:api_gateway])
 
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
     @swagger_parser.fill_rate_limiter(@rate_limiter)
@@ -52,10 +50,11 @@ class Server
   def run
     Sync do
       @logger.info("Starting server...")
-      endpoint = Async::IO::Endpoint.tcp(@config[:bind_address], @config[:port])
+      bind_address, port = @config[:bind].split(":")
+      endpoint = Async::IO::Endpoint.tcp(bind_address, port)
       ssl_endpoint = Async::IO::Endpoint.ssl(endpoint, ssl_context)
-      @logger.debug("Server listening on #{@config[:bind_address]}:#{@config[:port]}")
-      semaphore = Async::Semaphore.new(@config[:max_connections])
+      @logger.debug("Server listening on #{bind_address}:#{port}")
+      semaphore = Async::Semaphore.new(@config[:limits][:max_connections])
 
       Thread.new { process_requests }
 

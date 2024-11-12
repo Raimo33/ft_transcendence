@@ -1,38 +1,35 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    Logger.rb                                          :+:      :+:    :+:    #
+#    ConfigurableLogger.rb                              :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 15:30:08 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:09:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:27:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "logger"
+require "singleton"
 
-module Logger
+class ConfigurableLogger
+  include Singleton
+
+  attr_reader :logger
 
   LOG_LEVELS_MAP = {
     "debug" => Logger::DEBUG,
     "info" => Logger::INFO,
     "warn" => Logger::WARN,
-    "error" => Logger::ERROR
+    "error" => Logger::ERROR,
+    "fatal" => Logger::FATAL,
+    "unknown" => Logger::UNKNOWN
   }.freeze
 
-  def self.create(log_level, log_file)
-    logger = Logger.new(log_file)
-    logger.level = LOG_LEVELS_MAP[log_level]
-    logger.formatter = proc do |severity, datetime, progname, msg|
-      "#{time.strftime('%Y-%m-%d %H:%M:%S')} [#{severity}] #{msg}\n"
-    end
-
-    logger
-  end
-
-  def self.logger
-    @logger ||= create
+  def initialize(log_level = "info", log_output = STDOUT)
+    @logger = Logger.new(log_output)
+    @logger.level = LOG_LEVELS_MAP[log_level.downcase] || Logger::INFO
   end
 
 end

@@ -6,25 +6,24 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:09:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:34:13 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "optparse"
-require_relative "Orchestrator.rb"
-require_relative "./modules/ConfigLoader"
+require_relative "ConfigLoader"
+require_relative "Orchestrator"
 
 class Launcher
-  include ConfigLoader
 
-  DEFAULT_CONFIG_FILE = "/etc/user/conf.d/default.conf"
-  DEFAULT_PID_FILE = "/var/run/user.pid"
+  DEFAULT_CONFIG_FILE = "/etc/api_gateway/conf.d/default_config.yaml"
+  DEFAULT_PID_FILE = "/var/run/api_gateway.pid"
 
   def initialize(args)
     @options = parse_options(args)
     @config_file = @options[:config_file] || DEFAULT_CONFIG_FILE
 
-    minimal_config = ConfigLoader.load_minimal(@config_file)
+    config = ConfigLoader.instance.load(@config_file)
     @pid_file = config[:pid_file] || DEFAULT_PID_FILE
   rescue StandardError => e
     STDERR.puts "Error during initialization: #{e}"
@@ -66,7 +65,6 @@ class Launcher
   end
 
   def launch
-    ConfigLoader.load(@config_file)
     File.write(@@pid_file, Process.pid)
 
     begin
@@ -80,7 +78,7 @@ class Launcher
 
   def test_config
     begin
-      ConfigLoader.load(@config_file)
+      ConfigLoader.instance.load(@config_file)
       puts "Configuration file #{@config_file} is valid."
     rescue StandardError => e
       STDERR.puts "Configuration file test failed: #{e}"

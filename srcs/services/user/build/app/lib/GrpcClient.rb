@@ -6,38 +6,37 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 11:41:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:37:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
+require_relative "ConfigLoader"
 require_relative "../proto/db_gateway_service_pb"
 require_relative "../proto/auth_service_pb"
-require_relative "./modules/ConfigLoader"
-require_relative "./modules/Logger"
+require_relative "ConfigurableLogger"
 
 class GrpcClient
-  include ConfigLoader
-  include Logger
+  
 
   def initialize
     @config = ConfigLoader.config
-    @logger = Logger.logger
+    @logger = ConfigurableLogger.instance.logger
     @logger.info("Initializing grpc client")
 
     options = {
       "grpc.compression_algorithm" => "gzip"
     }
 
-    db_gateway_credentials  = load_credentials(@config[:db_gateway_cert])
-    auth_credentials   = load_credentials(@config[:auth_cert])
+    db_gateway_credentials  = load_credentials(@config[credentials][:certs][:db_gateway])
+    auth_credentials   = load_credentials(@config[credentials][:certs][:auth])
 
-    user_channel  = create_channel(@config[:db_gateway_addr], db_gateway_credentials)
-    auth_channel  = create_channel(@config[:auth_addr], auth_credentials)
+    user_channel  = create_channel(@config[:addresses][:db_gateway], db_gateway_credentials)
+    auth_channel  = create_channel(@config[:addresses][:auth], auth_credentials)
 
     @stubs = {
       db_gateway: DBGatewayService::Stub.new(user_channel),
-      auth: AuthService::Stub.new(auth_channel)
+      auth:       AuthService::Stub.new(auth_channel)
     }.freeze
 
     @request_mapping = {

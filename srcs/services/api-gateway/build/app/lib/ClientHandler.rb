@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:22:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:26:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,28 +18,24 @@ require_relative "./modules/ActionFailedException"
 require_relative "BlockingPriorityQueue"
 require_relative "JwtValidator"
 require_relative "ConfigLoader"
-require_relative "./modules/Logger"
-require_relative "./modules/Mapper"
-require_relative "./modules/RequestParser"
+require_relative "ConfigurableLogger"
+require_relative "Mapper"
+require_relative "RequestParser"
 require_relative "./modules/Structs"
 
 class ClientHandler
-  include ConfigLoader
-  include Logger
-  include Mapper
-  include RequestParser
 
   Request = Struct.new(:method, :path_params, :query_params, :headers, :body)
   Response = Struct.new(:status_code, :headers, :body)
 
   def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
-    @config         = ConfigLoader.config
+    @config         = ConfigLoader.instance.config
+    @logger         = ConfigurableLogger.instance.logger
     @stream         = Async::IO::Stream.new(socket)
     @endpoint_tree  = endpoint_tree
     @grpc_client    = grpc_client
     @jwt_validator  = jwt_validator
     @request_queue  = Async::Queue.new    
-    @logger         = Loggger.logger
   end
 
   def read_requests

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/08 21:31:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:33:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,8 +19,8 @@ RUN apk add --no-cache ruby protobuf
 RUN mkdir -p /etc/api_gateway/conf.d
 RUN touch /var/log/api_gateway.log
 
-COPY ./build/app/            /app
-COPY ./build/default.conf    /etc/api_gateway/conf.d/
+COPY ./build/app/                 /app
+COPY ./build/default_conf.yaml    /etc/api_gateway/conf.d/
 
 RUN adduser -DHS api_gateway
 RUN chown -R api_gateway:api_gateway /app /etc/api_gateway /var/log/api_gateway.log
@@ -46,4 +46,4 @@ USER api_gateway
 WORKDIR /shared
 VOLUME ["/shared"]
 
-CMD ["-c", "/shared/conf/api_gateway.conf"]
+CMD ["-c", "/shared/conf/production.yaml"]

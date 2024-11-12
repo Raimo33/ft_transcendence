@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:09:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:27:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,17 +15,15 @@ require "net/http"
 require "json"
 require "base64"
 require "openssl"
+require_relative "ConfigLoader"
+require_relative "ConfigurableLogger"
 require_relative "../proto/auth_service_pb"
-require_relative "./modules/Logger"
-require_relative "./modules/ConfigLoader"
 
 class JwtValidator
-  include ConfigLoader
-  include Logger
 
-  def initialize(config, grpc_client)
-    @config = config
-    @logger = Logger.logger
+  def initialize(grpc_client)
+    @config = ConfigLoader.instance.config
+    @logger = ConfigurableLogger.instance.logger
     @grpc_client = grpc_client
     @public_key = nil
     @last_fetched = nil
@@ -65,7 +63,7 @@ class JwtValidator
   end
 
   def fetch_public_key
-    return @public_key if @public_key && (Time.now - @last_fetched < @config[:jwt_key_refresh_interval])
+    return @public_key if @public_key && (Time.now - @last_fetched < @config[:jwt][:key_refresh_interval])
   
     @logger.debug("Fetching JWKS from Auth service")
     response = @grpc_client.call(ApiGatewayAuthService::GetJwksRequest.new)
@@ -82,14 +80,14 @@ class JwtValidator
   end
 
   def validate_claims(decoded_token)
-    exp = decoded_token[0]["exp"] + @config[:jwt_clock_skew]
-    iat = decoded_token[0]["iat"] - @config[:jwt_clock_skew]
+    exp = decoded_token[0]["exp"] + @config[:jwt][:clock_skew]
+    iat = decoded_token[0]["iat"] - @config[:jwt][:clock_skew]
     aud = decoded_token[0]["aud"]
 
     return false unless exp && iat && aud
     now = Time.now.to_i
     return false unless (iat..exp).cover?(now)
-    return false unless aud == @config[:jwt_audience]
+    return false unless aud == @config[:jwt][:audience]
 
     true
   end

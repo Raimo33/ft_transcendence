@@ -6,25 +6,25 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:09:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/12 12:29:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
-require_relative "./modules/ConfigLoader"
-require_relative "./modules/Logger"
+require_relative "ConfigLoader"
+require_relative "ConfigurableLogger"
 
 class GrpcServer
-  include ConfigLoader
-  include Logger
 
   def initialize
-    @logger = Logger.logger
+    @logger = ConfigurableLogger.instance.logger
     @config = ConfigLoader.config
 
     @logger.info("Initializing gRPC server...")
     @server = GRPC::RpcServer.new
-    @server.add_http2_port("#{@config[:host]}:#{@config[:port]}", load_ssl_context(@config[:user_key], @config[:user_cert]))
+
+    bind_address, port = @config[:bind].split(":")
+    @server.add_http2_port("#{bind_address}:#{port}", load_ssl_context(@config[:credentials][:keys][:user], @config[:credentials][:certs][:user]))
     @server.handle(UserServiceHandler)
   rescue StandardError => e
     raise "Failed to initialize gRPC server: #{e}"    
