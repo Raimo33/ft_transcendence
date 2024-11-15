@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:28:37 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 20:38:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,14 +32,12 @@ class Server
     @grpc_client = GrpcClient.new
     @endpoint_tree = EndpointTree.new('')
     @swagger_parser = SwaggerParser.new("/app/config/openapi.yaml")
-    @rate_limiter = RateLimiter.new
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
 
     ssl_context = load_ssl_context(@config[:credentials][:certs][:api_gateway], @config[:credentials][:keys][:api_gateway])
 
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
-    @swagger_parser.fill_rate_limiter(@rate_limiter)
 
   rescue StandardError => e
     raise "Failed to initialize server: #{e}"

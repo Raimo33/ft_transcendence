@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 14:49:49 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 20:54:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,9 +41,6 @@ paths:
   /users:
     post:
       operationId: registerUser
-      x-ratelimit-criteria: ipaddr
-      x-ratelimit-interval: 150
-      x-ratelimit-limit: 2
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other  fields.
       parameters:
@@ -71,16 +68,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
           content:
             application/json:
               schema:
@@ -97,15 +84,11 @@ paths:
           $ref: "#/components/responses/ContentTooLarge"
   /users/{user_id}/profile:
     get:
-      operationId: getUserProfile
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60 
-      x-ratelimit-limit: 10
+      operationId: getUserProfile 
       summary: Get user profile
       description: Retrieve the public profile of a user account by providing the user ID.
       parameters:
         - $ref: "#/components/parameters/user_id"
-        - $ref: "#/components/parameters/If-None-Match"
       security:
         - jwtAuth: []
       responses:
@@ -114,26 +97,10 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-        "304":
-          $ref: "#/components/responses/NotModified"
-        "412":
-          $ref: "#/components/responses/PreconditionFailed"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "431":
@@ -141,9 +108,6 @@ paths:
   /users/{user_id}/status:
     get:
       operationId: getUserStatus
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get user status
       description: Retrieve the status of a specific user.
       parameters:
@@ -156,16 +120,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
           content:
             application/json:
               schema:
@@ -174,29 +128,19 @@ paths:
                   status:
                     $ref: "#/components/schemas/user_status"
                 required: [status]
-        "304":
-          $ref: "#/components/responses/NotModified"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "412":
-          $ref: "#/components/responses/PreconditionFailed"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /users/{user_id}/matches:
     get:
       operationId: getUserMatches
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get list of user matches.
       description: Returns the list of matches a user has ever played in.
       parameters:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
-        - $ref: "#/components/parameters/player_match_sorting_options"
-        - $ref: "#/components/parameters/player_match_filter_options"
-        - $ref: "#/components/parameters/If-None-Match"
       security:
         - jwtAuth: []
       responses:
@@ -205,47 +149,25 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Match"
-        "304":
-          $ref: "#/components/responses/NotModified"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "412":
-          $ref: "#/components/responses/PreconditionFailed"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /users/{user_id}/tournaments:
     get:
       operationId: getUserTournaments
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get list of user tournaments.
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
-        - $ref: "#/components/parameters/player_tournament_sorting_options"
-        - $ref: "#/components/parameters/player_tournament_filter_options"
-        - $ref: "#/components/parameters/If-None-Match"
       security:
         - jwtAuth: []
       responses:
@@ -254,39 +176,20 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Tournament"
-        "304":
-          $ref: "#/components/responses/NotModified"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "412":
-          $ref: "#/components/responses/PreconditionFailed"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
 
   /user:
     delete:
       operationId: deleteAccount
-      x-ratelimit-criteria: ipaddr
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Delete a user account
       description: Permanently delete the account of the current user.
       security:
@@ -301,13 +204,9 @@ paths:
   /user/profile:
     get:
       operationId: getPrivateProfile
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get current user"s profile
       description: Retrieve detailed information about the current user.
       parameters:
-        - $ref: "#/components/parameters/If-None-Match"
       security:
         - jwtAuth: []
       responses:
@@ -316,24 +215,10 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-        "304":
-          $ref: "#/components/responses/NotModified"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "411":
@@ -342,9 +227,6 @@ paths:
           $ref: "#/components/responses/ContentTooLarge"
     patch:
       operationId: updateProfile
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Update user profile
       description: Update the public profile of the current user.
       parameters:
@@ -378,9 +260,6 @@ paths:
   /user/password:
     put:
       operationId: updatePassword
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 3600
-      x-ratelimit-limit: 3
       summary: Update user password
       description: Update the password of the current user account.
       parameters:
@@ -416,9 +295,6 @@ paths:
   /user/password/reset:
     post:
       operationId: requestPasswordReset
-      x-ratelimit-criteria: ipaddr
-      x-ratelimit-interval: 3600
-      x-ratelimit-limit: 3
       summary: Request password reset
       description: Sends a password reset link to the registered email address.
       parameters:
@@ -446,9 +322,6 @@ paths:
   /user/password/reset/{token}:
     post:
       operationId: checkPasswordResetToken
-      x-ratelimit-criteria: ipaddr
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 2
       summary: Check the password reset token
       description: Check the validity of the password reset token provided by the user.
       parameters:
@@ -465,9 +338,6 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     patch:
       operationId: resetPassword
-      x-ratelimit-criteria: ipaddr
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 2
       summary: Reset user password
       description: Reset the password of the user account using the provided token.
       parameters:
@@ -500,9 +370,6 @@ paths:
   /user/email:
     patch:
       operationId: updateEmail
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 3
       summary: Update user email
       description: Update the email address of the current user account.
       parameters:
@@ -540,9 +407,6 @@ paths:
   /user/email/verify:
     post:
       operationId: verifyEmail
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 3
       summary: Generate email verification token
       description: Receive via email the verification token to be provided in the next request.
       parameters:
@@ -565,9 +429,6 @@ paths:
   /user/email/verify/{token}:
     post:
       operationId: checkEmailVerificationToken
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 3
       summary: Check the email verification token
       description: Check the validity of the email verification token provided by the user.
       parameters:
@@ -589,9 +450,6 @@ paths:
   /user/2fa:
     post:
       operationId: enable2FA
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 3
       summary: Setup 2fa
       description: Enable two-factor authentication for the current user account.
       parameters:
@@ -604,14 +462,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
           content:
             application/json:
               schema:
@@ -632,9 +482,6 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
       operationId: get2FAStatus
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get 2fa status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
@@ -647,16 +494,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
           content:
             application/json:
               schema:
@@ -671,9 +508,6 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
       operationId: disable2FA
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 2
       summary: Disable 2fa
       description: Disable two-factor authentication for a user account.
       security:
@@ -690,9 +524,6 @@ paths:
   /user/2fa/verify:
     post:
       operationId: check2FACode
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 3
       summary: Check 2fa code
       description: Check the validity of the two-factor authentication code provided by the user.
       parameters:
@@ -726,9 +557,6 @@ paths:
   /user/login:
     post:
       operationId: loginUser
-      x-ratelimit-criteria: ipaddr
-      x-ratelimit-interval: 150
-      x-ratelimit-limit: 3
       summary: User login
       description: Authenticate the user and return a JWT token for session management.
       parameters:
@@ -754,16 +582,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
           content:
             application/json:
               schema:
@@ -785,9 +603,6 @@ paths:
   /user/logout:
     delete:
       operationId: logoutUser
-      x-ratelimit-criteria: ipaddr
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 3
       summary: User logout
       description: Logs out the current user and invalidates the JWT token.
       security:
@@ -803,10 +618,7 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/friends:
     post:
-      operationId: addFriend
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 30
+      operationId: addFriend0
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:
@@ -839,17 +651,11 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
       operationId: getFriends
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get list of friends
       description: Retrieve the list of friends of the current user.
       parameters:
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
-        - $ref: "#/components/parameters/profile_sorting_options"
-        - $ref: "#/components/parameters/profile_filter_options"
-        - $ref: "#/components/parameters/If-None-Match"
       security:
         - jwtAuth: []
       responses:
@@ -858,38 +664,19 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/user_id"
-        "304":
-          $ref: "#/components/responses/NotModified"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "412":
-          $ref: "#/components/responses/PreconditionFailed"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/friends/{friend_id}:
     delete:
-      operationId: removeFriend
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 30
+      operationId: removeFriend0
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
@@ -909,9 +696,6 @@ paths:
   /matches:
     post:
       operationId: createMatch
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 5
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user IDs.
       parameters:
@@ -922,13 +706,11 @@ paths:
             schema:
               type: object
               properties:
-                settings:
-                  $ref: "#/components/schemas/MatchSettings"
                 invited_user_ids:
                   type: array
                   items:
                     $ref: "#/components/schemas/user_id"
-              required: [invited_users]
+              required: [invited_user_ids]
               additionalProperties: false
         required: true
       security:
@@ -939,18 +721,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
@@ -974,9 +744,6 @@ paths:
   /matches/{match_id}:
     post:
       operationId: joinMatch
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 5
       summary: Join an ongoing match
       description: Allows a user to join an ongoing match by providing the match ID.
       parameters:
@@ -990,16 +757,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
           content:
             application/json:
               schema:
@@ -1018,49 +775,26 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
       operationId: getMatch
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get match info
       description: Retrieve details about a specific match using its ID.
       parameters:
         - $ref: "#/components/parameters/match_id"
-        - $ref: "#/components/parameters/If-None-Match"
       responses:
         "200":
           description: Returns match information.
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Match"
-        "304":
-          $ref: "#/components/responses/NotModified"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "412":
-          $ref: "#/components/responses/PreconditionFailed"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
       operationId: leaveMatch
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 5
       summary: Leave the current match
       description: Exit and terminate the ongoing match.
       parameters:
@@ -1083,9 +817,6 @@ paths:
   /tournaments:
     post:
       operationId: createTournament
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 5
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       parameters:
@@ -1096,13 +827,11 @@ paths:
             schema:
               type: object
               properties:
-                mode:
-                  $ref: "#/components/schemas/tournament_mode"
                 invited_user_ids:
                   type: array
                   items:
                     $ref: "#/components/schemas/user_id"
-              required: [invited_users]
+              required: [invited_user_ids]
               additionalProperties: false
         required: true
       security:
@@ -1113,14 +842,6 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
           content:
             application/json:
               schema:
@@ -1138,9 +859,6 @@ paths:
   /tournaments/{tournament_id}:
     post:
       operationId: joinTournament
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 5
       summary: Join an ongoing tournament
       description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
       parameters:
@@ -1165,49 +883,26 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
       operationId: getTournament
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 10
       summary: Get tournament info
       description: Retrieve details about a specific tournament using its ID.
       parameters:
         - $ref: "#/components/parameters/tournament_id"
-        - $ref: "#/components/parameters/If-None-Match"
       responses:
         "200":
           description: Returns match information.
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
-            X-RateLimit-Limit:
-              $ref: "#/components/headers/X-RateLimit-Limit"
-            X-RateLimit-Remaining:
-              $ref: "#/components/headers/X-RateLimit-Remaining"
-            X-RateLimit-Reset:
-              $ref: "#/components/headers/X-RateLimit-Reset"
-            X-RateLimit-Interval:
-              $ref: "#/components/headers/X-RateLimit-Interval"
-            Cache-Control:
-              $ref: "#/components/headers/Cache-Control"
-            ETag:
-              $ref: "#/components/headers/ETag"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tournament"
-        "304":
-          $ref: "#/components/responses/NotModified"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "412":
-          $ref: "#/components/responses/PreconditionFailed"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
       operationId: leaveTournament
-      x-ratelimit-criteria: user_id
-      x-ratelimit-interval: 60
-      x-ratelimit-limit: 5
       summary: Leave the specified tournament
       description: Exit and resign from the ongoing tournament.
       parameters:
@@ -1267,27 +962,6 @@ components:
       type: string
       enum: [ongoing, completed]
       example: "ongoing"
-    match_ball_speed:
-      description: Defines the speed of the ball in the match.
-      type: integer
-      format: int32
-      minimum: 1
-      maximum: 100
-      example: 50
-    match_max_duration:
-      description: Maximum allowable duration (seconds) for the match.
-      type: integer
-      format: int32
-      minimum: 60
-      maximum: 3600
-      example: 300
-    match_starting_health_points:
-      description: Initial health or lives given to each player at the start of the match.
-      type: integer
-      format: int32
-      minimum: 1
-      maximum: 100
-      example: 3
 
     player_position:
       description: Position of the player in the leaderboard.
@@ -1301,11 +975,6 @@ components:
       type: string
       format: uuid
       example: 550e8400-e29b-41d4-a716-446655440000
-    tournament_mode:
-      description: Format of the tournament.
-      type: string
-      enum: [single_elimination, knockout, king_of_the_hill, ladder, round_robin]
-      example: "king_of_the_hill"
     tournament_status:
       description: Current status of the tournament.
       type: string
@@ -1323,10 +992,10 @@ components:
       example: true
 
     qr_code:
-      description: URL to the QR code image.
+      description: QR code image in base64 encoding.
       type: string
-      format: uri
-      example: "https://example.com/qr_code.png"
+      format: base64
+      example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABjklEQVRIS+2Vv0oDQRDG..."
   
     totp_code:
       description: TOTP code generated by the user for 2FA authentication.
@@ -1370,11 +1039,7 @@ components:
           $ref: "#/components/schemas/user_avatar"
         status:
           $ref: "#/components/schemas/user_status"
-        last_active_timestamp:
-          $ref: "#/components/schemas/timestamp"
-        registered_timestamp:
-          $ref: "#/components/schemas/timestamp"
-      required: [id, display_name, avatar, status, last_active_timestamp, registered_timestamp]
+      required: [id, display_name, avatar, status]
 
     User:
       description: Represents a private user profile with additional information.
@@ -1387,18 +1052,7 @@ components:
             two_factor_auth_enabled:
               $ref: "#/components/schemas/two_factor_auth_enabled"
           additionalProperties: false
-      required: [id, display_name, avatar, status, last_active_timestamp, email, two_factor_auth_enabled]
-
-    MatchSettings:
-      description: Settings and configurations for the match, such as ball speed, match duration, and player health.
-      type: object
-      properties:
-        ball_speed:
-          $ref: "#/components/schemas/match_ball_speed"
-        max_duration:
-          $ref: "#/components/schemas/match_max_duration"
-        starting_health:
-          $ref: "#/components/schemas/match_starting_health_points"
+      required: [id, display_name, avatar, status, email, two_factor_auth_enabled]
 
     Match:
       description: Represents a match of Pong between two players.
@@ -1417,9 +1071,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_timestamp:
           $ref: "#/components/schemas/timestamp"
-        settings:
-          $ref: "#/components/schemas/MatchSettings"
-      required: [id, player_ids, status, started_timestamp, settings]
+      required: [id, player_ids, status, started_timestamp]
 
     Tournament:
       description: Represents a Pong tournament, containing multiple matches and players.
@@ -1427,8 +1079,6 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/tournament_id"
-        mode:
-          $ref: "#/components/schemas/tournament_mode"
         match_ids:
           description: Array of match_ids in the tournament.
           type: array
@@ -1440,7 +1090,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_timestamp:
           $ref: "#/components/schemas/timestamp"
-      required: [id, mode, match_ids, status, started_timestamp]
+      required: [id, match_ids, status, started_timestamp]
 
   parameters:
 
@@ -1500,100 +1150,9 @@ components:
       example: 12345
       required: true
 
-    If-None-Match:
-      description: ETag header for cache validation. The client can provide the ETag value from a previous request to check if the resource has changed.
-      name: If-None-Match
-      in: header
-      schema:
-        type: string
-      example: "W/\"67ab43\""
-      required: false
-
-    Cache-Control:
-      description: Cache control directives to influence caching behavior.
-      name: Cache-Control
-      in: header
-      schema:
-        type: string
-      example: "public, max-age=3600"
-      required: false
-
     #######################################################
     #                   Query Parameters                  #
     #######################################################
-
-    profile_sorting_options:
-      description: Options to sort the user profiles list.
-      name: sort_by
-      in: query
-      schema:
-        type: string
-        enum: [display_name, registered_timestamp, last_active_timestamp]
-      style: form
-      explode: false
-      required: false
-    profile_filter_options:
-      description: Options to filter the user profiles list.
-      name: filters
-      in: query
-      schema:
-        type: object
-        properties:
-          status:
-            $ref: "#/components/schemas/user_status"
-      style: deepObject
-      explode: false
-      required: false
-  
-    player_match_sorting_options:
-      description: Options to sort the player"s matches list.
-      name: sort_by
-      in: query
-      schema:
-        type: string
-        enum: [age, duration, number_of_players, position]
-      style: form
-      explode: false
-      required: false
-    player_match_filter_options:
-      description: Options to filter the player"s matches list.
-      name: filters
-      in: query
-      schema:
-        type: object
-        properties:
-          status:
-            $ref: "#/components/schemas/match_status"
-      style: deepObject
-      explode: false
-      required: false
-
-    player_tournament_sorting_options:
-      description: Options to sort the player"s tournaments list.
-      name: sort_by
-      in: query
-      schema:
-        type: string
-        enum: [age, duration, number_of_players, position]
-      style: form
-      explode: false
-      required: false
-    player_tournament_filter_options:
-      description: Options to filter the player"s tournaments list.
-      name: filters
-      in: query
-      schema:
-        type: object
-        properties:
-          mode:
-            $ref: "#/components/schemas/tournament_mode"
-          status:
-            $ref: "#/components/schemas/tournament_status"
-          position:
-            $ref: "#/components/schemas/player_position"
-      style: deepObject
-      explode: false
-      required: false
 
     limit:
       description: Maximum number of items to return.
@@ -1616,46 +1175,6 @@ components:
 
   headers:
 
-    X-RateLimit-Limit:
-      description: Maximum number of requests allowed in the current window.
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
-      example: 100
-    X-RateLimit-Remaining:
-      description: Remaining number of requests allowed in the current window.
-      schema:
-        type: integer
-        format: int32
-        minimum: 0
-      example: 99
-    X-RateLimit-Reset:
-      description: Time in seconds until the rate limit resets.
-      schema:
-        type: integer
-        format: int32
-        minimum: 0
-      example: 60
-    X-RateLimit-Interval:
-      description: Time interval in seconds for the rate limit window.
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
-      example: 60
-
-    ETag:
-      description: An identifier for a specific version of a resource.
-      schema:
-        type: string
-      example: "W/\"67ab43\""
-    Cache-Control:
-      description: Cache control directives for the response.
-      schema:
-        type: string
-      example: "public, max-age=3600"
-
     Content-Length:
       description: The length of the request body in octets (8-bit bytes).
       schema:
@@ -1668,111 +1187,30 @@ components:
 
     NoContent: #HTTP 204
       description: No content to return. The request was successful but there is no content to return.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     NotModified: #HTTP 304
       description: Not modified. The resource has not changed since the last request.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     Unauthorized: #HTTP 401
       description: Unauthorized. JWT token is missing or invalid.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     Forbidden: #HTTP 403
       description: Forbidden. The user does not have permission to perform the action.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     Conflict: #HTTP 409
       description: Conflict. The request could not be completed due to a conflict with the current state of the resource.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     LengthRequired: #HTTP 411
       description: Length required. The request did not specify the length of its content, which is required by the requested resource.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
   
     PreconditionFailed: #HTTP 412
       description: Precondition failed. The server does not meet one of the preconditions that the requester put on the request.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     ContentTooLarge: #HTTP 413
       description: Content too large. The request is larger than the server is willing or able to process.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     RequestHeaderFieldsTooLarge: #HTTP 431
       description: Header fields too large. The server is unwilling to process the request because its header fields are too large.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
 
     #######################################################
@@ -1781,135 +1219,30 @@ components:
 
     BadRequest: #HTTP 400
       description: Bad request. The request was invalid or cannot be served.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     NotFound: #HTTP 404
       description: Not found. The requested resource could not be found.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     MethodNotAllowed: #HTTP 405
       description: Method not allowed. The request method is known but not supported by the target resource.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     RequestTimeout: #HTTP 408
       description: Request timeout. Idle time has passed without any data being sent or received.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
-
-    UriTooLong: #HTTP 414
-      description: URI too long. The URI provided was too long for the server to process.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
-
-    TooManyRequests: #HTTP 429
-      description: Rate limit exceeded. Too many requests in a given time window.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
 
     InternalServerError: #HTTP 500
       description: Internal server error. The server encountered an unexpected condition that prevented it from fulfilling the request.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     NotImplemented: #HTTP 501
       description: Not implemented. The server does not support the method or functionality required to fulfill the request.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     BadGateway: #HTTP 502
       description: Bad gateway. The server received an invalid response from an upstream server.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     ServiceUnavailable: #HTTP 503
       description: Service unavailable. The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     GatewayTimeout: #HTTP 504
       description: Gateway timeout. The server did not receive a timely response from an upstream server it needed to access in order to complete the request.
-      headers:
-        X-RateLimit-Limit:
-          $ref: "#/components/headers/X-RateLimit-Limit"
-        X-RateLimit-Remaining:
-          $ref: "#/components/headers/X-RateLimit-Remaining"
-        X-RateLimit-Reset:
-          $ref: "#/components/headers/X-RateLimit-Reset"
-        X-RateLimit-Interval:
-          $ref: "#/components/headers/X-RateLimit-Interval"
 
     ImATeaPot: #HTTP 418
       description: I"m a teapot. The server is a teapot, not a coffee machine.

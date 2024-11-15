@@ -12,21 +12,19 @@ jwt:
 
 limits:
   max_connections: 1000
-  max_body_size: 5242880
-  max_uri_length: 8192
 
 credentials:
   keys:
-    api_gateway: "/etc/ssl/private/api_gateway.key"
+    api_gateway:  "/etc/ssl/private/api_gateway.key"
   certs:
-    api_gateway: "/etc/ssl/certs/api_gateway.crt"
-    user: "/etc/ssl/certs/user.crt"
-    match: "/etc/ssl/certs/match.crt"
-    tournament: "/etc/ssl/certs/tournament.crt"
-    auth: "/etc/ssl/certs/auth.crt"
+    api_gateway:  "/etc/ssl/certs/api_gateway.crt"
+    user:         "/etc/ssl/certs/user.crt"
+    match:        "/etc/ssl/certs/match.crt"
+    tournament:   "/etc/ssl/certs/tournament.crt"
+    auth:         "/etc/ssl/certs/auth.crt"
 
 addresses:
-  user: "user.corenet:50052"
-  match: "match.corenet:50052"
+  user:       "user.corenet:50052"
+  match:      "match.corenet:50052"
   tournament: "tournament.corenet:50052"
-  auth: "auth.corenet:50052"
+  auth:       "auth.corenet:50052"

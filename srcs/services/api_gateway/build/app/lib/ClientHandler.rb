@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 17:31:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 20:55:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -89,15 +89,9 @@ class ClientHandler
           barrier.async do
             check_auth(request.resource.expected_auth_level, request.headers["authorization"])
 
-            caller_id = extract_caller_id(request.headers)
-            if @rate_limiter.allowed?(request.resource.operation_id, caller_id)
-              grpc_request   = Mapper.map_request_to_grpc_request(request, request.operation_id, request.caller_id)
-              grpc_response  = @grpc_client.call(grpc_request)
-              response       = Mapper.map_grpc_response_to_response(grpc_response, request.operation_id)
-            else
-              response = Response.new(429, {"Content-Length" => "0"}, "")
-
-            add_rate_limit_headers(response.headers, caller_id, request.path)
+            grpc_request   = Mapper.map_request_to_grpc_request(request, request.operation_id, request.caller_id)
+            grpc_response  = @grpc_client.call(grpc_request)
+            response       = Mapper.map_grpc_response_to_response(grpc_response, request.operation_id)
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e
@@ -143,20 +137,6 @@ class ClientHandler
     raise ActionFailedException::BadRequest unless authorization_header&.start_with?("Bearer ")
 
     authorization_header.sub("Bearer ", "").strip
-  end
-
-  def extract_caller_id(headers)
-    jwt_token = extract_token(headers["authorization"])
-
-    jwt_token || headers["x-real-ip"] || headers["x-forwarded-for"]
-  end
-
-  #NOTE: outgoing headers so no need to lowercase them
-  def add_rate_limit_headers(headers, caller_id, path)
-    headers["X-RateLimit-Limit"]     = @rate_limiter.limit(caller_id, path).to_s
-    headers["X-RateLimit-Remaining"] = @rate_limiter.remaining(caller_id, path).to_s
-    headers["X-RateLimit-Reset"]     = @rate_limiter.reset(caller_id, path).to_s
-    headers["X-RateLimit-Interval"]  = @rate_limiter.interval(caller_id, path).to_s
   end
 
   def send_response(response)

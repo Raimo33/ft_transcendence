@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/10 15:33:59 by craimond          #+#    #+#              #
-#    Updated: 2024/11/10 17:56:14 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 20:36:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,8 +37,6 @@ class ConfigLoader
     },
     limits: {
       max_connections:  Integer,
-      max_body_size:    Integer,
-      max_uri_length:   Integer
     },
     credentials:
     {

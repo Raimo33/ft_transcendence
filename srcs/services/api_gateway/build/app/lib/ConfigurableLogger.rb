@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 15:30:08 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 15:55:57 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 20:55:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,12 +19,12 @@ class ConfigurableLogger
   attr_reader :logger
 
   LOG_LEVELS_MAP = {
-    "debug"   => Logger::DEBUG,
-    "info"    => Logger::INFO,
-    "warn"    => Logger::WARN,
-    "error"   => Logger::ERROR,
-    "fatal"   => Logger::FATAL,
-    "unknown" => Logger::UNKNOWN
+    "debug"     => Logger::DEBUG,
+    "info"      => Logger::INFO,
+    "warn"      => Logger::WARN,
+    "error"     => Logger::ERROR,
+    "fatal"     => Logger::FATAL,
+    "unknown"   => Logger::UNKNOWN
   }.freeze
 
   def initialize(log_level = "info", log_output = STDOUT)

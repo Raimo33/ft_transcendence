@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/07 18:16:50 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:28:24 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 20:38:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,9 +28,8 @@ class RequestParser
     request_line, header_lines = headers_part.split("\r\n", 2)
     request.http_method, full_path, _ = request_line.split(" ", 3)
     raise ActionFailedException::BadRequest unless request.method && full_path
-    raise ActionFailedException::URITooLong if full_path.size > config[:max_uri_length]
 
-    raw_path, raw_query = full_path.split("?", 2)
+    raw_path, _ = full_path.split("?", 2)
     raise ActionFailedException::BadRequest unless raw_path
 
     endpoint = endpoint_tree.find_endpoint(raw_path)
@@ -45,7 +44,6 @@ class RequestParser
 
     if resource.body_required
       raise ActionFailedException::LengthRequired unless content_length
-      raise ActionFailedException::ContentTooLarge if content_length > config[:max_body_size]
     end
 
     check_auth(resource, headers["authorization"])
@@ -56,7 +54,6 @@ class RequestParser
     raw_body = buffer.slice!(body_start_index, content_length) if content_length > 0
 
     request.path_params       = parse_path_params(expected_request.allowed_path_params, resource.path_template, raw_path)
-    request.query_params      = parse_query_params(expected_request.allowed_query_params, raw_query)
     request.body              = parse_body(expected_request.body_schema, raw_body)
     request.caller_identifier = extract_caller_identifier(request.headers)
     request.operation_id      = resource.operation_id
@@ -139,66 +136,6 @@ class RequestParser
     end
   
     path_params
-  end
-
-  def parse_query_params(allowed_query_params, raw_query)
-    params = {}
-  
-    received_query_params = raw_query.split("&").each_with_object({}) do |pair, hash|
-      key, value = pair.split("=", 2)
-      hash[key.to_sym] = value if key && value
-    end
-
-    allowed_query_params.each do |name, config|
-      schema = config[:schema]
-
-      if schema[:type] == "object" && config[:style] == "deepObject" && !config[:explode]
-        object_params = {}
-  
-        received_query_params.each do |full_key, value|
-          if full_key.to_s.start_with?("#{name}[")
-            property_name = full_key.to_s.match(/\[(.*?)\]/)[1].to_sym
-  
-            if schema[:properties].key?(property_name)
-              case schema[:properties][property_name][:type]
-              when "integer"
-                object_params[property_name] = Integer(value) rescue raise "Invalid integer for #{name}[#{property_name}]"
-              when "string"
-                object_params[property_name] = value
-              else
-                raise "Unsupported type for #{name}[#{property_name}]"
-              end
-            end
-          end
-        end
-  
-        params[name] = object_params unless object_params.empty?
-  
-      else
-        if config[:required] && !received_query_params.key?(name)
-          raise "Missing required query parameter: #{name}"
-        end
-  
-        next unless received_query_params.key?(name)
-  
-        value = received_query_params[name]
-        case schema[:type]
-        when "array"
-          params[name] = config[:explode] ? value.split(",").map(&:strip) : [value]
-        when "integer"
-          params[name] = Integer(value) rescue raise "Invalid integer for query parameter: #{name}"
-        when "string"
-          params[name] = value
-        else
-          raise "Unsupported type for query parameter: #{name}"
-        end
-      end
-    end
-
-    extra_params = received_query_params.keys - allowed_query_params.keys
-    @logger.warn("Received unexpected query parameters: #{extra_params.join(', ')}") unless extra_params.empty?
-  
-    params
   end
 
   def parse_body(allowed_body, raw_body)
@@ -294,7 +231,9 @@ class RequestParser
   end
 
   def extract_token(authorization_header)
-    authorization_header&.split(' ')[1]&.strip
+    raise ActionFailedException::BadRequest unless authorization_header&.start_with?("Bearer ")
+
+    authorization_header.sub("Bearer ", "").strip
   end
 
 end

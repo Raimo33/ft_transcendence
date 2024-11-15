@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 08:37:11 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 11:49:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 20:34:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,6 @@ module ActionFailedException
   class MethodNotAllowed   < BaseError; end
   class RequestTimeout     < BaseError; end
   class Conflict           < BaseError; end
-  class URITooLong         < BaseError; end
   class TooManyRequests    < BaseError; end
   class InternalServer     < BaseError; end
   class NotImplemented     < BaseError; end

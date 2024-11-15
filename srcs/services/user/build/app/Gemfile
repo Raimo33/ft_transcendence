@@ -1,7 +1,0 @@
-source "https://rubygems.org"
-
-gem "grpc"
-gem "google-protobuf"
-gem "async"
-
-#TODO add more gems as needed

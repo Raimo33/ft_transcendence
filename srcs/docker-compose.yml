@@ -66,7 +66,7 @@ services:
       - user_cert:/etc/ssl/certs/user.crt:ro
       - auth_cert:/etc/ssl/certs/auth.crt:ro
       - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: user_key
         target: /etc/ssl/private/user.key
@@ -93,7 +93,7 @@ services:
       - match_cert:/etc/ssl/certs/match.crt:ro
       - game_state_cert:/etc/ssl/certs/game_state.crt:ro
       - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: match_key
         target: /etc/ssl/private/match.key
@@ -119,7 +119,7 @@ services:
       - tournament_cert:/etc/ssl/certs/tournament.crt:ro
       - game_state_cert:/etc/ssl/certs/game_state.crt:ro
       - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: tournament_key
         target: /etc/ssl/private/tournament.key
@@ -143,7 +143,7 @@ services:
     environment:
     volumes:
       - auth_cert:/etc/ssl/certs/auth.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: auth_key
         target: /etc/ssl/certs/auth.key
@@ -169,7 +169,7 @@ services:
       - matchmaking_cert:/etc/ssl/certs/matchmaking.crt:ro
       - ai_cert:/etc/ssl/certs/ai.crt:ro
       - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: matchmaking_key
         target: /etc/ssl/certs/matchmaking.key
@@ -194,7 +194,7 @@ services:
     volumes:
       - ai_cert:/etc/ssl/certs/ai.crt:ro
       - nginx_cert:/etc/ssl/certs/nginx.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: game_state_key
         target: /etc/ssl/certs/game_state.key
@@ -219,7 +219,7 @@ services:
     volumes:
       - ai_cert:/etc/ssl/certs/ai.crt:ro
       - game_state_cert:/etc/ssl/certs/game_state.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets: 
       - source: ai_key
         target: /etc/ssl/certs/ai.key
@@ -244,7 +244,7 @@ services:
     volumes:
       - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
       - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: db_gateway_key
         target: /etc/ssl/certs/db_gateway.key
@@ -269,7 +269,7 @@ services:
       - DB_NAME=${DB_NAME}
     volumes:
       - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: postgresql_key
         target: /etc/ssl/certs/postgresql.key
@@ -294,7 +294,7 @@ services:
     volumes:
       - blockchain_cert:/etc/ssl/certs/blockchain.crt:ro
       - geth_cert:/etc/ssl/certs/geth.crt:ro
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: blockchain_key
         target: /etc/ssl/certs/blockchain.key
@@ -308,19 +308,19 @@ services:
     depends_on:
     init: true
   
-  redis_core:
+  redis:
     build:
-      context: ./services/redis_core
+      context: ./services/redis
       dockerfile: Dockerfile
       args:
     
     container_name: redis
     environment:
     volumes:
-      - redis_core_cert:/etc/ssl/certs/redis_core.crt:ro
+      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: redis_core_key
-        target: /etc/ssl/private/redis_core.key
+      - source: redis_key
+        target: /etc/ssl/private/redis.key
         uid: #TODO uid
         mode: 0400
     ports:
@@ -486,7 +486,7 @@ volumes:
   db_gateway_cert:
   postgresql_cert:
   blockchain_cert:
-  redis_core_cert:
+  redis_cert:
   geth_cert:
   prometheus_cert:
   grafana_cert:
@@ -507,7 +507,7 @@ secrets:
   db_gateway_key:
   postgresql_key:
   blockchain_key:
-  redis_core_key:
+  redis_key:
   geth_key:
   prometheus_key:
   grafana_key:
