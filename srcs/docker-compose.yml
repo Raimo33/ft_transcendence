@@ -167,7 +167,6 @@ services:
     environment:
     volumes:
       - matchmaking_cert:/etc/ssl/certs/matchmaking.crt:ro
-      - ai_cert:/etc/ssl/certs/ai.crt:ro
       - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
       - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
@@ -192,37 +191,11 @@ services:
     container_name: game_state
     environment:
     volumes:
-      - ai_cert:/etc/ssl/certs/ai.crt:ro
       - nginx_cert:/etc/ssl/certs/nginx.crt:ro
       - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
       - source: game_state_key
         target: /etc/ssl/certs/game_state.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - 
-    networks:
-      - corenet
-    restart: always
-    depends_on:
-    init: true
-  
-  ai:
-    build:
-      context: ./services/ai
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: ai
-    environment:
-    volumes:
-      - ai_cert:/etc/ssl/certs/ai.crt:ro
-      - game_state_cert:/etc/ssl/certs/game_state.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
-    secrets: 
-      - source: ai_key
-        target: /etc/ssl/certs/ai.key
         uid: #TODO uid
         mode: 0400
     ports:
@@ -256,6 +229,8 @@ services:
       - datanet
     restart: always
     depends_on:
+      postgresql:
+        condition: service_healthy
     init: true
 
   postgresql:
@@ -283,31 +258,6 @@ services:
     depends_on:
     init: true
   
-  blockchain:
-    build:
-      context: ./services/blockchain
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: blockchain
-    environment:
-    volumes:
-      - blockchain_cert:/etc/ssl/certs/blockchain.crt:ro
-      - geth_cert:/etc/ssl/certs/geth.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
-    secrets:
-      - source: blockchain_key
-        target: /etc/ssl/certs/blockchain.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - 
-    networks:
-      - datanet
-    restart: always
-    depends_on:
-    init: true
-  
   redis:
     build:
       context: ./services/redis
@@ -327,76 +277,6 @@ services:
       - "6379:6379"
     networks:
       - corenet
-    restart: always
-    depends_on:
-    init: true
-  
-  geth:
-    build:
-      context: ./services/geth
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: geth
-    environment:
-    volumes:
-      - geth_cert:/etc/ssl/certs/geth.crt:ro
-    secrets:
-      - source: geth_key
-        target: /etc/ssl/private/geth.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - 
-    networks:
-      - datanet
-    restart: always
-    depends_on:
-    init: true
-
-  prometheus:
-    build:
-      context: ./services/prometheus
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: prometheus
-    environment:
-    volumes:
-      - prometheus_cert:/etc/ssl/certs/prometheus.crt:ro
-      - grafana_cert:/etc/ssl/certs/grafana.crt:ro
-    secrets:
-      - source: prometheus_key
-        target: /etc/ssl/private/prometheus.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - "9090:9090"
-    networks:
-      - monitoringnet
-    restart: always
-    depends_on:
-    init: true
-  
-  grafana:
-    build:
-      context: ./services/grafana
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: grafana
-    environment:
-    volumes:
-      - grafana_cert:/etc/ssl/certs/grafana.crt:ro
-    secrets:
-      - source: grafana_key
-        target: /etc/ssl/private/grafana.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - "3000:3000"
-    networks:
-      - monitoringnet
     restart: always
     depends_on:
     init: true
@@ -482,14 +362,9 @@ volumes:
   auth_cert:
   matchmaking_cert:
   game_state_cert:
-  ai_cert:
   db_gateway_cert:
   postgresql_cert:
-  blockchain_cert:
   redis_cert:
-  geth_cert:
-  prometheus_cert:
-  grafana_cert:
   logstash_cert:
   elasticsearch_cert:
   kibana_cert:
@@ -506,11 +381,7 @@ secrets:
   ai_key:
   db_gateway_key:
   postgresql_key:
-  blockchain_key:
   redis_key:
-  geth_key:
-  prometheus_key:
-  grafana_key:
   logstash_key:
   elasticsearch_key:
   kibana_key:
