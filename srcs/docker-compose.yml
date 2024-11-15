@@ -10,7 +10,6 @@ services:
     environment:
     volumes:
       - nginx_cert:/etc/ssl/certs/nginx.crt:ro
-      - api_gateway_cert:/etc/ssl/certs/api_gateway.crt:ro
     secrets:
       - source: nginx_key
         target: /etc/ssl/private/nginx.key
@@ -34,16 +33,7 @@ services:
     environment:
     volumes:
       - ./services/api_gateway/shared/:/shared/:ro
-      - api_gateway_cert:/etc/ssl/certs/api_gateway.crt:ro
-      - user_cert:/etc/ssl/certs/user.crt:ro
-      - match_cert:/etc/ssl/certs/match.crt:ro
-      - tournament_cert:/etc/ssl/certs/tournament.crt:ro
-      - auth_cert:/etc/ssl/certs/auth.crt:ro
     secrets:
-      - source: api_gateway_key
-        target: /etc/ssl/private/api_gateway.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - "3000:3000"
     networks:
@@ -63,18 +53,9 @@ services:
     container_name: user
     environment:
     volumes:
-      - user_cert:/etc/ssl/certs/user.crt:ro
-      - auth_cert:/etc/ssl/certs/auth.crt:ro
-      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: user_key
-        target: /etc/ssl/private/user.key
-        uid: #TODO uid
-        mode: 0400
-    
     ports:
-      - 
+      - 50052:50052
     networks:
       - corenet
     restart: always
@@ -90,15 +71,7 @@ services:
     container_name: match
     environment:
     volumes:
-      - match_cert:/etc/ssl/certs/match.crt:ro
-      - game_state_cert:/etc/ssl/certs/game_state.crt:ro
-      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: match_key
-        target: /etc/ssl/private/match.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - 
     networks:
@@ -116,15 +89,7 @@ services:
     container_name: tournament
     environment:
     volumes:
-      - tournament_cert:/etc/ssl/certs/tournament.crt:ro
-      - game_state_cert:/etc/ssl/certs/game_state.crt:ro
-      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: tournament_key
-        target: /etc/ssl/private/tournament.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - 
     networks:
@@ -142,13 +107,7 @@ services:
     container_name: auth
     environment:
     volumes:
-      - auth_cert:/etc/ssl/certs/auth.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: auth_key
-        target: /etc/ssl/certs/auth.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       -
     networks:
@@ -166,14 +125,7 @@ services:
     container_name: matchmaking
     environment:
     volumes:
-      - matchmaking_cert:/etc/ssl/certs/matchmaking.crt:ro
-      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: matchmaking_key
-        target: /etc/ssl/certs/matchmaking.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - 
     networks:
@@ -191,13 +143,7 @@ services:
     container_name: game_state
     environment:
     volumes:
-      - nginx_cert:/etc/ssl/certs/nginx.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: game_state_key
-        target: /etc/ssl/certs/game_state.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - 
     networks:
@@ -215,14 +161,7 @@ services:
     container_name: db_gateway
     environment:
     volumes:
-      - db_gateway_cert:/etc/ssl/certs/db_gateway.crt:ro
-      - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: db_gateway_key
-        target: /etc/ssl/certs/db_gateway.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - 50052:50052
     networks:
@@ -243,40 +182,11 @@ services:
     environment:
       - DB_NAME=${DB_NAME}
     volumes:
-      - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
     secrets:
-      - source: postgresql_key
-        target: /etc/ssl/certs/postgresql.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - "5432:5432"
     networks:
       - datanet
-    restart: always
-    depends_on:
-    init: true
-  
-  redis:
-    build:
-      context: ./services/redis
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: redis
-    environment:
-    volumes:
-      - redis_cert:/etc/ssl/certs/redis.crt:ro
-    secrets:
-      - source: redis_key
-        target: /etc/ssl/private/redis.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - "6379:6379"
-    networks:
-      - corenet
     restart: always
     depends_on:
     init: true
@@ -290,13 +200,7 @@ services:
     container_name: logstash
     environment:
     volumes:
-      - logstash_cert:/etc/ssl/certs/logstash.crt:ro
-      - elasticsearch_cert:/etc/ssl/certs/elasticsearch.crt:ro
     secrets:
-      - source: logstash_key
-        target: /etc/ssl/private/logstash.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - 
     networks:
@@ -314,13 +218,7 @@ services:
     container_name: elasticsearch
     environment:
     volumes:
-      - elasticsearch_cert:/etc/ssl/certs/elasticsearch.crt:ro
-      - kibana_cert:/etc/ssl/certs/kibana.crt:ro
     secrets:
-      - source: elasticsearch_key
-        target: /etc/ssl/private/elasticsearch.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - 
     networks:
@@ -338,12 +236,7 @@ services:
     container_name: kibana
     environment:
     volumes:
-      - kibana_cert:/etc/ssl/certs/kibana.crt:ro
     secrets:
-      - source: kibana_key
-        target: /etc/ssl/private/kibana.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - "5601:5601"
     networks:
@@ -352,39 +245,10 @@ services:
     depends_on:
     init: true
 
-#TODO add certs
 volumes:
   nginx_cert:
-  api_gateway_cert:
-  user_cert:
-  match_cert:
-  tournament_cert:
-  auth_cert:
-  matchmaking_cert:
-  game_state_cert:
-  db_gateway_cert:
-  postgresql_cert:
-  redis_cert:
-  logstash_cert:
-  elasticsearch_cert:
-  kibana_cert:
 
 secrets:
-  nginx_key:
-  api_gateway_key:
-  user_key:
-  match_key:
-  tournament_key:
-  auth_key:
-  matchmaking_key:
-  game_state_key:
-  ai_key:
-  db_gateway_key:
-  postgresql_key:
-  redis_key:
-  logstash_key:
-  elasticsearch_key:
-  kibana_key:
 
 networks:
   edgenet:

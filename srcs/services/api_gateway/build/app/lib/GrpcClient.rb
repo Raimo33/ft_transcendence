@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 15:22:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 22:02:02 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,15 +28,10 @@ class GrpcClient
       "grpc.compression_algorithm" => "gzip"
     }
 
-    user_credentials        = load_credentials(@config[:credentials][:certs][:user])
-    match_credentials       = load_credentials(@config[:credentials][:certs][:match])
-    tournament_credentials  = load_credentials(@config[:credentials][:certs][:tournament])
-    auth_credentials        = load_credentials(@config[:credentials][:certs][:auth])
-
-    user_channel        = create_channel(@config[:addresses][:user], user_credentials)
-    match_channel       = create_channel(@config[:addresses][:match], match_credentials)
-    tournament_channel  = create_channel(@config[:addresses][:tournament], tournament_credentials)
-    auth_channel        = create_channel(@config[:addresses][:auth], auth_credentials)
+    user_channel        = create_channel(@config[:addresses][:user], :this_channel_is_insecure)
+    match_channel       = create_channel(@config[:addresses][:match], :this_channel_is_insecure)
+    tournament_channel  = create_channel(@config[:addresses][:tournament], :this_channel_is_insecure)
+    auth_channel        = create_channel(@config[:addresses][:auth], :this_channel_is_insecure)
 
     @stubs = {
       user: User::Stub.new(user_channel),
@@ -108,14 +103,6 @@ class GrpcClient
   end
 
   private
-
-  def load_credentials(cert_file)
-    raise "Certificate file not found: #{cert_file}" unless File.exist?(cert_file)
-    @logger.debug("Loading credentials from #{cert_file}")
-    GRPC::Core::ChannelCredentials.new(File.read(cert_file))
-  rescue StandardError => e
-    raise "Failed to load credentials from #{cert_file}: #{e}"
-  end
 
   def create_channel(addr, credentials)
     @logger.debug("Creating channel to #{addr}")

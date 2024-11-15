@@ -1,0 +1,46 @@
+bind: 0.0.0.0:50052
+pid_file: /var/run/user.pid
+
+logging:
+  level:  info
+  file:   /dev/stdout
+
+addresses:
+  db_gateway: db_gateway.datanet:50052
+  auth:       auth.corenet:50052
+
+display_name:
+  min_length: 3
+  max_length: 25
+  charset:
+    lowercase: "abcdefghijklmnopqrstuvwxyz"
+    uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    digits:    "0123456789"
+    special:   "!@#$%&*-_=+,.<>?"
+
+password:
+  min_length: 8
+  max_length: 64
+  charset:
+    lowercase:  "abcdefghijklmnopqrstuvwxyz"
+    uppercase:  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    digits:     "0123456789"
+    special:    "!@#$%&*-_=+,.<>?"
+  policy:
+    min_uppercase:  1
+    min_lowercase:  1
+    min_digits:     1
+    min_special:    0
+
+avatar:
+  max_size: 5242880
+  max_dimensions:
+    width:  512
+    height: 512
+  allowed_types:
+    - image/jpeg
+    - image/png
+    - image/webp
+  compression_quality: 80
+  standard_format: jpeg
+  default: /etc/default_avatar.jpg

@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package user;
+package user.api_gateway;
 
 
-service UserService
+service UserAPIGatewayService
 {
   rpc RegisterUser                  (RegisterUserRequest)                  returns (RegisterUserResponse) {}
   rpc GetUserProfile                (GetUserProfileRequest)                returns (GetUserProfileResponse) {}
@@ -12,11 +12,11 @@ service UserService
   rpc GetPrivateProfile             (GetPrivateProfileRequest)             returns (GetPrivateProfileResponse) {}
   rpc UpdateProfile                 (UpdateProfileRequest)                 returns (UpdateProfileResponse) {}
   rpc UpdatePassword                (UpdatePasswordRequest)                returns (UpdatePasswordResponse) {}
-  rpc RequestPasswordReset          (RequestPasswordResetRequest)          returns (RequestPasswordResetResponse) {}
-  rpc CheckPasswordResetToken       (CheckPasswordResetTokenRequest)       returns (CheckPasswordResetTokenResponse) {}
-  rpc ResetPassword                 (ResetPasswordRequest)                 returns (ResetPasswordResponse) {}
-  rpc UpdateEmail                   (UpdateEmailRequest)                   returns (UpdateEmailResponse) {}
-  rpc CheckEmailVerificationToken   (CheckEmailVerificationTokenRequest)   returns (VerifyEmailResponse) {}
+  // rpc RequestPasswordReset          (RequestPasswordResetRequest)          returns (RequestPasswordResetResponse) {}
+  // rpc CheckPasswordResetToken       (CheckPasswordResetTokenRequest)       returns (CheckPasswordResetTokenResponse) {}
+  // rpc ResetPassword                 (ResetPasswordRequest)                 returns (ResetPasswordResponse) {}
+  // rpc UpdateEmail                   (UpdateEmailRequest)                   returns (UpdateEmailResponse) {}
+  // rpc CheckEmailVerificationToken   (CheckEmailVerificationTokenRequest)   returns (VerifyEmailResponse) {}
   rpc Enable2FA                     (Enable2FARequest)                     returns (Enable2FAResponse) {}
   rpc Get2FAStatus                  (Get2FAStatusRequest)                  returns (Get2FAStatusResponse) {}
   rpc Disable2FA                    (Disable2FARequest)                    returns (Disable2FAResponse) {}
@@ -30,28 +30,19 @@ service UserService
 
 message UserProfile
 {
-  string  id                      = 1;
-  string  display_name            = 2;
-  string  avatar                  = 3;
-  string  status                  = 4;
-  uint64  last_active_timestamp   = 5;
-  uint64  registered_timestamp    = 6;
+  required string  id                      = 1;
+  required string  display_name            = 2;
+  required string  avatar                  = 3;
+  required string  status                  = 4;
 }
 message User
 {
-  string  id                      = 1;
-  string  display_name            = 2;
-  string  avatar                  = 3;
-  string  status                  = 4;
-  uint64  last_active_timestamp   = 5;
-  uint64  registered_timestamp    = 6;
-  string  email                   = 7;
-  bool    two_factor_auth_enabled = 8;
-}
-
-message ProfileFilters
-{
-  string status = 1;
+  required string  id                      = 1;
+  required string  display_name            = 2;
+  required string  avatar                  = 3;
+  required string  status                  = 4;
+  required string  email                   = 7;
+  required bool    two_factor_auth_enabled = 8;
 }
 
 // v1/users POST
@@ -71,15 +62,13 @@ message RegisterUserResponse
 // v1/users/{user_id}/profile GET
 message GetUserProfileRequest
 {
-  string requesting_user_id = 1;
-  string user_id            = 2;
-  string etag               = 3;
+  required string requesting_user_id = 1;
+  required string user_id            = 2;
 }
 message GetUserProfileResponse
 {
-  uint16       status_code = 1;
-  UserProfile  profile     = 2;
-  string       etag        = 3;
+  required uint16       status_code = 1;
+  optional UserProfile  profile     = 2;
 }
 
 // v1/users/{user_id}/status GET
@@ -107,14 +96,12 @@ message DeleteAccountResponse
 // v1/user/profile GET
 message GetPrivateProfileRequest
 {
-  string requesting_user_id  = 1;
-  string etag                = 2; 
+  required string requesting_user_id  = 1;
 }
 message GetPrivateProfileResponse
 {
-  uint16  status_code  = 1;
-  User    profile      = 2;
-  string  etag         = 3;
+  required uint16  status_code  = 1;
+  optional User    profile      = 2;
 }
 
 // v1/user/profile PATCH
@@ -141,69 +128,69 @@ message UpdatePasswordResponse
   uint16  status_code = 1;
 }
 
-// v1/user/password/reset POST
-message RequestPasswordResetRequest
-{
-  string email = 1;
-}
-message RequestPasswordResetResponse
-{
-  uint16  status_code = 1;
-}
+// // v1/user/password/reset POST
+// message RequestPasswordResetRequest
+// {
+//   required string email = 1;
+// }
+// message RequestPasswordResetResponse
+// {
+//   required uint16  status_code = 1;
+// }
 
-// v1/user/password/reset/{token} POST
-message CheckPasswordResetTokenRequest
-{
-  string  token = 1;
-}
-message CheckPasswordResetTokenResponse
-{
-  uint16  status_code = 1;
-}
+// // v1/user/password/reset/{token} POST
+// message CheckPasswordResetTokenRequest
+// {
+//   required string  token = 1;
+// }
+// message CheckPasswordResetTokenResponse
+// {
+//   required uint16  status_code = 1;
+// }
 
-// v1/user/password/reset/{token} PATCH
-message ResetPasswordRequest
-{
-  string  token         = 1;
-  string  new_password  = 2;
-}
-message ResetPasswordResponse
-{
-  uint16  status_code = 1;
-}
+// // v1/user/password/reset/{token} PATCH
+// message ResetPasswordRequest
+// {
+//   required string  token         = 1;
+//   required string  new_password  = 2;
+// }
+// message ResetPasswordResponse
+// {
+//   required uint16  status_code = 1;
+// }
 
-// v1/user/email PATCH
-message UpdateEmailRequest
-{
-  string  requesting_user_id = 1;
-  string  new_email          = 2;
-  string  current_password   = 3;
-  string  totp_code          = 4;
-}
-message UpdateEmailResponse
-{
-  uint16  status_code = 1;
-}
+// // v1/user/email PATCH
+// message UpdateEmailRequest
+// {
+//   required string  requesting_user_id = 1;
+//   required string  new_email          = 2;
+//   required string  current_password   = 3;
+//   optional string  totp_code          = 4;
+// }
+// message UpdateEmailResponse
+// {
+//   required uint16  status_code = 1;
+// }
 
-// v1/user/email/verify POST
-message VerifyEmailRequest
-{
-  string requesting_user_id = 1;
-}
-message VerifyEmailResponse
-{
-  uint16  status_code = 1;
-}
+// // v1/user/email/verify POST
+// message VerifyEmailRequest
+// {
+//   required string requesting_user_id = 1;
+// }
+// message VerifyEmailResponse
+// {
+//   required uint16  status_code = 1;
+// }
 
-// v1/user/email/verify POST
-message CheckEmailVerificationTokenRequest
-{
-  string  token = 1;
-}
-message VerifyEmailResponse
-{
-  uint16  status_code = 1;
-}
+// // v1/user/email/verify POST
+// message CheckEmailVerificationTokenRequest
+// {
+//   required string  token = 1;
+// }
+// message VerifyEmailResponse
+// {
+//   required uint16  status_code = 1;
+// }
 
 // v1/user/2fa POST
 message Enable2FARequest
@@ -284,18 +271,15 @@ message AddFriendResponse
 // v1/user/friends GET
 message GetFriendsRequest
 {
-  string          requesting_user_id   = 1;
-  uint32          limit                = 2;
-  uint32          offset               = 3;
-  string          sort_by              = 4;
-  ProfileFilters  filters              = 5;
-  string          etag                 = 6;
+  required string          requesting_user_id   = 1;
+  optional uint32          limit                = 2;
+  optional uint32          offset               = 3;
+  optional string          sort_by              = 4;
 }
 message GetFriendsResponse
 {
-  uint16           status_code = 1;
-  repeated string  friend_ids  = 2;
-  string           etag        = 3;
+  required uint16           status_code = 1;
+  optional repeated string  friend_ids  = 2;
 }
 
 // v1/user/friends/{friend_id} DELETE

@@ -1,13 +1,12 @@
 syntax = "proto3";
 
-//TODO handle etags
-
 package db_gateway;
+
 
 service DBGatewayService
 {
-  rpc ExecuteQuery      (ExecuteQueryRequest)         returns (QueryResult) {}
-  rpc ExecuteBatch      (stream ExecuteQueryRequest)  returns (stream QueryResult) {}
+  rpc ExecuteQuery      (Query)                       returns (QueryResult) {}
+  rpc ExecuteBatch      (stream Query)                returns (stream QueryResult) {}
   rpc Transaction       (TransactionRequest)          returns (TransactionResponse) {}
   rpc PrepareStatement  (PrepareStatementRequest)     returns (PreparedStatementResponse) {}
   rpc ExecutePrepared   (ExecutePreparedRequest)      returns (QueryResult) {}
@@ -15,122 +14,80 @@ service DBGatewayService
 
 message Value
 {
-  oneof kind
+  oneof value
   {
-    string              string_value  = 1;
-    int64               int_value     = 2;
-    double              float_value   = 3;
-    bool                bool_value    = 4;
-    bytes               bytes_value   = 5;
-    repeated Value      array_value   = 6;
-    map<string, Value>  object_value  = 7;
-    bool                is_null       = 8;
-    string              json_value    = 9;
+    int64   int_value     = 1;
+    double  double_value  = 2;
+    string  string_value  = 3;
+    bytes   bytes_value   = 4;
+    bool    bool_value    = 5;
+    string  date_value    = 6;
+    string  json_value    = 7;
+    Null    null_value    = 8;
   }
 }
 
-message ExecuteQueryRequest
-{
-  string             query            = 1;
-  map<string, Value> parameters       = 2;
-  string             transaction_id   = 3;
-  QueryOptions       options          = 4;
-}
-
-message QueryOptions
-{
-  int32 timeout_ms  = 1;
-  int32 limit       = 2;
-  int32 offset      = 3;
-}
-
-message QueryResult
-{
-  repeated ColumnDefinition columns         = 1;
-  repeated Row              rows            = 2;
-  int64                     affected_rows   = 3;
-  Error                     error           = 4;
-  repeated Row              returning_rows  = 5;
-  int64                     total_rows      = 6;
-}
-
-message ColumnDefinition
-{
-  string  name            = 1;
-  string  type            = 2;
-  bool    nullable        = 3;
-  string  default_value   = 4;
-  bool    is_primary_key  = 5;
-}
+message Null {}
 
 message Row
 {
   repeated Value values = 1;
 }
 
-message Error
+message Column
 {
-  int32   code    = 1;
-  string  message = 2;
+  string name = 1;
+  string type = 2;
+}
+
+enum TransactionAction
+{
+  BEGIN     = 0;
+  COMMIT    = 1;
+  ROLLBACK  = 2;
+  EXECUTE   = 3;
+}
+
+enum TransactionStatus {
+  SUCCESS = 0;
+  FAILURE = 1;
+}
+
+message Query
+{
+  string             query = 1;
+  map<string, Value> params = 2;
+}
+message QueryResult
+{
+  repeated Row    rows = 1;
+  repeated Column columns = 2;
 }
 
 message TransactionRequest
 {
-  oneof action
-  {
-    bool begin    = 1;
-    bool commit   = 2;
-    bool rollback = 3;
-  }
-  IsolationLevel isolation_level  = 4;
-  bool           read_only        = 5;
-  bool           deferrable       = 6;
+  string            transaction_id  = 1;
+  TransactionAction action          = 2;
+  repeated Query    queries         = 3;
 }
-
 message TransactionResponse
 {
-  string            transaction_id  = 1;
-  Error             error           = 2;
-  TransactionStatus status          = 3;
+  string               transaction_id  = 1;
+  TransactionStatus    status          = 2;
+  repeated QueryResult results         = 3;
 }
 
 message PrepareStatementRequest
 {
   string query = 1;
 }
-
 message PreparedStatementResponse
 {
-  string                        statement_name  = 1;
-  repeated ParameterDescription parameters      = 2;
-  Error                         error           = 3;
+  string statement_id = 1;
 }
 
 message ExecutePreparedRequest
 {
-  string              statement_name  = 1;
-  map<string, Value>  parameters      = 2;
-}
-
-message ParameterDescription
-{
-  string name     = 1;
-  string type     = 2;
-  bool   nullable = 3;
-}
-
-enum IsolationLevel
-{
-  READ_UNCOMMITTED = 0;
-  READ_COMMITTED   = 1;
-  REPEATABLE_READ  = 2;
-  SERIALIZABLE     = 3;
-}
-
-enum TransactionStatus
-{
-  IN_PROGRESS   = 1;
-  COMMITTED     = 2;
-  ROLLED_BACK   = 3;
-  FAILED        = 4;
+  string             statement_id = 1;
+  map<string, Value> params = 2;
 }

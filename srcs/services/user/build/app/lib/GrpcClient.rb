@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 15:53:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 22:03:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,11 +28,8 @@ class GrpcClient
       "grpc.compression_algorithm" => "gzip"
     }
 
-    db_gateway_credentials  = load_credentials(@config[credentials][:certs][:db_gateway])
-    auth_credentials        = load_credentials(@config[credentials][:certs][:auth])
-
-    user_channel  = create_channel(@config[:addresses][:db_gateway], db_gateway_credentials)
-    auth_channel  = create_channel(@config[:addresses][:auth], auth_credentials)
+    user_channel  = create_channel(@config[:addresses][:db_gateway], :this_channel_is_insecure)
+    auth_channel  = create_channel(@config[:addresses][:auth], :this_channel_is_insecure)
 
     @db_gateway = DBGatewayUserService::Stub.new(db_gateway_channel),
     @auth       = AuthUserService::Stub.new(auth_channel)
@@ -51,14 +48,6 @@ class GrpcClient
   end
 
   private
-
-  def load_credentials(cert_file)
-    raise "Certificate file not found: #{cert_file}" unless File.exist?(cert_file)
-    @logger.debug("Loading credentials from #{cert_file}")
-    GRPC::Core::ChannelCredentials.new(File.read(cert_file))
-  rescue StandardError => e
-    raise "Failed to load credentials from #{cert_file}: #{e}"
-  end
 
   def create_channel(addr, credentials)
     @logger.debug("Creating channel to #{addr}")

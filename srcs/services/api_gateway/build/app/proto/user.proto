@@ -30,10 +30,10 @@ service UserAPIGatewayService
 
 message UserProfile
 {
-  required string  id                      = 1;
-  required string  display_name            = 2;
-  required string  avatar                  = 3;
-  required string  status                  = 4;
+  required string  id            = 1;
+  required string  display_name  = 2;
+  required string  avatar        = 3;
+  required string  status        = 4;
 }
 message User
 {

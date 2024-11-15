@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 20:38:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 22:02:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,6 +25,8 @@ require_relative "ConfigurableLogger"
 class Server
 
   def initialize
+    Signal.trap("SIGTERM") { stop }
+
     @config = ConfigLoader.config
     @logger = ConfigurableLogger.instance.logger
 
@@ -35,10 +37,7 @@ class Server
     @jwt_validator = JWTValidator.new
     @clients = Async::Queue.new
 
-    ssl_context = load_ssl_context(@config[:credentials][:certs][:api_gateway], @config[:credentials][:keys][:api_gateway])
-
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
-
   rescue StandardError => e
     raise "Failed to initialize server: #{e}"
   ensure
@@ -50,17 +49,21 @@ class Server
       @logger.info("Starting server...")
       bind_address, port = @config[:bind].split(":")
       endpoint = Async::IO::Endpoint.tcp(bind_address, port)
-      ssl_endpoint = Async::IO::Endpoint.ssl(endpoint, ssl_context)
       @logger.debug("Server listening on #{bind_address}:#{port}")
       semaphore = Async::Semaphore.new(@config[:limits][:max_connections])
 
       Thread.new { process_requests }
 
       loop do
-        ssl_endpoint.accept do |socket|
+        endpoint.accept do |socket|
           semaphore.async { handle_connection(socket) }
       end
     end
+  end
+
+  def stop
+    @logger.info("Stopping server...")
+    @grpc_client.close
   end
 
   private
@@ -86,16 +89,6 @@ class Server
         end
       end
     end
-  end
-
-  def load_ssl_context(ssl_key, ssl_cert)
-    @logger.info("Loading SSL context...")
-    ssl_context = OpenSSL::SSL::SSLContext.new
-    ssl_context.cert = OpenSSL::X509::Certificate.new(File.open(ssl_cert))
-    ssl_context.key = OpenSSL::PKey::RSA.new(File.open(ssl_key))
-    ssl_context
-  rescue StandardError => e
-    raise "Failed to load SSL context: #{e}"
   end
 
 end

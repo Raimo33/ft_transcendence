@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/10 15:33:59 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 20:36:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 22:01:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,21 +37,6 @@ class ConfigLoader
     },
     limits: {
       max_connections:  Integer,
-    },
-    credentials:
-    {
-      keys:
-      {
-        api_gateway: String
-      },
-      certs:
-      {
-        api_gateway:  String,
-        user:         String,
-        match:        String,
-        tournament:   String,
-        auth:         String
-      }
     },
     addresses:
     {

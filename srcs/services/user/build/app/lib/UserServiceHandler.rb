@@ -57,37 +57,106 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       task.stop
     end
 
-    register_user = #TODO chiamare il prepared statement corrispondente
+    db_request = DBGatewayUserService::ExecutePreparedRequest.new(
+      statement_id: @db_prepared_statements[:register_user],
+      params: {
+        "email"        => DBGatewayUserService::Value.new(string_value: email),
+        "password"     => DBGatewayUserService::Value.new(string_value: hashed_password),
+        "display_name" => DBGatewayUserService::Value.new(string_value: display_name),
+        "avatar"       => DBGatewayUserService::Value.new(bytes_value: avatar)
+      }.compact
+    )
 
-    db_response = @grpc_client.db_gateway.execute_prepared(register_user)
+    db_response = @grpc_client.db_gateway.execute_prepared(db_request)
+    raise "No response from DB" unless db_response
 
-    status_code = 
-    user_id = 
+    status_code = db_response.status_code
+    user_id     = db_response.rows.first&.fields&.first&.string_value
 
     UserService::RegisterUserResponse.new(status_code: status_code, user_id: user_id)
   rescue StandardError => e
     @logger.error("Failed to register user: #{e}")
     UserService::RegisterUserResponse.new(status_code: 500, user_id: nil)
   end
+
+  def get_user_profile(request, _metadata)
+    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
+
+    required_fields = [request.requesting_user_id, request.user_id]
+    return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
+
+    db_request = DBGatewayUserService::ExecutePreparedRequest.new(
+      statement_id: @db_prepared_statements[:get_user_profile],
+      params: {
+        "user_id" => DBGatewayUserService::Value.new(string_value: request.user_id)
+      }.compact
+    )
+
+    db_response = @grpc_client.db_gateway.execute_prepared(db_request)
+    raise "No response from DB" unless db_response
+
+    status_code = db_response.status_code
+
+    user_profile = UserService::UserProfile.new(
+      id:           db_response.rows.first&.fields[0]&.string_value,
+      display_name: db_response.rows.first&.fields[1]&.string_value,
+      avatar:       db_response.rows.first&.fields[2]&.bytes_value
+      status:       db_response.rows.first&.fields[3]&.string_value
+    ).compact
+
+    user_profile.avatar = decompress_avatar(user_profile.avatar) if user_profile.avatar
+  
+    UserService::GetUserProfileResponse.new(status_code: status_code, user_profile: user_profile)
+  rescue StandardError => e
+    @logger.error("Failed to get user profile: #{e}")
+    UserService::GetUserProfileResponse.new(status_code: 500, user_profile: nil)
+  end
+
+  def get_user_status(request, _metadata)
+    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
+
+    required_fields = [request.requesting_user_id, request.user_id]
+    return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
+
+    db_request = DBGatewayUserService::ExecutePreparedRequest.new(
+      statement_id: @db_prepared_statements[:get_user_status],
+      params: {
+        "id" => DBGatewayUserService::Value.new(string_value: request.user_id)
+      }.compact
+    )
+
+    db_response = @grpc_client.db_gateway.execute_prepared(db_request)
+    raise "No response from DB" unless db_response
+
+    status_code = db_response.status_code
+    user_status = db_response.rows.first&.fields.first&.string_value
+
+    UserService::GetUserStatusResponse.new(status_code: status_code, user_status: user_status)
+  rescue StandardError => e
+    @logger.error("Failed to get user status: #{e}")
+    UserService::GetUserStatusResponse.new(status_code: 500, user_status: nil)
+  end
+
+  #TODO Add more service methods here
   
   private
     
   def init_db_prepared_statements
     query_templates = {
-      register_user: "INSERT INTO users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id",
-      get_user_profile: "SELECT * FROM user_profiles WHERE user_id = $1",
-      get_user_status: "SELECT current_status FROM user_profiles WHERE user_id = $1"
+      register_user:      "INSERT INTO users (email, psw, display_name, avatar) VALUES ($email, $psw, $display_name, $avatar) RETURNING id",
+      get_user_profile:   "SELECT * FROM user_profiles WHERE id = $id",
+      get_user_status:    "SELECT current_status FROM user_profiles WHERE id = $id"
       # Add more query templates here
     }
   
     {}.tap do |prepared_statements|
       query_templates.each do |name, query|
-        prepared_statement = DBGatewayUserService::Query.new(query)
-        response = @grpc_client.db_gateway.prepare_statement(prepared_statement)
+        request = DBGatewayUserService::PrepareStatementRequest.new(query)
+        response = @grpc_client.db_gateway.prepare_statement(request)
 
-        raise "Failed to prepare statement: #{name}" unless response&.statement_name
+        raise "Failed to prepare statement: #{name}" unless response&.statement_id
 
-        prepared_statements[name] = response.statement_name
+        prepared_statements[name] = response.statement_id
       end
     end
   rescue StandardError => e
@@ -113,22 +182,14 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
 
   def check_password(password)
     @psw_format           ||= create_regex_format(@config[:password][:min_length], @config[:password][:max_length], @config[:password][:charset], @config[:password][:policy])
-    @psw_banned_passwords ||= load_words(@config[:password][:banned_passwords_file]).map(&:downcase).freeze
 
     raise "Invalid password format" unless @psw_format =~ password
-    @psw_banned_passwords.each do |banned_password|
-      raise "Invalid password" if password == banned_password
-    end
   end
 
   def check_display_name(display_name)
     @dn_format       ||= crete_regex_format(@config[:display_name][:min_length], @config[:display_name][:max_length], @config[:display_name][:charset], @config[:display_name][:policy])
-    @dn_banned_words ||= load_words(@config[:display_name][:banned_words_file]).map(&:downcase).freeze
 
     raise "Invalid display name format" unless @dn_format =~ display_name
-    @banned_words.each do |word|
-      raise "Invalid display name" if display_name.downcase.include?(word)
-    end
   end
 
   def check_avatar(avatar)
@@ -153,12 +214,15 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     avatar_image.to_blob
   end
 
-  def load_words(file)
-    File.readlines(file).map { |line| line.strip.chomp }
-  rescue StandardError => e
-    @logger.error("Failed to load words from file #{file}: #{e}")
-  end
+  def decompress_avatar(avatar)
+    avatar_image = MiniMagick::Image.read(avatar)
 
+    avatar_image.format(@config[:avatar][:standard_format])
+    processed_avatar_binary_data = avatar_image.to_blob
+    
+    Base64.encode64(processed_avatar_binary_data)
+  end
+  
   def create_regex_format(min_length, max_length, charset, policy)
     length_regex = "^.{#{min_length},#{max_length}}$"
 

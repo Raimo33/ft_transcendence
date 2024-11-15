@@ -125,7 +125,5 @@ SELECT
   display_name,
   avatar,
   current_status,
-  registered_timestamp,
-  last_active_timestamp
 FROM 
   Users

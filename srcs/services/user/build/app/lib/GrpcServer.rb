@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 14:43:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 22:04:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ class GrpcServer
     @server = GRPC::RpcServer.new
 
     bind_address, port = @config[:bind].split(":")
-    @server.add_http2_port("#{bind_address}:#{port}", load_ssl_context(@config[:credentials][:keys][:user], @config[:credentials][:certs][:user]))
+    @server.add_http2_port("#{bind_address}:#{port}", :this_port_is_insecure)
     @server.handle(UserAPIGatewayServiceHandler)
   rescue StandardError => e
     raise "Failed to initialize gRPC server: #{e}"    
@@ -41,15 +41,5 @@ class GrpcServer
   end
 
   private
-
-  def load_ssl_context(ssl_key, ssl_cert)
-    @logger.info("Loading SSL context...")
-    cert = File.read(cert_path)
-    key = File.read(key_path)
-
-    GRPC::Core::ServerCredentials.new(nil, [{ private_key: key, cert_chain: cert }], false)
-  rescue StandardError => e
-    raise "Failed to load SSL context: #{e}"
-  end
 
 end

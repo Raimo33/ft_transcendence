@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 20:55:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 22:17:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -63,14 +63,14 @@ class Mapper
     case operation_id
     when "registerUser"
       UserAPIGatewayService::RegisterUserRequest.new(
-        email: request[:body]["email"],
-        password: request[:body]["password"],
-        display_name: request[:body]["display_name"],
-        avatar: request[:body]["avatar"] )
+        email:          request[:body]["email"],
+        password:       request[:body]["password"],
+        display_name:   request[:body]["display_name"],
+        avatar:         request[:body]["avatar"] )
     when "getUserProfile"
       UserAPIGatewayService::GetUserProfileRequest.new(
         requesting_user_id: requesting_user_id,
-        user_id: request[:path_params]["user_id"],
+        user_id: request[:path_params]["user_id"] )
     when "getUserStatus"
       UserAPIGatewayService::GetUserStatusRequest.new(
         requesting_user_id: requesting_user_id,
@@ -80,19 +80,19 @@ class Mapper
         requesting_user_id: requesting_user_id,
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
-        offset: request[:query_params]["offset"],
+        offset: request[:query_params]["offset"] )
     when "getUserTournaments"
       TournamentAPIGatewayService::GetUserTournamentsRequest.new(
         requesting_user_id: requesting_user_id,
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
-        offset: request[:query_params]["offset"],
+        offset: request[:query_params]["offset"] )
     when "deleteAccount"
       UserAPIGatewayService::DeleteAccountRequest.new(
         requesting_user_id: requesting_user_id, )
     when "getPrivateProfile"
       UserAPIGatewayService::GetPrivateProfileRequest.new(
-        requesting_user_id: requesting_user_id,
+        requesting_user_id: requesting_user_id )
     when "updateProfile"
       UserAPIGatewayService::UpdateProfileRequest.new(
         requesting_user_id: requesting_user_id,
@@ -154,7 +154,7 @@ class Mapper
       UserAPIGatewayService::GetFriendsRequest.new(
         requesting_user_id: requesting_user_id,
         limit: request[:query_params]["limit"],
-        offset: request[:query_params]["offset"],
+        offset: request[:query_params]["offset"] )
     when "removeFriend"
       UserAPIGatewayService::RemoveFriendRequest.new(
         requesting_user_id: requesting_user_id,
@@ -162,7 +162,7 @@ class Mapper
     when "createMatch"
       MatchAPIGatewayService::CreateMatchRequest.new(
         requesting_user_id: requesting_user_id,
-        invited_user_ids: request[:body]["invited_user_ids"],
+        invited_user_ids: request[:body]["invited_user_ids"] )
     when "joinMatch"
       MatchAPIGatewayService::JoinMatchRequest.new(
         requesting_user_id: requesting_user_id,
@@ -170,7 +170,7 @@ class Mapper
     when "getMatch"
       MatchAPIGatewayService::GetMatchRequest.new(
         requesting_user_id: requesting_user_id,
-        match_id: request[:path_params]["match_id"],
+        match_id: request[:path_params]["match_id"] )
     when "leaveMatch"
       MatchAPIGatewayService::LeaveMatchRequest.new(
         requesting_user_id: requesting_user_id,
@@ -178,7 +178,7 @@ class Mapper
     when "createTournament"
       TournamentAPIGatewayService::CreateTournamentRequest.new(
         requesting_user_id: requesting_user_id,
-        invited_user_ids: request[:body]["invited_user_ids"],
+        invited_user_ids: request[:body]["invited_user_ids"] )
     when "joinTournament"
       TournamentAPIGatewayService::JoinTournamentRequest.new(
         requesting_user_id: requesting_user_id,
@@ -186,7 +186,7 @@ class Mapper
     when "getTournament"
       TournamentAPIGatewayService::GetTournamentRequest.new(
         requesting_user_id: requesting_user_id,
-        tournament_id: request[:path_params]["tournament_id"],
+        tournament_id: request[:path_params]["tournament_id"] )
     when "leaveTournament"
       TournamentAPIGatewayService::LeaveTournamentRequest.new(
         requesting_user_id: requesting_user_id,
@@ -215,10 +215,10 @@ class Mapper
 
       user = grpc_response.user
       body = {
-        user_id: user.user_id,
+        user_id:      user.user_id,
         display_name: user.display_name,
-        avatar: user.avatar,
-        status: user.status,
+        avatar:       user.avatar,
+        status:       user.status,
       }.compact
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s,
@@ -244,9 +244,9 @@ class Mapper
       body = matches.map do |match|
         {
           id: match.id,
-          player_ids: match.player_ids,
-          status: match.status,
-          started_timestamp: match.started_timestamp,
+          player_ids:         match.player_ids,
+          status:             match.status,
+          started_timestamp:  match.started_timestamp,
           finished_timestamp: match.finished_timestamp,
         }.compact
       end.presence || nil
@@ -263,9 +263,9 @@ class Mapper
       body = tournaments.map do |tournament|
         {
           id: tournament.id,
-          match_ids: tournament.match_ids,
-          status: tournament.status,
-          started_timestamp: tournament.started_timestamp,
+          match_ids:          tournament.match_ids,
+          status:             tournament.status,
+          started_timestamp:  tournament.started_timestamp,
           finished_timestamp: tournament.finished_timestamp,
         }.compact
       end.presence || nil
@@ -284,11 +284,11 @@ class Mapper
       user = grpc_response.user
       body = {
         id: user.id,
-        display_name: user.display_name,
-        avatar: user.avatar,
-        status: user.status,
-        email: user.email,
-        two_factor_auth_enabled: user.two_factor_auth_enabled
+        display_name:             user.display_name,
+        avatar:                   user.avatar,
+        status:                   user.status,
+        email:                    user.email,
+        two_factor_auth_enabled:  user.two_factor_auth_enabled
       }.compact
       headers = {
         "Content-Length" => body.to_json.bytesize.to_s,
