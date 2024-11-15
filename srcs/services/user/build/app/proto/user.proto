@@ -26,70 +26,72 @@ service UserService
   rpc AddFriend                     (AddFriendRequest)                     returns (AddFriendResponse) {}
   rpc GetFriends                    (GetFriendsRequest)                    returns (GetFriendsResponse) {}
   rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
-  //TODO: Add more RPCs
 }
 
 message UserProfile
 {
-  string  id = 1;
-  string  display_name = 2;
-  string  avatar = 3;
-  string  status = 4;
-  uint64  last_active_timestamp = 5;
-  uint64  registered_timestamp = 6;
+  string  id                      = 1;
+  string  display_name            = 2;
+  string  avatar                  = 3;
+  string  status                  = 4;
+  uint64  last_active_timestamp   = 5;
+  uint64  registered_timestamp    = 6;
 }
 message User
 {
-  string  id = 1;
-  string  display_name = 2;
-  string  avatar = 3;
-  string  status = 4;
-  uint64  last_active_timestamp = 5;
-  uint64  registered_timestamp = 6;
-  string  email = 7;
+  string  id                      = 1;
+  string  display_name            = 2;
+  string  avatar                  = 3;
+  string  status                  = 4;
+  uint64  last_active_timestamp   = 5;
+  uint64  registered_timestamp    = 6;
+  string  email                   = 7;
   bool    two_factor_auth_enabled = 8;
 }
 
 message ProfileFilters
 {
-  optional string status = 1;
+  string status = 1;
 }
 
 // v1/users POST
 message RegisterUserRequest
 {
-  string          email = 1;
-  string          password = 2;
-  string          display_name = 3;
-  optional string avatar = 4;
+  string email         = 1;
+  string password      = 2;
+  string display_name  = 3;
+  string avatar        = 4;
 }
 message RegisterUserResponse
 {
-  optional string   user_id = 2;
+  uint16  status_code  = 1;
+  string  user_id      = 2;
 }
 
 // v1/users/{user_id}/profile GET
 message GetUserProfileRequest
 {
   string requesting_user_id = 1;
-  string user_id = 2;
-  string etag = 3;
+  string user_id            = 2;
+  string etag               = 3;
 }
 message GetUserProfileResponse
 {
-  optional UserProfile  profile = 2;
-  string                etag = 3;
+  uint16       status_code = 1;
+  UserProfile  profile     = 2;
+  string       etag        = 3;
 }
 
 // v1/users/{user_id}/status GET
 message GetUserStatusRequest
 {
   string  requesting_user_id = 1;
-  string  user_id = 2;
+  string  user_id            = 2;
 }
 message GetUserStatusResponse
 {
-  optional string  user_status = 2;
+  uint16  status_code = 1;
+  string  user_status = 2;
 }
 
 // v1/user DELETE
@@ -99,40 +101,44 @@ message DeleteAccountRequest
 }
 message DeleteAccountResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/profile GET
 message GetPrivateProfileRequest
 {
-  string          requesting_user_id = 1;
-  optional string etag = 2; 
+  string requesting_user_id  = 1;
+  string etag                = 2; 
 }
 message GetPrivateProfileResponse
 {
-  optional User profile = 2;
-  string        etag = 3;
+  uint16  status_code  = 1;
+  User    profile      = 2;
+  string  etag         = 3;
 }
 
 // v1/user/profile PATCH
 message UpdateProfileRequest
 {
-  string           requesting_user_id = 1;
-  optional string  display_name = 2;
-  optional string  avatar = 3;
+  string  requesting_user_id = 1;
+  string  display_name       = 2;
+  string  avatar             = 3;
 }
 message UpdateProfileResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/password PUT
 message UpdatePasswordRequest
 {
-  string  requesting_user_id = 1;
-  string  old_password = 2;
-  string  new_password = 3;
+  string  requesting_user_id  = 1;
+  string  old_password        = 2;
+  string  new_password        = 3;
 }
 message UpdatePasswordResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/password/reset POST
@@ -142,6 +148,7 @@ message RequestPasswordResetRequest
 }
 message RequestPasswordResetResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/password/reset/{token} POST
@@ -151,28 +158,31 @@ message CheckPasswordResetTokenRequest
 }
 message CheckPasswordResetTokenResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/password/reset/{token} PATCH
 message ResetPasswordRequest
 {
-  string  token = 1;
-  string  new_password = 2;
+  string  token         = 1;
+  string  new_password  = 2;
 }
 message ResetPasswordResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/email PATCH
 message UpdateEmailRequest
 {
-  string           requesting_user_id = 1;
-  string           new_email = 2;
-  string           current_password = 3;
-  optional string  totp_code = 4;
+  string  requesting_user_id = 1;
+  string  new_email          = 2;
+  string  current_password   = 3;
+  string  totp_code          = 4;
 }
 message UpdateEmailResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/email/verify POST
@@ -182,6 +192,7 @@ message VerifyEmailRequest
 }
 message VerifyEmailResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/email/verify POST
@@ -191,6 +202,7 @@ message CheckEmailVerificationTokenRequest
 }
 message VerifyEmailResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/2fa POST
@@ -200,7 +212,8 @@ message Enable2FARequest
 }
 message Enable2FAResponse
 {
-  optional string totp_secret = 2;
+  uint16 status_code = 1;
+  string totp_secret = 2;
 }
 
 // v1/users/{user_id}/2fa GET
@@ -210,7 +223,8 @@ message Get2FAStatusRequest
 }
 message Get2FAStatusResponse
 {
-  optional bool two_factor_auth_enabled = 2;
+  uint16 status_code             = 1;
+  bool   two_factor_auth_enabled = 2;
 }
 
 // v1/user/2fa DELETE
@@ -220,28 +234,30 @@ message Disable2FARequest
 }
 message Disable2FAResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/2fa/verify POST
 message Check2FACodeRequest
 {
   string  requesting_user_id = 1;
-  string  totp_code = 2;
+  string  totp_code          = 2;
 }
 message Check2FACodeResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/login POST
 message LoginUserRequest
 {
-  string          email = 1;
-  string          password = 2;
-  optional string totp_code = 3;
+  string email     = 1;
+  string password  = 2;
+  string totp_code = 3;
 }
 message LoginUserResponse
 {
-  optional string jwt_token = 2;
+  string jwt_token = 2;
 }
 
 // v1/user/logout DELETE
@@ -251,40 +267,44 @@ message LogoutUserRequest
 }
 message LogoutUserResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/friends POST
 message AddFriendRequest
 {
   string  requesting_user_id = 1;
-  string  friend_id = 2;
+  string  friend_id          = 2;
 }
 message AddFriendResponse
 {
+  uint16  status_code = 1;
 }
 
 // v1/user/friends GET
 message GetFriendsRequest
 {
-  string                   requesting_user_id = 1;
-  optional uint32          limit = 2;
-  optional uint32          offset = 3;
-  optional string          sort_by = 4;
-  optional ProfileFilters  filters = 5;
-  optional string          etag = 6;
+  string          requesting_user_id   = 1;
+  uint32          limit                = 2;
+  uint32          offset               = 3;
+  string          sort_by              = 4;
+  ProfileFilters  filters              = 5;
+  string          etag                 = 6;
 }
 message GetFriendsResponse
 {
-  optional repeated string  friend_ids = 2;
-  string                    etag = 3;
+  uint16           status_code = 1;
+  repeated string  friend_ids  = 2;
+  string           etag        = 3;
 }
 
 // v1/user/friends/{friend_id} DELETE
 message RemoveFriendRequest
 {
-  string  requesting_user_id = 1;
-  string  friend_id = 2;
+  string  requesting_user_id  = 1;
+  string  friend_id           = 2;
 }
 message RemoveFriendResponse
 {
+  uint16  status_code = 1;
 }

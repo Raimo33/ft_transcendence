@@ -6,16 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 15:55:14 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 15:22:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
-require_relative "../proto/user_api_gateway_service_pb"
-require_relative "../proto/match_api_gateway_service_pb"
-require_relative "../proto/tournament_api_gateway_service_pb"
+require_relative "../proto/user_api_gateway_pb"
+require_relative "../proto/match_api_gateway_pb"
+require_relative "../proto/tournament_api_gateway_pb"
 
 class GrpcClient
 

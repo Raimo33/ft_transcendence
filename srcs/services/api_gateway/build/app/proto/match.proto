@@ -14,88 +14,88 @@ service MatchAPIGatewayService
 
 message MatchSettings
 {
-  required uint8  ball_speed      = 1;
-  required uint16 max_duration    = 2;
-  required uint8  starting_health = 3;
+  uint8  ball_speed      = 1;
+  uint16 max_duration    = 2;
+  uint8  starting_health = 3;
 }
 message Match
 {
-  required string           id                = 1;
-  required repeated string  player_ids        = 2;
-  required string           status            = 3;
-  required uint64           started_timestamp = 4;
-  optional uint64  finished_timestamp         = 5;
-  required MatchSettings    settings          = 6;
+  string           id                  = 1;
+  repeated string  player_ids          = 2;
+  string           status              = 3;
+  uint64           started_timestamp   = 4;
+  uint64           finished_timestamp  = 5;
+  MatchSettings    settings            = 6;
 }
 
 message PLayerMatchFilters
 {
-  optional string  status = 1;
+  string  status = 1;
 }
 
 // v1/users/{user_id}/matches GET
 message GetUserMatchesRequest
 {
-  required string                requesting_user_id = 1;
-  required string                user_id            = 2;
-  optional uint32                limit              = 3;
-  optional uint32                offset             = 4;
-  optional string                sort_by            = 5;
-  optional PLayerMatchFilters    filters            = 6;
-  optional string                etag               = 7;
+  string                requesting_user_id = 1;
+  string                user_id            = 2;
+  uint32                limit              = 3;
+  uint32                offset             = 4;
+  string                sort_by            = 5;
+  PLayerMatchFilters    filters            = 6;
+  string                etag               = 7;
 }
 message GetUserMatchesResponse
 {
-  required uint16          status_code  = 1;
-  optional repeated Match  matches      = 2;
-  required string          etag         = 3;
+  uint16          status_code  = 1;
+  repeated Match  matches      = 2;
+  string          etag         = 3;
 }
 
 // v1/matches POST
 message CreateMatchRequest
 {
-  required string           requesting_user_id  = 1;
-  required repeated string  invited_user_ids    = 2;
-  optional MatchSettings    settings            = 3;
+  string           requesting_user_id  = 1;
+  repeated string  invited_user_ids    = 2;
+  MatchSettings    settings            = 3;
 }
 message CreateMatchResponse
 {
-  required uint16  status_code  = 1;
-  optional string  match_id     = 2;
+  uint16  status_code  = 1;
+  string  match_id     = 2;
 }
 
 // v1/matches/{match_id} POST
 message JoinMatchRequest
 {
-  required string  requesting_user_id   = 1;
-  required string  match_id             = 2;
+  string  requesting_user_id   = 1;
+  string  match_id             = 2;
 }
 message JoinMatchResponse
 {
-  required uint16  status_code = 1;
+  uint16  status_code = 1;
 }
 
 // v1/matches/{match_id} GET
 message GetMatchRequest
 {
-  required string requesting_user_id  = 1;
-  required string match_id            = 2;
-  optional string etag                = 3;
+  string requesting_user_id  = 1;
+  string match_id            = 2;
+  string etag                = 3;
 }
 message GetMatchResponse
 {
-  required uint16 status_code  = 1;
-  optional Match  match        = 2;
-  required string etag         = 3;
+  uint16 status_code  = 1;
+  Match  match        = 2;
+  string etag         = 3;
 }
 
 // v1/matches/{match_id} DELETE
 message LeaveMatchRequest
 {
-  required string  requesting_user_id  = 1;
-  required string  match_id            = 2;
+  string  requesting_user_id  = 1;
+  string  match_id            = 2;
 }
 message LeaveMatchResponse
 {
-  required uint16  status_code = 1;
+  uint16  status_code = 1;
 }

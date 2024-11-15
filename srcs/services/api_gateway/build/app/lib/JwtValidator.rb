@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 15:56:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 19:07:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ require "base64"
 require "openssl"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
-require_relative "../proto/auth_api_gateway_service_pb"
+require_relative "../proto/auth_api_gateway_pb"
 
 class JwtValidator
 
@@ -66,12 +66,16 @@ class JwtValidator
     return @public_key if @public_key && (Time.now - @last_fetched < @config[:jwt][:key_refresh_interval])
   
     @logger.debug("Fetching JWKS from Auth service")
-    response = @grpc_client.call(ApiGatewayAuthService::GetJwksRequest.new)
+    response = @grpc_client.call(ApiGatewayAuthService::JwksRequest.new)
   
     return nil unless response&.certificate
   
     @logger.debug("Parsing public key from JWKS")
-    @public_key = OpenSSL::X509::Certificate.new(Base64.decode64(response.certificate)).public_key
+
+    decoded_cert = Base64.decode64(response.certificate)
+    certificate = OpenSSL::X509::Certificate.new(decoded_cert)
+
+    @public_key = certificate.public_key
     @algorithm = response.algorithm
     @last_fetched = Time.now
     @public_key

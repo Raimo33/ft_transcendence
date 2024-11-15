@@ -5,6 +5,8 @@ package auth.user;
 
 service AuthUserService
 {
+  rpc CheckDomain(CheckDomainRequest)   returns (CheckDomainResponse) {}
+  rpc HashPassword(HashPasswordRequest) returns (HashedPassword) {}
 
 }
 
@@ -15,5 +17,14 @@ message CheckDomainRequest
 message CheckDomainResponse
 {
   bool is_allowed = 1;
+}
+
+message HashPasswordRequest
+{
+  string password = 1;
+}
+message HashedPassword
+{
+  string hashed_password = 1;
 }
 

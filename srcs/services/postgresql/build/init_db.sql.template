@@ -11,7 +11,7 @@ CONNECTION LIMIT = -1;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TYPE user_status AS ENUM ('O', 'F'); -- O: online, F: offline
 
-CREATE TABLE User
+CREATE TABLE Users
 (
     id                     uuid  NOT NULL DEFAULT gen_random_uuid(),
     email                  text  NOT NULL,
@@ -23,9 +23,9 @@ CREATE TABLE User
     registered_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
     last_active_timestamp  timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
-    CONSTRAINT pk_usr PRIMARY KEY (id),
-    CONSTRAINT unq_usr_email UNIQUE (email),
-    CONSTRAINT unq_usr_display_name UNIQUE (display_name),
+    CONSTRAINT pk_users PRIMARY KEY (id),
+    CONSTRAINT unq_users_email UNIQUE (email),
+    CONSTRAINT unq_users_display_name UNIQUE (display_name),
 
     CONSTRAINT chk_email CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$'),
     CONSTRAINT chk_display_name CHECK (LENGTH(display_name) <= 25 AND LENGTH(display_name) > 3 AND display_name ~ '^[a-zA-Z0-9_]+$'),
@@ -34,12 +34,12 @@ CREATE TABLE User
     CONSTRAINT chk_registered_timestamp CHECK (registered_timestamp <= NOW())
 );
 
-CREATE INDEX idx_usr_registered_timestamp ON User(registered_timestamp);
-CREATE INDEX idx_usr_last_active_timestamp ON User(last_active_timestamp);
+CREATE INDEX idx_users_registered_timestamp ON User(registered_timestamp);
+CREATE INDEX idx_users_last_active_timestamp ON User(last_active_timestamp);
 
 CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
-CREATE TABLE GameMatch
+CREATE TABLE GameMatches
 (
     id                   uuid NOT NULL,
     current_status       match_status DEFAULT 'O' NOT NULL,
@@ -51,10 +51,10 @@ CREATE TABLE GameMatch
     finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
     tournament_id        uuid,
 
-    CONSTRAINT           pk_game_match PRIMARY KEY (id),
-    CONSTRAINT           unq_game_match_tournament_id UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
-    CONSTRAINT           unq_game_match_websocket_url UNIQUE (websocket_url) DEFERRABLE INITIALLY DEFERRED,
-    CONSTRAINT           fk_game_match_game_tournament FOREIGN KEY (tournament_id) REFERENCES GameTournament(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
+    CONSTRAINT           pk_game_matches PRIMARY KEY (id),
+    CONSTRAINT           unq_game_matches_tournament_id UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
+    CONSTRAINT           unq_game_matches_websocket_url UNIQUE (websocket_url) DEFERRABLE INITIALLY DEFERRED,
+    CONSTRAINT           fk_game_matches_game_tournament FOREIGN KEY (tournament_id) REFERENCES GameTournament(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
 
     CONSTRAINT           chk_websocket_url CHECK (websocket_url ~ '^wss?://([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w-./?%&=]*)?$'),
     CONSTRAINT           chk_ball_speed CHECK (ball_speed <= 100 AND ball_speed > 0),
@@ -63,16 +63,16 @@ CREATE TABLE GameMatch
     CONSTRAINT           chk_finished_timestamp CHECK (finished_timestamp <= NOW()),
 );
 
-CREATE INDEX idx_game_match_started_timestamp ON GameMatch(started_timestamp);
-CREATE INDEX idx_game_match_finished_timestamp ON GameMatch(finished_timestamp);
-CREATE INDEX idx_game_match_outcome_started_timestamp ON GameMatch(outcome, started_timestamp);
-CREATE INDEX idx_game_match_outcome_finished_timestamp ON GameMatch(outcome, finished_timestamp);
+CREATE INDEX idx_game_matches_started_timestamp ON GameMatch(started_timestamp);
+CREATE INDEX idx_game_matches_finished_timestamp ON GameMatch(finished_timestamp);
+CREATE INDEX idx_game_matches_outcome_started_timestamp ON GameMatch(outcome, started_timestamp);
+CREATE INDEX idx_game_matches_outcome_finished_timestamp ON GameMatch(outcome, finished_timestamp);
 
 
 CREATE TYPE tournament_play_mode AS ENUM ("single-elimination", "knockout", "king_of_the_hill", "ladder", "round_robin");
 CREATE TYPE tournament_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
 
-CREATE TABLE GameTournament
+CREATE TABLE GameTournaments
 (
     id                   uuid  NOT NULL,
     play_mode            tournament_play_mode DEFAULT "single-elimination" NOT NULL,
@@ -80,15 +80,15 @@ CREATE TABLE GameTournament
     started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
     finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT           pk_game_tournament PRIMARY KEY (id),
+    CONSTRAINT           pk_game_tournaments PRIMARY KEY (id),
     CONSTRAINT           chk_started_timestamp CHECK (started_timestamp <= NOW()),
     CONSTRAINT           chk_finished_timestamp CHECK (finished_timestamp <= NOW())
 );
 
-CREATE INDEX idx_game_tournament_started_timestamp ON GameTournament(started_timestamp);
-CREATE INDEX idx_game_tournament_finished_timestamp ON GameTournament(finished_timestamp);
-CREATE INDEX idx_game_tournament_mode_started_timestamp ON GameTournament(play_mode, started_timestamp);
-CREATE INDEX idx_game_tournament_mode_finished_timestamp ON GameTournament(play_mode, finished_timestamp);
+CREATE INDEX idx_game_tournaments_started_timestamp ON GameTournament(started_timestamp);
+CREATE INDEX idx_game_tournaments_finished_timestamp ON GameTournament(finished_timestamp);
+CREATE INDEX idx_game_tournaments_mode_started_timestamp ON GameTournament(play_mode, started_timestamp);
+CREATE INDEX idx_game_tournaments_mode_finished_timestamp ON GameTournament(play_mode, finished_timestamp);
 
 
 CREATE TYPE friendship_status AS ENUM ("pending", "accepted", "blocked", "rejected");
@@ -138,3 +138,14 @@ CREATE TABLE UserTournaments
 
 CREATE INDEX idx_usertournaments_user_id ON UserTournaments(user_id);
 CREATE INDEX idx_usertournaments_tournament_id_position ON UserTournaments(tournament_id, position);
+
+CREATE VIEW user_profiles AS
+SELECT 
+  id,
+  display_name,
+  avatar,
+  current_status,
+  registered_timestamp,
+  last_active_timestamp
+FROM 
+  Users

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 15:55:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 17:31:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -97,7 +97,7 @@ class ClientHandler
             else
               response = Response.new(429, {"Content-Length" => "0"}, "")
 
-            add_rate_limit_headers(response.headers, request.caller_id, request.path)
+            add_rate_limit_headers(response.headers, caller_id, request.path)
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e

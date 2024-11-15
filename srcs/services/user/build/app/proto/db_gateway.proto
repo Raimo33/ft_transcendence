@@ -1,9 +1,1 @@
-syntax = "proto3";
-
-package db_gateway.user;
-
-
-service DBGatewayUserService
-{
-  //TODO add only rpcs that are used by the user service
-}
+//TODO incollare il protofile di db_gateway.proto

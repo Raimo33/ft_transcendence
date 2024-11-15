@@ -6,19 +6,19 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:50:56 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 15:53:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
 require_relative "ConfigLoader"
-require_relative "../proto/db_gateway_service_pb"
-require_relative "../proto/auth_service_pb"
+require_relative "../proto/db_gateway_pb"
+require_relative "../proto/auth_pb"
 require_relative "ConfigurableLogger"
 
 class GrpcClient
+  attr_reader :db_gateway, :auth
   
-
   def initialize
     @config = ConfigLoader.config
     @logger = ConfigurableLogger.instance.logger
@@ -34,33 +34,13 @@ class GrpcClient
     user_channel  = create_channel(@config[:addresses][:db_gateway], db_gateway_credentials)
     auth_channel  = create_channel(@config[:addresses][:auth], auth_credentials)
 
-    @stubs = {
-      db_gateway: DBGatewayService::Stub.new(user_channel),
-      auth:       AuthService::Stub.new(auth_channel)
-    }.freeze
-
-    @request_mapping = {
-      #TODO: Add request mappings for DBGatewayService
-    }.freeze
+    @db_gateway = DBGatewayUserService::Stub.new(db_gateway_channel),
+    @auth       = AuthUserService::Stub.new(auth_channel)
 
   rescue StandardError => e
     raise "Failed to initialize grpc client: #{e}"
   ensure
     close
-  end
-
-  def call(grpc_request)
-    mapping = @request_mapping[grpc_request.class]
-    raise "No mapping found for request: #{grpc_request.class}" unless mapping
-
-    stub = mapping[:stub]
-    method = mapping[:method]
-    @logger.debug("Calling grpc method #{method} with request: #{grpc_request} on stub: #{stub}")
-    response = stub.send(method, grpc_request)
-    @logger.debug("Received response: #{response}")
-
-  rescue StandardError => e
-    raise "Failed to call grpc method #{method}: #{e}"
   end
 
   def close

@@ -14,83 +14,83 @@ service TournamentAPIGatewayService
 
 message Tournament
 {
-  required string           id                  = 1;
-  required string           mode                = 2;
-  required repeated string  match_ids           = 3;
-  required string           status              = 4;
-  required uint64           started_timestamp   = 5;
-  optional uint64           finished_timestamp  = 6;
+  string           id                  = 1;
+  string           mode                = 2;
+  repeated string  match_ids           = 3;
+  string           status              = 4;
+  uint64           started_timestamp   = 5;
+  uint64           finished_timestamp  = 6;
 }
 
 message PlayerTournamentFilters
 {
-  optional string   mode    = 1;
-  optional string   status  = 2;
+  string   mode    = 1;
+  string   status  = 2;
 }
 
 // v1/users/{user_id}/tournaments GET
 message GetUserTournamentsRequest
 {
-  required string                     requesting_user_id  = 1;
-  required string                     user_id             = 2;
-  optional uint32                     limit               = 3;
-  optional uint32                     offset              = 4;
-  optional string                     sort_by             = 5;
-  optional PlayerTournamentFilters    filters             = 6;
-  optional string                     etag                = 7;
+  string                     requesting_user_id  = 1;
+  string                     user_id             = 2;
+  uint32                     limit               = 3;
+  uint32                     offset              = 4;
+  string                     sort_by             = 5;
+  PlayerTournamentFilters    filters             = 6;
+  string                     etag                = 7;
 }
 message GetUserTournamentsResponse
 {
-  required uint16               status_code = 1;
-  optional repeated Tournament  tournaments = 2;
-  required string               etag        = 3;
+  uint16               status_code = 1;
+  repeated Tournament  tournaments = 2;
+  string               etag        = 3;
 }
 
 // v1/tournaments POST
 message CreateTournamentRequest
 {
-  required string           requesting_user_id  = 1;
-  required repeated string  invided_users_ids   = 2;
-  optional string           mode                = 3;
+  string           requesting_user_id  = 1;
+  repeated string  invided_users_ids   = 2;
+  string           mode                = 3;
 }
 message CreateTournamentResponse
 {
-  required uint16  status_code    = 1;
-  optional string  tournament_id  = 2;
+  uint16  status_code    = 1;
+  string  tournament_id  = 2;
 }
 
 // v1/tournaments/{tournament_id} POST
 message JoinTournamentRequest
 {
-  required string  requesting_user_id = 1;
-  required string  tournament_id      = 2;
+  string  requesting_user_id = 1;
+  string  tournament_id      = 2;
 }
 message JoinTournamentResponse
 {
-  required uint16  status_code = 1;
+  uint16  status_code = 1;
 }
 
 // v1/tournaments/{tournament_id} GET
 message GetTournamentRequest
 {
-  required string requesting_user_id  = 1;
-  required string tournament_id       = 2;
-  optional string etag                = 3;
+  string requesting_user_id  = 1;
+  string tournament_id       = 2;
+  string etag                = 3;
 }
 message GetTournamentResponse
 {
-  required uint16     status_code   = 1;
-  optional Tournament tournament    = 2;
-  required string     etag          = 3;
+  uint16     status_code   = 1;
+  Tournament tournament    = 2;
+  string     etag          = 3;
 }
 
 // v1/tournaments/{tournament_id} DELETE
 message LeaveTournamentRequest
 {
-  required string requesting_user_id  = 1;
-  required string tournament_id       = 2;
+  string requesting_user_id  = 1;
+  string tournament_id       = 2;
 }
 message LeaveTournamentResponse
 {
-  required uint16 status_code = 1;
+  uint16 status_code = 1;
 }

@@ -15,7 +15,9 @@ require "async"
 require "email_validator"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
-require_relative "../proto/user_service_pb"
+require_relative "../proto/user_pb"
+require_relative "../proto/auth_user_pb"
+require_relative "../proto/db_gateway_user_pb"
 
 class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   include EmailValidator
@@ -24,10 +26,12 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     @grpc_client = grpc_client
     @logger = ConfigurableLogger.instance.logger
     @config = ConfigLoader.config
+
+    @db_prepared_stetements = init_db_prepared_statements
   end
 
   def register_user(request, _metadata)
-    @logger.debug("Received registration request: #{request.inspect}")
+    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.email, request.password, request.display_name]
     return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
@@ -43,24 +47,53 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       task.stop
     end
 
+    hashed_password = nil
     Async do |task|
-      db_request = 
-      db_request.email = request.email
-      task.async { db_request.password = hash_password(request.password) }
-      db_request.display_name = request.display_name
-      db_request.avatar = compress_avatar(request.avatar) if request.avatar
+      email = request.email
+      task.async { hashed_password = hash_password(request.password) }
+      display_name = request.display_name
+      avatar = compress_avatar(request.avatar) if request.avatar
     ensure
       task.stop
     end
 
-    db_response = @grpc_client. #TODO chiamare il servizio db_gateway che converte richiesta in query SQL
-    UserAPIGatewayService::RegisterUserResponse.new(status_code: db_response.status_code) 
+    register_user = #TODO chiamare il prepared statement corrispondente
+
+    db_response = @grpc_client.db_gateway.execute_prepared(register_user)
+
+    status_code = 
+    user_id = 
+
+    UserService::RegisterUserResponse.new(status_code: status_code, user_id: user_id)
   rescue StandardError => e
     @logger.error("Failed to register user: #{e}")
-    UserAPIGatewayService::RegisterUserResponse.new(status_code: 500)
+    UserService::RegisterUserResponse.new(status_code: 500, user_id: nil)
   end
+  
+  private
+    
+  def init_db_prepared_statements
+    query_templates = {
+      register_user: "INSERT INTO users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id",
+      get_user_profile: "SELECT * FROM user_profiles WHERE user_id = $1",
+      get_user_status: "SELECT current_status FROM user_profiles WHERE user_id = $1"
+      # Add more query templates here
+    }
+  
+    {}.tap do |prepared_statements|
+      query_templates.each do |name, query|
+        prepared_statement = DBGatewayUserService::Query.new(query)
+        response = @grpc_client.db_gateway.prepare_statement(prepared_statement)
 
-  private    
+        raise "Failed to prepare statement: #{name}" unless response&.statement_name
+
+        prepared_statements[name] = response.statement_name
+      end
+    end
+  rescue StandardError => e
+    raise "Failed to prepare statements: #{e}"
+  end
+  
 
   def check_email(email)
     @logger.debug("Checking email: #{email}")
@@ -74,7 +107,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     
   def check_email_domain(email)
     domain = email.split('@').last
-    response = @grpc_client.call(UserAuthService::CheckDomainRequest.new(domain: domain))
+    response = @grpc_client.call(AuthUserService::CheckDomainRequest.new(domain: domain))
     raise "Invalid email domain" unless response&.is_allowed
   end
 
@@ -108,7 +141,8 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   end
 
   def hash_password(password)
-    response = @grpc_client.call(UserAuthService::HashPasswordRequest.new(password: password))
+    response = @grpc_client.call(AuthUserService::HashPasswordRequest.new(password: password))
+    response&.hashed_password
   end
 
   def compress_avatar(avatar)
@@ -142,7 +176,5 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
 
     final_regex
   end
-
-
 
 end

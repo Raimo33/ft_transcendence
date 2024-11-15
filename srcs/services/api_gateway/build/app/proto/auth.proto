@@ -5,14 +5,20 @@ package auth.api_gateway;
 
 service AuthAPIGatewayService
 {
-  rpc GetJwks(GetJwksRequest) returns (GetJwksResponse) {}
+  rpc GetJwks(GetJwksRequest) returns (GetJwksResponse);
+}
+
+message JsonWebKey
+{
+  string algorithm    = 1;
+  string certificate = 2;
 }
 
 message GetJwksRequest
 {
 }
+
 message GetJwksResponse
 {
-  required string certificate  = 1;
-  required string algorithm    = 2;
+  repeated JsonWebKey jwks = 1;
 }

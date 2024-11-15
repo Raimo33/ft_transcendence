@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:09:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/15 14:49:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,7 +45,7 @@ paths:
       x-ratelimit-interval: 150
       x-ratelimit-limit: 2
       summary: User registration
-      description: Register a new user in the system by providing email, password, display name, and other optional fields.
+      description: Register a new user in the system by providing email, password, display name, and other  fields.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
       requestBody:
