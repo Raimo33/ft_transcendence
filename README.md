@@ -419,53 +419,37 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 - Prioritize minimalism
 
 ### 4.2 Docker Compose
-- Example:
+- Template:
   ```yaml
   services:
 
-    nginx:
+    service_name:
       build:
-        context: ./services/nginx
+        context: ./services/service_name
         dockerfile: Dockerfile
         args:
-
-      container_name: nginx
+      container_name: service_name
       environment:
       volumes:
-        - nginx_cert:/etc/ssl/certs/nginx.crt:ro
       secrets:
-        - source: nginx_key
-          target: /etc/ssl/private/nginx.key
-          uid: 1001
+        - source:
+          target:
+          uid:
           mode: 0400
       ports:
-        - "80:80"
-        - "443:443"
       networks:
-        - edge
       restart: always
       depends_on:
       init: true
 
-    api_gateway:
+    service_name:
   
   volumes:
-    nginx_cert:
   
   secrets:
 
   networks:
-    edge:
-      driver: bridge
-      ipam:
-        config:
-          - subnet: 192.168.1.0/30
-    core:
-      internal: true
-    data:
-      internal: true
-    monitoring:
-      internal: true
+
   ```
 - Only build from Dockerfiles
 - Only pass the strictly necessary **environvment variables**
@@ -474,41 +458,35 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 - Always specify **volumes** permissions
 
 ### Dockerfile
-- Example:
+- Template:
   ```Dockerfile
   FROM alpine:3.19 as official
 
   SHELL ["/bin/ash", "-c"]
 
-  RUN apk add --no-cache ruby protobuf
+  RUN apk add --no-cache
 
-  RUN mkdir -p /etc/api_gateway/conf.d
-  RUN touch /var/log/api_gateway.log
+  RUN mkdir -p /etc/service_name/conf.d
+  RUN touch /var/log/service_name.log
 
-  COPY ./build/app/                 /app
-  COPY ./build/default_conf.yaml    /etc/api_gateway/conf.d/
+  COPY
+  COPY ./build/default_conf.yaml    /etc/service_name/conf.d/
 
-  RUN adduser -DHS api_gateway
-  RUN chown -R api_gateway:api_gateway /app /etc/api_gateway /var/log/api_gateway.log
+  RUN adduser -DHS service_name
+  RUN chown -R service_name:service_name /etc/service_name /var/log/service_name.log
   RUN chmod -R +x /usr/local/bin/
 
-  WORKDIR /app
-  RUN gem install bundler
-  RUN bundle install
-  WORKDIR /app/proto
-  RUN protoc --ruby_out=./ user.proto match.proto tournament.proto
+  WORKDIR /etc/service_name/conf.d/
+  EXPOSE 
 
-  WORKDIR /etc/api_gateway/conf.d/
-  EXPOSE 3000
-
-  ENTRYPOINT ["./main.rb"]
-  HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:3000/api/v1/ping"]
+  ENTRYPOINT []
+  HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD []
 
   FROM official as pongfumasters
 
   RUN mkdir -p /shared
 
-  USER api_gateway
+  USER service_name
   WORKDIR /shared
   VOLUME ["/shared"]
 
