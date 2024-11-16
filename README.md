@@ -335,15 +335,15 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 /
 │
 ├── srcs/
-    ├── services/
-        ├──api_gateway/
-            ├──build/
-            ├──shared/
-               ├──conf/
-            └──Dockerfile
-        ├──auth/
-        └──...
-    └── docker-compose.yml
+  ├── services/
+    ├──api_gateway/
+      ├──build/
+      ├──shared/
+       └──conf/
+      └──Dockerfile
+    ├──auth/
+    └──...
+  └── docker-compose.yml
 │
 ├── .env
 ├── Makefile
@@ -406,14 +406,6 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 - Avoid running containers as `root` user
 - Keep containers stateless, use external storage for persistent data
 - Use docker secrets for sensitive credentials
-  - Example:
-    ```yaml
-    secrets:
-      - source: nginx_key
-        target: /etc/ssl/private/nginx.key
-        uid: 1001
-        mode: 0400
-    ```
 - Use multi stage builds to separate between `official` and `pongfumasters`
 - Only run **initialization scripts** in the entrypoints
 - Prioritize minimalism
