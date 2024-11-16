@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/10 15:33:59 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 22:01:15 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/16 11:47:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,8 +26,9 @@ class ConfigLoader
     pid_file: String,
     logging:
     {
-      log_level:  String,
-      log_file:   String
+      level:  String,
+      file:   String
+      tag:    String
     },
     jwt:
     {

@@ -31,7 +31,7 @@ message PlayerTournamentFilters
 // v1/users/{user_id}/tournaments GET
 message GetUserTournamentsRequest
 {
-  string                     requesting_user_id  = 1;
+  string                     requester_user_id  = 1;
   string                     user_id             = 2;
   uint32                     limit               = 3;
   uint32                     offset              = 4;
@@ -49,7 +49,7 @@ message GetUserTournamentsResponse
 // v1/tournaments POST
 message CreateTournamentRequest
 {
-  string           requesting_user_id  = 1;
+  string           requester_user_id  = 1;
   repeated string  invided_users_ids   = 2;
   string           mode                = 3;
 }
@@ -62,7 +62,7 @@ message CreateTournamentResponse
 // v1/tournaments/{tournament_id} POST
 message JoinTournamentRequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
   string  tournament_id      = 2;
 }
 message JoinTournamentResponse
@@ -73,7 +73,7 @@ message JoinTournamentResponse
 // v1/tournaments/{tournament_id} GET
 message GetTournamentRequest
 {
-  string requesting_user_id  = 1;
+  string requester_user_id  = 1;
   string tournament_id       = 2;
   string etag                = 3;
 }
@@ -87,7 +87,7 @@ message GetTournamentResponse
 // v1/tournaments/{tournament_id} DELETE
 message LeaveTournamentRequest
 {
-  string requesting_user_id  = 1;
+  string requester_user_id  = 1;
   string tournament_id       = 2;
 }
 message LeaveTournamentResponse

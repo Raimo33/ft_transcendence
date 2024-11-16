@@ -36,7 +36,7 @@ message PLayerMatchFilters
 // v1/users/{user_id}/matches GET
 message GetUserMatchesRequest
 {
-  string                requesting_user_id = 1;
+  string                requester_user_id = 1;
   string                user_id            = 2;
   uint32                limit              = 3;
   uint32                offset             = 4;
@@ -54,7 +54,7 @@ message GetUserMatchesResponse
 // v1/matches POST
 message CreateMatchRequest
 {
-  string           requesting_user_id  = 1;
+  string           requester_user_id  = 1;
   repeated string  invited_user_ids    = 2;
   MatchSettings    settings            = 3;
 }
@@ -67,7 +67,7 @@ message CreateMatchResponse
 // v1/matches/{match_id} POST
 message JoinMatchRequest
 {
-  string  requesting_user_id   = 1;
+  string  requester_user_id   = 1;
   string  match_id             = 2;
 }
 message JoinMatchResponse
@@ -78,7 +78,7 @@ message JoinMatchResponse
 // v1/matches/{match_id} GET
 message GetMatchRequest
 {
-  string requesting_user_id  = 1;
+  string requester_user_id  = 1;
   string match_id            = 2;
   string etag                = 3;
 }
@@ -92,7 +92,7 @@ message GetMatchResponse
 // v1/matches/{match_id} DELETE
 message LeaveMatchRequest
 {
-  string  requesting_user_id  = 1;
+  string  requester_user_id  = 1;
   string  match_id            = 2;
 }
 message LeaveMatchResponse

@@ -2,8 +2,9 @@ bind: "0.0.0.0:3000"
 pid_file: "/var/run/api_gateway.pid"
 
 logging:
-  log_level: "debug"
-  log_file: "/dev/stdout"
+  level: "debug"
+  file: "/dev/stdout"
+  tag: "API_GATEWAY"
 
 jwt:
   key_refresh_interval: 3600

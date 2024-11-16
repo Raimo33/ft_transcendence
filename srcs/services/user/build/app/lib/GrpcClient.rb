@@ -6,18 +6,17 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 22:03:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/16 12:22:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
 require_relative "ConfigLoader"
-require_relative "../proto/db_gateway_pb"
 require_relative "../proto/auth_pb"
 require_relative "ConfigurableLogger"
 
 class GrpcClient
-  attr_reader :db_gateway, :auth
+  attr_reader :auth
   
   def initialize
     @config = ConfigLoader.config
@@ -28,10 +27,8 @@ class GrpcClient
       "grpc.compression_algorithm" => "gzip"
     }
 
-    user_channel  = create_channel(@config[:addresses][:db_gateway], :this_channel_is_insecure)
     auth_channel  = create_channel(@config[:addresses][:auth], :this_channel_is_insecure)
 
-    @db_gateway = DBGatewayUserService::Stub.new(db_gateway_channel),
     @auth       = AuthUserService::Stub.new(auth_channel)
 
   rescue StandardError => e

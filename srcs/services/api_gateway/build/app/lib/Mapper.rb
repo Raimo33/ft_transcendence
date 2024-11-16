@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:43:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 22:17:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/16 13:03:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,7 +59,7 @@ class Mapper
   
   end
 
-  def map_request_to_grpc_request(request, operation_id, requesting_user_id)
+  def map_request_to_grpc_request(request, operation_id, requester_user_id)
     case operation_id
     when "registerUser"
       UserAPIGatewayService::RegisterUserRequest.new(
@@ -69,38 +69,38 @@ class Mapper
         avatar:         request[:body]["avatar"] )
     when "getUserProfile"
       UserAPIGatewayService::GetUserProfileRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         user_id: request[:path_params]["user_id"] )
     when "getUserStatus"
       UserAPIGatewayService::GetUserStatusRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         user_id: request[:path_params]["user_id"] )
     when "getUserMatches"
       MatchAPIGatewayService::GetUserMatchesRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"] )
     when "getUserTournaments"
       TournamentAPIGatewayService::GetUserTournamentsRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         user_id: request[:path_params]["user_id"],
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"] )
     when "deleteAccount"
       UserAPIGatewayService::DeleteAccountRequest.new(
-        requesting_user_id: requesting_user_id, )
+        requester_user_id: requester_user_id, )
     when "getPrivateProfile"
       UserAPIGatewayService::GetPrivateProfileRequest.new(
-        requesting_user_id: requesting_user_id )
+        requester_user_id: requester_user_id )
     when "updateProfile"
       UserAPIGatewayService::UpdateProfileRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         display_name: request[:body]["display_name"],
         avatar: request[:body]["avatar"] )
     when "updatePassword"
       UserAPIGatewayService::UpdatePasswordRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         old_password: request[:body]["old_password"],
         new_password: request[:body]["new_password"] )
     when "requestPasswordReset"
@@ -115,28 +115,28 @@ class Mapper
         new_password: request[:body]["new_password"], )
     when "updateEmail"
       UserAPIGatewayService::UpdateEmailRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         new_email: request[:body]["new_email"],
         current_password: request[:body]["current_password"],
         totp_code: request[:body]["totp_code"] )
     when "verifyEmail"
       UserAPIGatewayService::VerifyEmailRequest.new(
-        requesting_user_id: requesting_user_id )
+        requester_user_id: requester_user_id )
     when "checkEmailVerificationToken"
       UserAPIGatewayService::CheckEmailVerificationTokenRequest.new(
         token: request[:path_params]["token"] )
     when "enable2FA"
       UserAPIGatewayService::Enable2FARequest.new(
-        requesting_user_id: requesting_user_id )
+        requester_user_id: requester_user_id )
     when "get2FAStatus"
       UserAPIGatewayService::Get2FAStatusRequest.new(
-        requesting_user_id: requesting_user_id )
+        requester_user_id: requester_user_id )
     when "disable2FA"
       UserAPIGatewayService::Disable2FARequest.new(
-        requesting_user_id: requesting_user_id )
+        requester_user_id: requester_user_id )
     when "check2FACode"
       UserAPIGatewayService::Check2FACodeRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         totp_code: request[:body]["totp_code"] )
     when "loginUser"
       UserAPIGatewayService::LoginUserRequest.new(
@@ -145,51 +145,51 @@ class Mapper
         totp_code: request[:body]["totp_code"] )
     when "logoutUser"
       UserAPIGatewayService::LogoutUserRequest.new(
-        requesting_user_id: requesting_user_id )
+        requester_user_id: requester_user_id )
     when "addFriend"
       UserAPIGatewayService::AddFriendRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         friend_id: request[:body]["friend_id"] )
     when "getFriends"
       UserAPIGatewayService::GetFriendsRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         limit: request[:query_params]["limit"],
         offset: request[:query_params]["offset"] )
     when "removeFriend"
       UserAPIGatewayService::RemoveFriendRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         friend_id: request[:path_params]["friend_id"] )
     when "createMatch"
       MatchAPIGatewayService::CreateMatchRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         invited_user_ids: request[:body]["invited_user_ids"] )
     when "joinMatch"
       MatchAPIGatewayService::JoinMatchRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         match_id: request[:path_params]["match_id"] )
     when "getMatch"
       MatchAPIGatewayService::GetMatchRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         match_id: request[:path_params]["match_id"] )
     when "leaveMatch"
       MatchAPIGatewayService::LeaveMatchRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         match_id: request[:path_params]["match_id"] )
     when "createTournament"
       TournamentAPIGatewayService::CreateTournamentRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         invited_user_ids: request[:body]["invited_user_ids"] )
     when "joinTournament"
       TournamentAPIGatewayService::JoinTournamentRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         tournament_id: request[:path_params]["tournament_id"] )
     when "getTournament"
       TournamentAPIGatewayService::GetTournamentRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         tournament_id: request[:path_params]["tournament_id"] )
     when "leaveTournament"
       TournamentAPIGatewayService::LeaveTournamentRequest.new(
-        requesting_user_id: requesting_user_id,
+        requester_user_id: requester_user_id,
         tournament_id: request[:path_params]["tournament_id"] )
     else
       raise ActionFailedException::NotImplemented

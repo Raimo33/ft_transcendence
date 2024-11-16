@@ -151,26 +151,6 @@ services:
     restart: always
     depends_on:
     init: true
-  
-  db_gateway:
-    build:
-      context: ./services/db_gateway
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: db_gateway
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - 50052:50052
-    networks:
-      - data
-    restart: always
-    depends_on:
-      postgresql:
-        condition: service_healthy
-    init: true
 
   postgresql:
     build:

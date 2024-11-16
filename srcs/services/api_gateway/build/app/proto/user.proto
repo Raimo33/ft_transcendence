@@ -62,7 +62,7 @@ message RegisterUserResponse
 // v1/users/{user_id}/profile GET
 message GetUserProfileRequest
 {
-  required string requesting_user_id = 1;
+  required string requester_user_id = 1;
   required string user_id            = 2;
 }
 message GetUserProfileResponse
@@ -74,7 +74,7 @@ message GetUserProfileResponse
 // v1/users/{user_id}/status GET
 message GetUserStatusRequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
   string  user_id            = 2;
 }
 message GetUserStatusResponse
@@ -86,7 +86,7 @@ message GetUserStatusResponse
 // v1/user DELETE
 message DeleteAccountRequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
 }
 message DeleteAccountResponse
 {
@@ -96,7 +96,7 @@ message DeleteAccountResponse
 // v1/user/profile GET
 message GetPrivateProfileRequest
 {
-  required string requesting_user_id  = 1;
+  required string requester_user_id  = 1;
 }
 message GetPrivateProfileResponse
 {
@@ -107,7 +107,7 @@ message GetPrivateProfileResponse
 // v1/user/profile PATCH
 message UpdateProfileRequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
   string  display_name       = 2;
   string  avatar             = 3;
 }
@@ -119,7 +119,7 @@ message UpdateProfileResponse
 // v1/user/password PUT
 message UpdatePasswordRequest
 {
-  string  requesting_user_id  = 1;
+  string  requester_user_id  = 1;
   string  old_password        = 2;
   string  new_password        = 3;
 }
@@ -162,7 +162,7 @@ message UpdatePasswordResponse
 // // v1/user/email PATCH
 // message UpdateEmailRequest
 // {
-//   required string  requesting_user_id = 1;
+//   required string  requester_user_id = 1;
 //   required string  new_email          = 2;
 //   required string  current_password   = 3;
 //   optional string  totp_code          = 4;
@@ -175,7 +175,7 @@ message UpdatePasswordResponse
 // // v1/user/email/verify POST
 // message VerifyEmailRequest
 // {
-//   required string requesting_user_id = 1;
+//   required string requester_user_id = 1;
 // }
 // message VerifyEmailResponse
 // {
@@ -195,7 +195,7 @@ message UpdatePasswordResponse
 // v1/user/2fa POST
 message Enable2FARequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
 }
 message Enable2FAResponse
 {
@@ -206,7 +206,7 @@ message Enable2FAResponse
 // v1/users/{user_id}/2fa GET
 message Get2FAStatusRequest
 {
-  string requesting_user_id = 1;
+  string requester_user_id = 1;
 }
 message Get2FAStatusResponse
 {
@@ -217,7 +217,7 @@ message Get2FAStatusResponse
 // v1/user/2fa DELETE
 message Disable2FARequest
 {
-  string requesting_user_id = 1;
+  string requester_user_id = 1;
 }
 message Disable2FAResponse
 {
@@ -227,7 +227,7 @@ message Disable2FAResponse
 // v1/user/2fa/verify POST
 message Check2FACodeRequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
   string  totp_code          = 2;
 }
 message Check2FACodeResponse
@@ -250,7 +250,7 @@ message LoginUserResponse
 // v1/user/logout DELETE
 message LogoutUserRequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
 }
 message LogoutUserResponse
 {
@@ -260,7 +260,7 @@ message LogoutUserResponse
 // v1/user/friends POST
 message AddFriendRequest
 {
-  string  requesting_user_id = 1;
+  string  requester_user_id = 1;
   string  friend_id          = 2;
 }
 message AddFriendResponse
@@ -271,7 +271,7 @@ message AddFriendResponse
 // v1/user/friends GET
 message GetFriendsRequest
 {
-  required string          requesting_user_id   = 1;
+  required string          requester_user_id   = 1;
   optional uint32          limit                = 2;
   optional uint32          offset               = 3;
   optional string          sort_by              = 4;
@@ -285,7 +285,7 @@ message GetFriendsResponse
 // v1/user/friends/{friend_id} DELETE
 message RemoveFriendRequest
 {
-  string  requesting_user_id  = 1;
+  string  requester_user_id  = 1;
   string  friend_id           = 2;
 }
 message RemoveFriendResponse

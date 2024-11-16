@@ -2,12 +2,20 @@ bind: 0.0.0.0:50052
 pid_file: /var/run/user.pid
 
 logging:
-  level:  info
-  file:   /dev/stdout
+  level: info
+  file:  /dev/stdout
+  tag:   USER
 
 addresses:
-  db_gateway: db_gateway.data:50052
   auth:       auth.core:50052
+  postgresql: postgresql.data:5432
+
+database:
+  host:       postgresql.data
+  port:       5432
+  name:       pongfumasters
+  user:       user
+  password:   password
 
 display_name:
   min_length: 3

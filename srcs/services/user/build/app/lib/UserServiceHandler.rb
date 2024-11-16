@@ -11,13 +11,13 @@
 # **************************************************************************** #
 
 require "grpc"
+require "pg"
 require "async"
 require "email_validator"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
 require_relative "../proto/user_pb"
 require_relative "../proto/auth_user_pb"
-require_relative "../proto/db_gateway_user_pb"
 
 class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   include EmailValidator
@@ -27,14 +27,23 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     @logger = ConfigurableLogger.instance.logger
     @config = ConfigLoader.config
 
-    @db_prepared_stetements = init_db_prepared_statements
+    @db_connection = PG.connect(db_name:  @config[:database][:name],
+                                user:     @config[:database][:user],
+                                password: @config[:database][:password], 
+                                host:     @config[:database][:host],
+                                port:     @config[:database][:port])
+                          
+    @default_avatar = Base64.encode64(File.read(@config[:avatar][:default]))
   end
 
   def register_user(request, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.email, request.password, request.display_name]
-    return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
+    unless required_fields.all?
+      @logger.error("Missing required fields")
+      return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400)
+    end
 
     Async do |task|
       task.async { check_email(request.email) }
@@ -42,127 +51,123 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       check_display_name(request.display_name)
       check_avatar(request.avatar) if request.avatar
     rescue StandardError => e
+      @logger.error("Failed to register user: #{e}")
       return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400)
-    ensure
-      task.stop
     end
 
-    hashed_password = nil
+    email, hashed_password, display_name, avatar = nil
     Async do |task|
       email = request.email
       task.async { hashed_password = hash_password(request.password) }
       display_name = request.display_name
       avatar = compress_avatar(request.avatar) if request.avatar
-    ensure
-      task.stop
     end
 
-    db_request = DBGatewayUserService::ExecutePreparedRequest.new(
-      statement_id: @db_prepared_statements[:register_user],
-      params: {
-        "email"        => DBGatewayUserService::Value.new(string_value: email),
-        "password"     => DBGatewayUserService::Value.new(string_value: hashed_password),
-        "display_name" => DBGatewayUserService::Value.new(string_value: display_name),
-        "avatar"       => DBGatewayUserService::Value.new(bytes_value: avatar)
-      }.compact
-    )
+    @db_connection.prepare("register_user", "INSERT INTO Users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id")
+    db_response = @db_connection.exec_prepared("register_user", [email, hashed_password, display_name, avatar])
 
-    db_response = @grpc_client.db_gateway.execute_prepared(db_request)
-    raise "No response from DB" unless db_response
-
-    status_code = db_response.status_code
-    user_id     = db_response.rows.first&.fields&.first&.string_value
-
-    UserService::RegisterUserResponse.new(status_code: status_code, user_id: user_id)
+    user_id = db_response.getvalue(0, 0)
+    @logger.info("User with email '#{email}' registered successfully")
+    UserService::RegisterUserResponse.new(status_code: 201, user_id: user_id)
+  rescue PG::UniqueViolation
+    @logger.error("User with email '#{email}' already exists")
+    UserService::RegisterUserResponse.new(status_code: 409)
   rescue StandardError => e
     @logger.error("Failed to register user: #{e}")
-    UserService::RegisterUserResponse.new(status_code: 500, user_id: nil)
+    UserService::RegisterUserResponse.new(status_code: 500)
   end
 
   def get_user_profile(request, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
-    required_fields = [request.requesting_user_id, request.user_id]
-    return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
+    required_fields = [request.requester_user_id, request.user_id]
 
-    db_request = DBGatewayUserService::ExecutePreparedRequest.new(
-      statement_id: @db_prepared_statements[:get_user_profile],
-      params: {
-        "user_id" => DBGatewayUserService::Value.new(string_value: request.user_id)
-      }.compact
-    )
+    unless required_fields.all?
+      @logger.error("Missing required fields")
+      return UserService::GetUserProfileResponse.new(status_code: 400)
+    end
+  
+    @db_connection.prepare("get_user_profile", "SELECT * FROM UserProfiles WHERE user_id = $1")
+    db_response = @db_connection.exec_prepared("get_user_profile", [request.user_id])
 
-    db_response = @grpc_client.db_gateway.execute_prepared(db_request)
-    raise "No response from DB" unless db_response
-
-    status_code = db_response.status_code
+    if db_response.ntuples.zero?
+      @logger.error("User profile for user with id '#{request.user_id}' already exists")
+      return UserService::GetUserProfileResponse.new(status_code: 409)
+    end
 
     user_profile = UserService::UserProfile.new(
-      id:           db_response.rows.first&.fields[0]&.string_value,
-      display_name: db_response.rows.first&.fields[1]&.string_value,
-      avatar:       db_response.rows.first&.fields[2]&.bytes_value
-      status:       db_response.rows.first&.fields[3]&.string_value
-    ).compact
-
-    user_profile.avatar = decompress_avatar(user_profile.avatar) if user_profile.avatar
-  
-    UserService::GetUserProfileResponse.new(status_code: status_code, user_profile: user_profile)
-  rescue StandardError => e
-    @logger.error("Failed to get user profile: #{e}")
-    UserService::GetUserProfileResponse.new(status_code: 500, user_profile: nil)
-  end
-
-  def get_user_status(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
-    required_fields = [request.requesting_user_id, request.user_id]
-    return UserAPIGatewayService::RegisterUserResponse.new(status_code: 400) unless required_fields.all?
-
-    db_request = DBGatewayUserService::ExecutePreparedRequest.new(
-      statement_id: @db_prepared_statements[:get_user_status],
-      params: {
-        "id" => DBGatewayUserService::Value.new(string_value: request.user_id)
-      }.compact
+      user_id:      db_response.getvalue(0, 0),
+      display_name: db_response.getvalue(0, 1),
+      avatar:       db_response.getvalue(0, 2) || @default_avatar,
+      status:       db_response.getvalue(0, 3)
     )
 
-    db_response = @grpc_client.db_gateway.execute_prepared(db_request)
-    raise "No response from DB" unless db_response
-
-    status_code = db_response.status_code
-    user_status = db_response.rows.first&.fields.first&.string_value
-
-    UserService::GetUserStatusResponse.new(status_code: status_code, user_status: user_status)
+    @logger.info("User profile for user with id '#{request.user_id}' retrieved successfully")
+    UserService::GetUserProfileResponse.new(status_code: 200, profile: user_profile)
   rescue StandardError => e
-    @logger.error("Failed to get user status: #{e}")
-    UserService::GetUserStatusResponse.new(status_code: 500, user_status: nil)
+    @logger.error("Failed to get user profile: #{e}")
+    UserService::GetUserProfileResponse.new(status_code: 500)
   end
 
-  #TODO Add more service methods here
-  
-  private
-    
-  def init_db_prepared_statements
-    query_templates = {
-      register_user:      "INSERT INTO users (email, psw, display_name, avatar) VALUES ($email, $psw, $display_name, $avatar) RETURNING id",
-      get_user_profile:   "SELECT * FROM user_profiles WHERE id = $id",
-      get_user_status:    "SELECT current_status FROM user_profiles WHERE id = $id"
-      # Add more query templates here
-    }
-  
-    {}.tap do |prepared_statements|
-      query_templates.each do |name, query|
-        request = DBGatewayUserService::PrepareStatementRequest.new(query)
-        response = @grpc_client.db_gateway.prepare_statement(request)
+  def delete_account(request, _metadata)
+    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
-        raise "Failed to prepare statement: #{name}" unless response&.statement_id
-
-        prepared_statements[name] = response.statement_id
-      end
+    required_fields = [request.requester_user_id]
+    unless required_fields.all?
+      @logger.error("Missing required fields")
+      return UserService::DeleteAccountResponse.new(status_code: 400)
     end
+
+    @db_connection.prepare("delete_account", "DELETE FROM Users WHERE id = $1")
+    db_response = @db_connection.exec_prepared("delete_account", [request.requester_user_id])
+
+    if db_response.cmd_tuples.zero?
+      @logger.error("User with id '#{request.requester_user_id}' not found")
+      return UserService::DeleteAccountResponse.new(status_code: 404)
+    end
+
+    UserService::DeleteAccountResponse.new(status_code: 200)
   rescue StandardError => e
-    raise "Failed to prepare statements: #{e}"
+    @logger.error("Failed to delete account: #{e}")
+    UserService::DeleteAccountResponse.new(status_code: 500)
   end
-  
+
+  def get_private_profile(request, _metadata)
+    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
+
+    required_fields = [request.requester_user_id]
+    unless required_fields.all?
+      @logger.error("Missing required fields")
+      return UserService::GetPrivateProfileResponse.new(status_code: 400)
+    end
+
+    @db_connection.prepare("get_private_profile", "SELECT * FROM UserPrivateProfiles WHERE id = $1")
+    db_response = @db_connection.exec_prepared("get_private_profile", [request.requester_user_id])
+
+    if db_response.ntuples.zero?
+      @logger.error("Private profile for user with id '#{request.requester_user_id}' not found")
+      return UserService::GetPrivateProfileResponse.new(status_code: 404)
+    end
+
+    private_profile = UserService::User.new(
+      id:                       db_response.getvalue(0, 0),
+      email:                    db_response.getvalue(0, 1),
+      display_name:             db_response.getvalue(0, 2),
+      avatar:                   db_response.getvalue(0, 3) || @default_avatar,
+      two_factor_auth_enabled:  db_response.getvalue(0, 4)
+      status:                   db_response.getvalue(0, 5)
+    )
+
+    @logger.info("Private profile for user with id '#{request.requester_user_id}' retrieved successfully")
+    UserService::GetPrivateProfileResponse.new(status_code: 200, profile: private_profile)
+  rescue StandardError => e
+    @logger.error("Failed to get private profile: #{e}")
+    UserService::GetPrivateProfileResponse.new(status_code: 500)
+  end
+
+  #TODO add more methods
+
+  private
 
   def check_email(email)
     @logger.debug("Checking email: #{email}")
