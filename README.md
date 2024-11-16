@@ -393,6 +393,7 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
   - Example: `[api_gateway] INFO Request received`.
 - Name metrics descriptively and consistently:
   - Example: `http_request_duration_seconds`, `user_login_attempts_total`.
+- Ensure the end user doesn't see source code information.
 
 
 ## 4. Docker
@@ -518,4 +519,5 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
   - Always specify a `HEALTHCHECK`
   - Always include default configurations
   - Document open ports with `EXPOSE`
+  - Use full paths even if `WORKDIR` is set
   - Keep consistency between all Dockerfiles
