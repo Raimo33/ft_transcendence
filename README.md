@@ -339,7 +339,7 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
     ├──api_gateway/
       ├──build/
       ├──shared/
-       └──conf/
+        └──conf/
       └──Dockerfile
     ├──auth/
     └──...
