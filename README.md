@@ -318,10 +318,10 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 # Developer Guidelines
 
 ## Table of Contents
-[General Guidelines](#1-general-guidelines)
-[Directory Structure](#2-directory-structure)
-[Naming Conventions](#3-naming-conventions)
-[Docker](#4-docker)
+- [General Guidelines](#1-general-guidelines) 
+- [Directory Structure](#2-directory-structure) 
+- [Naming Conventions](#3-naming-conventions) 
+- [Docker](#4-docker) 
 
 ## 1. General Guidelines
 - **Consistency**: Follow the same structure, naming conventions, and coding practices across all services.
