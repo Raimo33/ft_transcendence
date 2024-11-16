@@ -160,6 +160,8 @@ The AI Service is responsible for simulating client actions to provide a dynamic
 
 </i>
 
+<i>
+
 ## DB Gateway
 
 ### Reasoning
@@ -174,6 +176,7 @@ The DB Gateway serves as an intermediary between the gRPC API and the database. 
 - **Query Caching**
 - **Persistent Connection**
 
+</i>
 <i>
 
 ## Blockchain Service
