@@ -73,12 +73,9 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
     barrier.wait
 
-    @db_pool.with_connection do |conn|
-      @logger.debug("Preparing statement")
-      conn.prepare("register_user", "INSERT INTO Users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id")
-  
-      @logger.debug("Registering user in database")
-      db_response = conn.exec_prepared("register_user", [email, hashed_password, display_name, avatar])
+    @db_pool.with_connection do |conn|  
+      @logger.debug("Inserting user with email '#{email}' into database")
+      db_response = conn.exec_params("INSERT INTO Users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id", [email, hashed_password, display_name, avatar])
   
       user_id = db_response.getvalue(0, 0)
       @logger.info("User with email '#{email}' registered successfully")
@@ -95,7 +92,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -117,11 +114,8 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
   
     @db_pool.with_connection do |conn|
-      @logger.debug("Preparing statement")
-      conn.prepare("get_user_profile", "SELECT * FROM UserProfiles WHERE user_id = $1")
-
-      @logger.debug("Querying database for user profile")
-      db_response = conn.exec_prepared("get_user_profile", [request.user_id])
+      @logger.debug("Querying database for profile of user with id '#{request.user_id}'")
+      db_response = conn.exec_params("SELECT * FROM UserProfiles WHERE user_id = $1", [request.user_id])
 
       if db_response.ntuples.zero?
         @logger.error("User profile for user with id '#{request.user_id}' not found")
@@ -149,7 +143,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -168,12 +162,9 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
 
     @db_pool.with_connection do |conn|
-      @logger.debug("Preparing statement")
-      conn.prepare("delete_account", "DELETE FROM Users WHERE id = $1")
-  
-      @logger.debug("Deleting account from database")
-      db_response = conn.exec_prepared("delete_account", [request.requester_user_id])
-  
+      @logger.debug("Deleting user with id '#{request.requester_user_id}' from database")
+      db_response = conn.exec_params("DELETE FROM Users WHERE id = $1", [request.requester_user_id])
+
       if db_response.cmd_tuples.zero?
         @logger.error("User with id '#{request.requester_user_id}' not found")
         return UserService::DeleteAccountResponse.new(status_code: 404)
@@ -192,7 +183,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -211,11 +202,8 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
 
     @db_pool.with_connection do |conn|
-      @logger.debug("Preparing statement")
-      conn.prepare("get_private_profile", "SELECT * FROM UserPrivateProfiles WHERE id = $1")
-  
-      @logger.debug("Querying database for private profile")
-      db_response = conn.exec_prepared("get_private_profile", [request.requester_user_id])
+      @logger.debug("Querying database for private profile of user with id '#{request.requester_user_id}'")
+      db_response = conn.exec_params("SELECT * FROM UserPrivateProfiles WHERE id = $1", [request.requester_user_id])
   
       if db_response.ntuples.zero?
         @logger.error("Private profile for user with id '#{request.requester_user_id}' not found")
@@ -245,7 +233,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -274,27 +262,25 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
     barrier.wait
 
-    @db_pool.with_connection do |conn|
-      @logger.debug("Preparing statements")
-      conn.prepare("update_display_name", "UPDATE UserProfiles SET display_name = $1 WHERE user_id = $2")
-      conn.prepare("update_avatar", "UPDATE UserProfiles SET avatar = $1 WHERE user_id = $2")
-  
-      dn_response, avatar_response = nil
+    @db_pool.with_connection do |conn|  
+      display_name_response, avatar_response = nil
       conn.transaction do
         Async do |task|
-          dn_response = task.async do
-            conn.exec_prepared("update_display_name", [request.display_name, request.requester_user_id]) if request.display_name
+          display_name_response = task.async do
+            @logger.debug("Updating display name for user with id '#{request.requester_user_id}'")
+            conn.exec_params("UPDATE Users SET display_name = $1 WHERE user_id = $2", [request.display_name, request.requester_user_id]) if request.display_name
           end
   
           avatar_response = task.async do
-            conn.exec_prepared("update_avatar", [compress_avatar(request.avatar), request.requester_user_id]) if request.avatar
+            @logger.debug("Updating avatar for user with id '#{request.requester_user_id}'")
+            conn.exec_params("UPDATE Users SET avatar = $1 WHERE user_id = $2", [compress_avatar(request.avatar), request.requester_user_id]) if request.avatar
           end
         end
-        dn_response.wait
+        display_name_response.wait
         avatar_response.wait
       end
   
-      if dn_response&.cmd_tuples.zero? || avatar_response&.cmd_tuples.zero?
+      if display_name_response&.cmd_tuples.zero? || avatar_response&.cmd_tuples.zero?
         @logger.error("User with id '#{request.requester_user_id}' not found")
         return UserService::UpdateProfileResponse.new(status_code: 404)
       end
@@ -313,7 +299,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -333,17 +319,40 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       return UserService::Enable2FAResponse.new(status_code: 400)
     end
   
-    grpc_request  = AuthUserService::Generate2FASecretRequest.new
-    @logger.debug("Sending 'Generate2FASecret' request to Auth service: #{grpc_request.inspect}")
-    grpc_response = @grpc_client.auth.generate_2fa_secret(grpc_request)
+    Async do |task|
 
-    totp_secret = grpc_response&.totp_secret
-    raise "AuthService failed to enable 2FA" unless totp_secret
+      grpc_task = task.async do
+        grpc_request  = AuthUserService::Generate2FASecretRequest.new
+        @logger.debug("Sending 'Generate2FASecret' request to Auth service: #{grpc_request.inspect}")
+        @grpc_client.auth.generate_2fa_secret(grpc_request)
+      end
 
-    #TODO add totp_secret to UserPrivateProfiles table and set two_factor_auth_enabled to true
-    
-    @logger.info("2FA enabled successfully for user with id '#{request.requester_user_id}'")
-    UserService::Enable2FAResponse.new(status_code: 200, totp_secret: totp_secret)
+      db_task = task.async do
+        @db_pool.with_connection do |conn|
+          db_response = conn.exec_params("SELECT two_factor_auth_enabled FROM Users WHERE id = $1", [request.requester_user_id])
+          db_response.getvalue(0, 0)
+        end
+      end
+
+      two_factor_auth_enabled = db_task.wait
+
+      if two_factor_auth_enabled
+        @logger.error("2FA already enabled for user with id '#{request.requester_user_id}'")
+        return UserService::Enable2FAResponse.new(status_code: 409)
+      end
+
+      grpc_response = grpc_task.wait
+      totp_secret = grpc_response&.totp_secret
+      raise "AuthService failed to provide 2FA secret" unless totp_secret
+    end
+
+    @db_pool.with_connection do |conn|
+      @logger.debug("Updating database to enable 2FA for user with id '#{request.requester_user_id}'")
+      conn.exec_params("UPDATE Users SET two_factor_auth_enabled = true, totp_secret = $1 WHERE id = $2", [totp_secret, request.requester_user_id])
+
+      @logger.info("2FA enabled successfully for user with id '#{request.requester_user_id}'")
+      return UserService::Enable2FAResponse.new(status_code: 200, totp_secret: totp_secret)
+    end
   rescue PG::UniqueViolation => e
     @logger.error("Unique constraint violation: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 409)
@@ -355,13 +364,16 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
   rescue StandardError => e
     @logger.error("Failed to enable 2FA: #{e}")
     UserService::Enable2FAResponse.new(status_code: 500)
+  ensure
+    grpc_task.stop
+    db_task.stop
   end
 
   def get_2fa_status(request, _metadata)
@@ -374,10 +386,8 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
 
     @db_pool.with_connection do |conn|
-      @logger.debug("Preparing statement")
-      conn.prepare("get_2fa_status", "SELECT two_factor_auth_enabled FROM UserPrivateProfiles WHERE id = $1")
-      @logger.debug("Querying database for 2FA status")
-      db_response = conn.exec_prepared("get_2fa_status", [request.requester_user_id])
+      @logger.debug("Querying database for 2FA status of user with id '#{request.requester_user_id}'")
+      db_response = conn.exec_params("SELECT two_factor_auth_enabled FROM Users WHERE id = $1", [request.requester_user_id])
   
       if db_response.ntuples.zero?
         @logger.error("2FA status for user with id '#{request.requester_user_id}' not found")
@@ -400,7 +410,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -418,10 +428,28 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       return UserService::Disable2FAResponse.new(status_code: 400)
     end
 
-    #TODO remove totp_secret from UserPrivateProfiles table and set two_factor_auth_enabled to false
+    @db_pool.with_connection do |conn|
+      @logger.debug("Querying database for 2FA status of user with id '#{request.requester_user_id}'")
+      db_response = conn.exec_params("SELECT two_factor_auth_enabled FROM Users WHERE id = $1", [request.requester_user_id])
 
-    @logger.info("2FA disabled successfully for user with id '#{request.requester_user_id}'")
-    UserService::Disable2FAResponse.new(status_code: 204)
+      if db_response.ntuples.zero?
+        @logger.error("User with id '#{request.requester_user_id}' not found")
+        return UserService::Disable2FAResponse.new(status_code: 404)
+      end
+
+      two_factor_auth_enabled = db_response.getvalue(0, 0)
+
+      unless two_factor_auth_enabled
+        @logger.error("2FA already disabled for user with id '#{request.requester_user_id}'")
+        return UserService::Disable2FAResponse.new(status_code: 409)
+      end
+
+      @logger.debug("Updating database to disable 2FA for user with id '#{request.requester_user_id}'")
+      db_response = conn.exec_params("UPDATE Users SET two_factor_auth_enabled = false, totp_secret = NULL WHERE id = $1", [request.requester_user_id])
+
+      @logger.info("2FA disabled successfully for user with id '#{request.requester_user_id}'")
+      return UserService::Disable2FAResponse.new(status_code: 204)
+    end
   rescue PG::UniqueViolation => e
     @logger.error("Unique constraint violation: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 409)
@@ -433,7 +461,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -451,7 +479,17 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       return UserService::Check2FACodeResponse.new(status_code: 400)
     end
 
-    #TODO retrieve totp_secret from UserPrivateProfiles table
+    @db_pool.with_connection do |conn|
+      @logger.debug("Querying database for 2FA secret of user with id '#{request.requester_user_id}'")
+      db_response = conn.exec_params("SELECT totp_secret FROM Users WHERE id = $1", [request.requester_user_id])
+
+      if db_response.ntuples.zero?
+        @logger.error("User with id '#{request.requester_user_id}' not found")
+        return UserService::Check2FACodeResponse.new(status_code: 404)
+      end
+
+      totp_secret = db_response.getvalue(0, 0)
+    end
 
     grpc_request = AuthUserService::Check2FACodeRequest.new(totp_secret: totp_secret, totp_code: request.totp_code)
     @logger.debug("Sending 'Check2FACode' request to Auth service: #{grpc_request.inspect}")
@@ -473,7 +511,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -500,14 +538,11 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       @logger.error("Failed to login user: #{e}")
       return UserService::LoginUserResponse.new(status_code: 400)
     end
+    barrier.wait
     
     @db_pool.with_connection do |conn|
-      @logger.debug("Preparing statement")
-      conn.prepare("login_user", "SELECT id, two_factor_auth_enabled FROM Users WHERE email = $1 AND psw = $2")
-
-      barrier.wait
-      @logger.debug("Querying database for user")
-      db_response = conn.exec_prepared("login_user", [request.email, hashed_password])
+      @logger.debug("Querying database for user with email '#{request.email}'")
+      db_response = conn.exec_params("SELECT id, two_factor_auth_enabled FROM Users WHERE email = $1 AND psw = $2", [request.email, hashed_password])
 
       if db_response.ntuples.zero?
         @logger.error("User with email '#{request.email}' not found")
@@ -516,17 +551,12 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
 
       user_id                 = db_response.getvalue(0, 0)
       two_factor_auth_enabled = db_response.getvalue(0, 1)
+      logger.info("User with id '#{user_id}' requires 2FA") if two_factor_auth_enabled
 
-      if two_factor_auth_enabled
-        @logger.info("User with email '#{request.email}' requires 2FA")
-        #TODO send 2FA request (via notification?)
-      end
-
-      grpc_request = AuthUserService::GenerateJWTRequest.new(user_id: user_id, auth_level: 1)
+      grpc_request = AuthUserService::GenerateJWTRequest.new(user_id: user_id, auth_level: 1, pending_2fa: two_factor_auth_enabled)
       @logger.debug("Sending 'GenerateJWT' request to Auth service: #{grpc_request.inspect}")
       grpc_response = @grpc_client.auth.generate_jwt(grpc_request)
       jwt_token = grpc_response&.jwt_token
-
       raise "AuthService failed to generate JWT token" unless jwt_token
 
       @logger.info("User with email '#{request.email}' logged in successfully")
@@ -543,7 +573,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::RegisterUserResponse.new(status_code: 400)
   rescue PG::ForeignKeyViolation => e
     @logger.error("Foreign key constraint violation: #{e.message}")
-    UserService::RegisterUserResponse.new(status_code: 400)
+    UserService::RegisterUserResponse.new(status_code: 404)
   rescue PG::Timeout => e
     @logger.error("Database connection timed out: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 504)
@@ -563,7 +593,132 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       return UserService::AddFriendResponse.new(status_code: 400)
     end
 
-    #TODO implement
+    @db_pool.with_connection do |conn|
+      @logger.debug("Inserting friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' into database")
+      db_response = conn.exec_params("INSERT INTO Friendships (user_id, friend_id) VALUES ($1, $2)", [request.requester_user_id, request.friend_user_id])
+
+      @logger.info("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' added successfully")
+      return UserService::AddFriendResponse.new(status_code: 201)
+    end
+  rescue PG::UniqueViolation => e
+    @logger.error("Unique constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 409)
+  rescue PG::CheckViolation => e
+    @logger.error("Check constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 400)
+  rescue PG::NotNullViolation => e
+    @logger.error("Not null constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 400)
+  rescue PG::ForeignKeyViolation => e
+    @logger.error("Foreign key constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 404)
+  rescue PG::Timeout => e
+    @logger.error("Database connection timed out: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 504)
+  rescue StandardError => e
+    @logger.error("Failed to login user: #{e}")
+    UserService::LoginUserResponse.new(status_code: 500)
+  end
+
+  def get_friends(request, _metadata)
+    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
+
+    required_fields = [request.requester_user_id]
+    unless required_fields.all?(&:present?)
+      @logger.error("Missing required fields")
+      return UserService::GetFriendsResponse.new(status_code: 400)
+    end
+
+    limit   = request.limit  || 10
+    offset  = request.offset || 0
+
+    @db_pool.with_connection do |conn|
+      Async do |task|
+        user_exists = task.async do
+          @logger.debug("Querying database for user with id '#{request.requester_user_id}'")
+          db_response = conn.exec_params("SELECT id FROM Users WHERE id = $1", [request.requester_user_id])
+          db_response.ntuples.positive?
+        end
+
+        friend_ids = task.async do
+          @logger.debug("Querying database for friend_ids of user with id '#{request.requester_user_id}'")
+          db_response = conn.exec_params("SELECT friend_id FROM Friendships WHERE user_id = $1 LIMIT $2 OFFSET $3", [request.requester_user_id, limit, offset])
+
+          db_response.ntuples.zero? ? [] : db_response.column_values(0)
+        end
+      end
+
+      user_exists = user_exists.wait
+      unless user_exists
+        @logger.error("User with id '#{request.requester_user_id}' not found")
+        return UserService::GetFriendsResponse.new(status_code: 404)
+      end
+
+      @logger.info("Friends of user with id '#{request.requester_user_id}' retrieved successfully")
+      return UserService::GetFriendsResponse.new(status_code: 200, friend_ids: friend_ids)
+    end
+  rescue PG::UniqueViolation => e
+    @logger.error("Unique constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 409)
+  rescue PG::CheckViolation => e
+    @logger.error("Check constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 400)
+  rescue PG::NotNullViolation => e
+    @logger.error("Not null constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 400)
+  rescue PG::ForeignKeyViolation => e
+    @logger.error("Foreign key constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 404)
+  rescue PG::Timeout => e
+    @logger.error("Database connection timed out: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 504)
+  rescue StandardError => e
+    @logger.error("Failed to login user: #{e}")
+    UserService::LoginUserResponse.new(status_code: 500)
+  ensure
+    user_exists.stop
+    friend_ids.stop
+  end
+
+  def remove_friend(request, _metadata)
+    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
+
+    required_fields = [request.requester_user_id, request.friend_user_id]
+    unless required_fields.all?(&:present?)
+      @logger.error("Missing required fields")
+      return UserService::RemoveFriendResponse.new(status_code: 400)
+    end
+
+    @db_pool.with_connection do |conn|
+      @logger.debug("Deleting friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' from database")
+      db_response = conn.exec_params("DELETE FROM Friends WHERE user_id = $1 AND friend_id = $2", [request.requester_user_id, request.friend_user_id])
+
+      if result.cmd_tuples.zero?
+        @logger.error("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' not found")
+        return UserService::RemoveFriendResponse.new(status_code: 404)
+      end
+
+      @logger.info("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' removed successfully")
+      return UserService::RemoveFriendResponse.new(status_code: 204)
+    end
+  rescue PG::UniqueViolation => e
+    @logger.error("Unique constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 409)
+  rescue PG::CheckViolation => e
+    @logger.error("Check constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 400)
+  rescue PG::NotNullViolation => e
+    @logger.error("Not null constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 400)
+  rescue PG::ForeignKeyViolation => e
+    @logger.error("Foreign key constraint violation: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 404)
+  rescue PG::Timeout => e
+    @logger.error("Database connection timed out: #{e.message}")
+    UserService::RegisterUserResponse.new(status_code: 504)
+  rescue StandardError => e
+    @logger.error("Failed to login user: #{e}")
+    UserService::LoginUserResponse.new(status_code: 500)
 
   private
 

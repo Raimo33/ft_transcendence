@@ -48,10 +48,11 @@ message Check2FACodeResponse
   bool success = 1;
 }
 
-message GenerateJWTRequest
+message GenerateJWTRequest //TODO short lived 5m jwt for pending 2fa, long lived jwt for normal login
 {
-  string user_id    = 1;
-  uint16 auth_level = 2;
+  string user_id     = 1;
+  uint16 auth_level  = 2;
+  bool   pending_2fa = 3;
 }
 message GenerateJWTResponse
 {

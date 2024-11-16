@@ -12,12 +12,6 @@ service MatchAPIGatewayService
   rpc LeaveMatch         (LeaveMatchRequest)        returns (LeaveMatchResponse) {}
 }
 
-message MatchSettings
-{
-  uint8  ball_speed      = 1;
-  uint16 max_duration    = 2;
-  uint8  starting_health = 3;
-}
 message Match
 {
   string           id                  = 1;
@@ -25,12 +19,6 @@ message Match
   string           status              = 3;
   uint64           started_timestamp   = 4;
   uint64           finished_timestamp  = 5;
-  MatchSettings    settings            = 6;
-}
-
-message PLayerMatchFilters
-{
-  string  status = 1;
 }
 
 // v1/users/{user_id}/matches GET
@@ -40,8 +28,6 @@ message GetUserMatchesRequest
   string                user_id            = 2;
   uint32                limit              = 3;
   uint32                offset             = 4;
-  string                sort_by            = 5;
-  PLayerMatchFilters    filters            = 6;
   string                etag               = 7;
 }
 message GetUserMatchesResponse

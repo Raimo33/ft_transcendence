@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 19:07:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/16 21:39:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,7 +40,10 @@ class JwtValidator
     decoded_token = decode_token(token)
     return false unless decoded_token
 
-    token_auth = decoded_token[0]["auth_level"]
+    token_auth  = decoded_token[0]["auth_level"]
+    pending_2fa = decoded_token[0]["pending_2fa"]
+
+    return false if pending_2fa
     return token_auth >= expected_auth_level
   end 
 

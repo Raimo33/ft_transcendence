@@ -22,12 +22,6 @@ message Tournament
   uint64           finished_timestamp  = 6;
 }
 
-message PlayerTournamentFilters
-{
-  string   mode    = 1;
-  string   status  = 2;
-}
-
 // v1/users/{user_id}/tournaments GET
 message GetUserTournamentsRequest
 {
@@ -35,8 +29,6 @@ message GetUserTournamentsRequest
   string                     user_id             = 2;
   uint32                     limit               = 3;
   uint32                     offset              = 4;
-  string                     sort_by             = 5;
-  PlayerTournamentFilters    filters             = 6;
   string                     etag                = 7;
 }
 message GetUserTournamentsResponse

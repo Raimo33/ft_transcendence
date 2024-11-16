@@ -264,7 +264,6 @@ message GetFriendsRequest
   required string          requester_user_id   = 1;
   optional uint32          limit                = 2;
   optional uint32          offset               = 3;
-  optional string          sort_by              = 4;
 }
 message GetFriendsResponse
 {
