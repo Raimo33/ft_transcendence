@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 22:02:02 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/16 16:41:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,19 +49,18 @@ class GrpcClient
       UserAPIGatewayService::DeleteAccountRequest                 => { stub: @stubs[:user],       method: :delete_account },
       UserAPIGatewayService::GetPrivateProfileRequest             => { stub: @stubs[:user],       method: :get_private_profile },
       UserAPIGatewayService::UpdateProfileRequest                 => { stub: @stubs[:user],       method: :update_profile },
-      UserAPIGatewayService::UpdatePasswordRequest                => { stub: @stubs[:user],       method: :update_password },
-      UserAPIGatewayService::RequestPasswordResetRequest          => { stub: @stubs[:user],       method: :request_password_reset },
-      UserAPIGatewayService::CheckPasswordResetTokenRequest       => { stub: @stubs[:user],       method: :check_password_reset_token },
-      UserAPIGatewayService::ResetPasswordRequest                 => { stub: @stubs[:user],       method: :reset_password },
-      UserAPIGatewayService::UpdateEmailRequest                   => { stub: @stubs[:user],       method: :update_email },
-      UserAPIGatewayService::VerifyEmailRequest                   => { stub: @stubs[:user],       method: :verify_email },
-      UserAPIGatewayService::CheckEmailVerificationTokenRequest   => { stub: @stubs[:user],       method: :check_email_verification_token },
+      # UserAPIGatewayService::UpdatePasswordRequest                => { stub: @stubs[:user],       method: :update_password },
+      # UserAPIGatewayService::RequestPasswordResetRequest          => { stub: @stubs[:user],       method: :request_password_reset },
+      # UserAPIGatewayService::CheckPasswordResetTokenRequest       => { stub: @stubs[:user],       method: :check_password_reset_token },
+      # UserAPIGatewayService::ResetPasswordRequest                 => { stub: @stubs[:user],       method: :reset_password },
+      # UserAPIGatewayService::UpdateEmailRequest                   => { stub: @stubs[:user],       method: :update_email },
+      # UserAPIGatewayService::VerifyEmailRequest                   => { stub: @stubs[:user],       method: :verify_email },
+      # UserAPIGatewayService::CheckEmailVerificationTokenRequest   => { stub: @stubs[:user],       method: :check_email_verification_token },
       UserAPIGatewayService::Enable2FARequest                     => { stub: @stubs[:user],       method: :enable_2fa },
       UserAPIGatewayService::Get2FAStatusRequest                  => { stub: @stubs[:user],       method: :get_2fa_status },
       UserAPIGatewayService::Disable2FARequest                    => { stub: @stubs[:user],       method: :disable_2fa },
       UserAPIGatewayService::Check2FACodeRequest                  => { stub: @stubs[:user],       method: :check_2fa_code },
       UserAPIGatewayService::LoginUserRequest                     => { stub: @stubs[:user],       method: :login_user },
-      UserAPIGatewayService::LogoutUserRequest                    => { stub: @stubs[:user],       method: :logout_user },
       UserAPIGatewayService::AddFriendRequest                     => { stub: @stubs[:user],       method: :add_friend },
       UserAPIGatewayService::GetFriendsRequest                    => { stub: @stubs[:user],       method: :get_friends },
       UserAPIGatewayService::RemoveFriendRequest                  => { stub: @stubs[:user],       method: :remove_friend },

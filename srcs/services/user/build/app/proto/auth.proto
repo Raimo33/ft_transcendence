@@ -5,9 +5,11 @@ package auth.user;
 
 service AuthUserService
 {
-  rpc CheckDomain(CheckDomainRequest)   returns (CheckDomainResponse) {}
-  rpc HashPassword(HashPasswordRequest) returns (HashedPassword) {}
-
+  rpc CheckDomain(CheckDomainRequest)             returns (CheckDomainResponse) {}
+  rpc HashPassword(HashPasswordRequest)           returns (HashedPassword) {}
+  rpc Generate2FASecret(Generate2FASecretRequest) returns (Generate2FASecretResponse) {}
+  rpc Check2FACode(Check2FACodeRequest)           returns (Check2FACodeResponse) {}
+  rpc GenerateJWT(GenerateJWTRequest)             returns (GenerateJWTResponse) {}
 }
 
 message CheckDomainRequest
@@ -28,3 +30,30 @@ message HashedPassword
   string hashed_password = 1;
 }
 
+message Generate2FASecretRequest
+{
+}
+message Generate2FASecretResponse
+{
+  string totp_secret = 1;
+}
+
+message Check2FACodeRequest
+{
+  string totp_secret  = 1;
+  string totp_code    = 2;
+}
+message Check2FACodeResponse
+{
+  bool success = 1;
+}
+
+message GenerateJWTRequest
+{
+  string user_id    = 1;
+  uint16 auth_level = 2;
+}
+message GenerateJWTResponse
+{
+  string jwt = 1;
+}

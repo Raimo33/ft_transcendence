@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/16 13:15:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/16 18:15:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -257,196 +257,196 @@ paths:
           $ref: "#/components/responses/ContentTooLarge"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/password:
-    put:
-      operationId: updatePassword
-      summary: Update user password
-      description: Update the password of the current user account.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                old_password:
-                  $ref: "#/components/schemas/user_psw"
-                new_password:
-                  $ref: "#/components/schemas/user_psw"
-                totp_code:
-                  $ref: "#/components/schemas/totp_code"
-              required: [old_password, new_password]
-              additionalProperties: false
-        required: true
-      security:
-        - jwtAuth: []
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/password/reset:
-    post:
-      operationId: requestPasswordReset
-      summary: Request password reset
-      description: Sends a password reset link to the registered email address.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  $ref: "#/components/schemas/user_email"
-              required: [email]
-              additionalProperties: false
-        required: true
-      responses:
-          "204":
-            $ref: "#/components/responses/NoContent"
-          "411":
-            $ref: "#/components/responses/LengthRequired"
-          "413":
-            $ref: "#/components/responses/ContentTooLarge"
-          "431":
-            $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/password/reset/{token}:
-    post:
-      operationId: checkPasswordResetToken
-      summary: Check the password reset token
-      description: Check the validity of the password reset token provided by the user.
-      parameters:
-        - $ref: "#/components/parameters/token"
-        - $ref: "#/components/parameters/Content-Length"
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-    patch:
-      operationId: resetPassword
-      summary: Reset user password
-      description: Reset the password of the user account using the provided token.
-      parameters:
-        - $ref: "#/components/parameters/token"
-        - $ref: "#/components/parameters/Content-Length"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                new_password:
-                  $ref: "#/components/schemas/user_psw"
-              required: [new_password]
-              additionalProperties: false
-        required: true
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/email:
-    patch:
-      operationId: updateEmail
-      summary: Update user email
-      description: Update the email address of the current user account.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                new_email:
-                  $ref: "#/components/schemas/user_email"
-                current_password:
-                  $ref: "#/components/schemas/user_psw"
-                totp_code:
-                  $ref: "#/components/schemas/totp_code"
-              required: [new_email, current_password]
-              additionalProperties: false
-        required: true
-      security:
-        - jwtAuth: []
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/email/verify:
-    post:
-      operationId: verifyEmail
-      summary: Generate email verification token
-      description: Receive via email the verification token to be provided in the next request.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-      security:
-        - jwtAuth: []
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/email/verify/{token}:
-    post:
-      operationId: checkEmailVerificationToken
-      summary: Check the email verification token
-      description: Check the validity of the email verification token provided by the user.
-      parameters:
-        - $ref: "#/components/parameters/token"
-        - $ref: "#/components/parameters/Content-Length"
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"    
+  # /user/password:
+  #   put:
+  #     operationId: updatePassword
+  #     summary: Update user password
+  #     description: Update the password of the current user account.
+  #     parameters:
+  #       - $ref: "#/components/parameters/Content-Length"
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               old_password:
+  #                 $ref: "#/components/schemas/user_psw"
+  #               new_password:
+  #                 $ref: "#/components/schemas/user_psw"
+  #               totp_code:
+  #                 $ref: "#/components/schemas/totp_code"
+  #             required: [old_password, new_password]
+  #             additionalProperties: false
+  #       required: true
+  #     security:
+  #       - jwtAuth: []
+  #     responses:
+  #       "204":
+  #         $ref: "#/components/responses/NoContent"
+  #       "401":
+  #         $ref: "#/components/responses/Unauthorized"
+  #       "411":
+  #         $ref: "#/components/responses/LengthRequired"
+  #       "413":
+  #         $ref: "#/components/responses/ContentTooLarge"
+  #       "431":
+  #         $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  # /user/password/reset:
+  #   post:
+  #     operationId: requestPasswordReset
+  #     summary: Request password reset
+  #     description: Sends a password reset link to the registered email address.
+  #     parameters:
+  #       - $ref: "#/components/parameters/Content-Length"
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               email:
+  #                 $ref: "#/components/schemas/user_email"
+  #             required: [email]
+  #             additionalProperties: false
+  #       required: true
+  #     responses:
+  #         "204":
+  #           $ref: "#/components/responses/NoContent"
+  #         "411":
+  #           $ref: "#/components/responses/LengthRequired"
+  #         "413":
+  #           $ref: "#/components/responses/ContentTooLarge"
+  #         "431":
+  #           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  # /user/password/reset/{token}:
+  #   post:
+  #     operationId: checkPasswordResetToken
+  #     summary: Check the password reset token
+  #     description: Check the validity of the password reset token provided by the user.
+  #     parameters:
+  #       - $ref: "#/components/parameters/token"
+  #       - $ref: "#/components/parameters/Content-Length"
+  #     responses:
+  #       "204":
+  #         $ref: "#/components/responses/NoContent"
+  #       "411":
+  #         $ref: "#/components/responses/LengthRequired"
+  #       "413":
+  #         $ref: "#/components/responses/ContentTooLarge"
+  #       "431":
+  #         $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  #   patch:
+  #     operationId: resetPassword
+  #     summary: Reset user password
+  #     description: Reset the password of the user account using the provided token.
+  #     parameters:
+  #       - $ref: "#/components/parameters/token"
+  #       - $ref: "#/components/parameters/Content-Length"
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               new_password:
+  #                 $ref: "#/components/schemas/user_psw"
+  #             required: [new_password]
+  #             additionalProperties: false
+  #       required: true
+  #     responses:
+  #       "204":
+  #         $ref: "#/components/responses/NoContent"
+  #       "403":
+  #         $ref: "#/components/responses/Forbidden"
+  #       "409":
+  #         $ref: "#/components/responses/Conflict"
+  #       "411":
+  #         $ref: "#/components/responses/LengthRequired"
+  #       "413":
+  #         $ref: "#/components/responses/ContentTooLarge"
+  #       "431":
+  #         $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  # /user/email:
+  #   patch:
+  #     operationId: updateEmail
+  #     summary: Update user email
+  #     description: Update the email address of the current user account.
+  #     parameters:
+  #       - $ref: "#/components/parameters/Content-Length"
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               new_email:
+  #                 $ref: "#/components/schemas/user_email"
+  #               current_password:
+  #                 $ref: "#/components/schemas/user_psw"
+  #               totp_code:
+  #                 $ref: "#/components/schemas/totp_code"
+  #             required: [new_email, current_password]
+  #             additionalProperties: false
+  #       required: true
+  #     security:
+  #       - jwtAuth: []
+  #     responses:
+  #       "204":
+  #         $ref: "#/components/responses/NoContent"
+  #       "401":
+  #         $ref: "#/components/responses/Unauthorized"
+  #       "409":
+  #         $ref: "#/components/responses/Conflict"
+  #       "411":
+  #         $ref: "#/components/responses/LengthRequired"
+  #       "413":
+  #         $ref: "#/components/responses/ContentTooLarge"
+  #       "431":
+  #         $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  # /user/email/verify:
+  #   post:
+  #     operationId: verifyEmail
+  #     summary: Generate email verification token
+  #     description: Receive via email the verification token to be provided in the next request.
+  #     parameters:
+  #       - $ref: "#/components/parameters/Content-Length"
+  #     security:
+  #       - jwtAuth: []
+  #     responses:
+  #       "204":
+  #         $ref: "#/components/responses/NoContent"
+  #       "401":
+  #         $ref: "#/components/responses/Unauthorized"
+  #       "409":
+  #         $ref: "#/components/responses/Conflict"
+  #       "411":
+  #         $ref: "#/components/responses/LengthRequired"
+  #       "413":
+  #         $ref: "#/components/responses/ContentTooLarge"
+  #       "431":
+  #         $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  # /user/email/verify/{token}:
+  #   post:
+  #     operationId: checkEmailVerificationToken
+  #     summary: Check the email verification token
+  #     description: Check the validity of the email verification token provided by the user.
+  #     parameters:
+  #       - $ref: "#/components/parameters/token"
+  #       - $ref: "#/components/parameters/Content-Length"
+  #     responses:
+  #       "204":
+  #         $ref: "#/components/responses/NoContent"
+  #       "403":
+  #         $ref: "#/components/responses/Forbidden"
+  #       "409":
+  #         $ref: "#/components/responses/Conflict"
+  #       "411":
+  #         $ref: "#/components/responses/LengthRequired"
+  #       "413":
+  #         $ref: "#/components/responses/ContentTooLarge"
+  #       "431":
+  #         $ref: "#/components/responses/RequestHeaderFieldsTooLarge"    
   /user/2fa:
     post:
       operationId: enable2FA
@@ -571,8 +571,6 @@ paths:
                   $ref: "#/components/schemas/user_email"
                 password:
                   $ref: "#/components/schemas/user_psw"
-                totp_code:
-                  $ref: "#/components/schemas/totp_code"
               required: [email, password]
               additionalProperties: false
         required: true
@@ -600,25 +598,9 @@ paths:
           $ref: "#/components/responses/ContentTooLarge"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/logout:
-    delete:
-      operationId: logoutUser
-      summary: User logout
-      description: Logs out the current user and invalidates the JWT token.
-      security:
-        - jwtAuth: []
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/friends:
     post:
-      operationId: addFriend0
+      operationId: addFriend
       summary: Add a friend
       description: Add a user to the friend list.
       parameters:

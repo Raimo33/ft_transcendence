@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package user.api_gateway;
+package user;
 
 
-service UserAPIGatewayService
+service UserService
 {
   rpc RegisterUser                  (RegisterUserRequest)                  returns (RegisterUserResponse) {}
   rpc GetUserProfile                (GetUserProfileRequest)                returns (GetUserProfileResponse) {}
@@ -30,19 +30,19 @@ service UserAPIGatewayService
 
 message UserProfile
 {
-  required string  id                      = 1;
-  required string  display_name            = 2;
-  required string  avatar                  = 3;
-  required string  status                  = 4;
+  required string  id            = 1;
+  required string  display_name  = 2;
+  required string  avatar        = 3;
+  required string  status        = 4;
 }
 message User
 {
   required string  id                      = 1;
-  required string  email                   = 2;
-  required string  display_name            = 3;
-  required string  avatar                  = 4;
-  required bool    two_factor_auth_enabled = 6;
-  required string  status                  = 7;
+  required string  display_name            = 2;
+  required string  avatar                  = 3;
+  required string  status                  = 4;
+  required string  email                   = 7;
+  required bool    two_factor_auth_enabled = 8;
 }
 
 // v1/users POST
@@ -55,32 +55,32 @@ message RegisterUserRequest
 }
 message RegisterUserResponse
 {
-  uint16  status_code  = 1;
-  string  user_id      = 2;
+  string  user_id      = 1;
+  uint16  status_code  = 2;
 }
 
 // v1/users/{user_id}/profile GET
 message GetUserProfileRequest
 {
-  required string requester_user_id = 1;
+  required string requester_user_id  = 1;
   required string user_id            = 2;
 }
 message GetUserProfileResponse
 {
-  required uint16       status_code = 1;
-  optional UserProfile  profile     = 2;
+  optional UserProfile  profile     = 1;
+  required uint16       status_code = 2;
 }
 
 // v1/users/{user_id}/status GET
 message GetUserStatusRequest
 {
-  string  requester_user_id = 1;
+  string  requester_user_id  = 1;
   string  user_id            = 2;
 }
 message GetUserStatusResponse
 {
-  uint16  status_code = 1;
-  string  user_status = 2;
+  string  user_status = 1;
+  uint16  status_code = 2;
 }
 
 // v1/user DELETE
@@ -100,16 +100,16 @@ message GetPrivateProfileRequest
 }
 message GetPrivateProfileResponse
 {
-  required uint16  status_code  = 1;
-  optional User    profile      = 2;
+  optional User    profile      = 1;
+  required uint16  status_code  = 2;
 }
 
 // v1/user/profile PATCH
 message UpdateProfileRequest
 {
-  string  requester_user_id = 1;
-  string  display_name       = 2;
-  string  avatar             = 3;
+  string  requester_user_id   = 1;
+  string  display_name        = 2;
+  string  avatar              = 3;
 }
 message UpdateProfileResponse
 {
@@ -119,7 +119,7 @@ message UpdateProfileResponse
 // v1/user/password PUT
 message UpdatePasswordRequest
 {
-  string  requester_user_id  = 1;
+  string  requester_user_id   = 1;
   string  old_password        = 2;
   string  new_password        = 3;
 }
@@ -199,8 +199,8 @@ message Enable2FARequest
 }
 message Enable2FAResponse
 {
-  uint16 status_code = 1;
-  string totp_secret = 2;
+  string totp_secret = 1;
+  uint16 status_code = 2;
 }
 
 // v1/users/{user_id}/2fa GET
@@ -227,7 +227,7 @@ message Disable2FAResponse
 // v1/user/2fa/verify POST
 message Check2FACodeRequest
 {
-  string  requester_user_id = 1;
+  string  requester_user_id  = 1;
   string  totp_code          = 2;
 }
 message Check2FACodeResponse
@@ -240,21 +240,11 @@ message LoginUserRequest
 {
   string email     = 1;
   string password  = 2;
-  string totp_code = 3;
 }
 message LoginUserResponse
 {
   string jwt_token = 2;
-}
-
-// v1/user/logout DELETE
-message LogoutUserRequest
-{
-  string  requester_user_id = 1;
-}
-message LogoutUserResponse
-{
-  uint16  status_code = 1;
+  uint16 status_code = 1;
 }
 
 // v1/user/friends POST

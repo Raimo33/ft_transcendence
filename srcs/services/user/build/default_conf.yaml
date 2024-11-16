@@ -11,11 +11,13 @@ addresses:
   postgresql: postgresql.data:5432
 
 database:
-  host:       postgresql.data
-  port:       5432
-  name:       pongfumasters
-  user:       user
-  password:   password
+  host:            postgresql.data
+  port:            5432
+  name:            pongfumasters
+  user:            user
+  password:        password
+  max_connections: 10
+  check_interval:  30s
 
 display_name:
   min_length: 3
