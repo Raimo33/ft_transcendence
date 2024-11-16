@@ -313,5 +313,209 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 - **Monitoring Dashboard**: Grafana provides an intuitive, interactive dashboard UI where users can monitor the health of the entire system. Metrics such as response times, resource utilization, and error rates can be displayed in real-time, offering a centralized view of performance.
 - **Alerting System**: Grafana integrates with Prometheus to provide alerting functionality. Users can define alert rules for specific metrics or conditions, such as high latency or server downtime. Alerts are sent via channels like email, Slack, or other integrations, allowing for immediate response to critical issues.
 
+</i>
 
-# Developer Documentation
+# Developer Guidelines
+
+## Table of Contents
+[General Guidelines](#1-general-guidelines)
+[Directory Structure](#2-directory-structure)
+[Naming Conventions](#3-naming-conventions)
+[Docker](#4-docker)
+
+## 1. General Guidelines
+- **Consistency**: Follow the same structure, naming conventions, and coding practices across all services.
+- **Documentation**: Each service should be documented in this README.md file
+- **Error Handling**: Services should only shut down after fatal system related errors and immediately notify prometheus.
+
+## 2. Directory Structure
+```
+/
+│
+├── srcs/
+    ├── services/
+        ├──api_gateway/
+            ├──build/
+            ├──shared/
+               ├──conf/
+            └──Dockerfile
+        ├──auth/
+        └──...
+    └── docker-compose.yml
+│
+├── .env
+├── Makefile
+└── README.md
+```
+
+## 3. Naming Conventions
+
+### 3.0 General Conventions
+- Avoid redundancy in naming by not repeating the entity type.
+  - Example: Do **not** include `service` in service names (e.g., `auth` instead of `auth-service`).
+  - Example: Do **not** include `user` in usernames (e.g., `admin` instead of `admin-user`).
+  - Example: Do **not** include `volume` in volume names (e.g., `db_data` instead of `db-volume`).
+  - Example: Do **not** include `net` in network names (e.g., `backend` instead of `backend-net`).
+- Names should be short but descriptive, prioritizing clarity over brevity.
+
+### 3.1 File and Folder names
+- Use **lowercase** for folder names with underscore (`_`) as separators.
+- Use **UpperCamelCase** for Class files
+- **Class** files should have the same name as the Class
+- Use `.template` suffix on files that need environvment variables substitution
+
+## 3.2 Variables, Functions and Classes
+- Follow the most official naimng conventions of the programming language
+  - Example: [Ruby style](https://rubystyle.guide/)
+  - Example: [gRPC syle](https://protobuf.dev/programming-guides/style/)
+  - Example: *RESTFUL* standard for rest APIs
+
+### 3.4 Docker-Related Naming Conventions
+- Refer to the [Docker Guidelines](#docker-guidelines) for additional details.
+- Use **descriptive, short names** for:
+  - Containers: Use the service name directly (e.g., `api_gateway`).
+  - Volumes: Name them after their purpose (e.g., `db_data` for database storage).
+  - Networks: Use context-specific names (e.g., `frontend`, `backend`).
+  - Images: Follow the format `<project>-<service>` (e.g., `pongmasters-auth`).
+
+### 3.5 Database Naming Conventions
+- Use **CamelCase** plural names for Tables.
+  - Table example: `Matches`.
+- Use **snake_case** for column names.
+  - Column example: `last_login_timestamp`.
+- Prioritize changing names over enclosing it in quotes when not available.
+  - Example: `password` in postgres is restricted and becomes `psw` instead of `'password'`
+- Use short but descriptive names for indexes and constraints:
+  - Example: `unq_users_email`, `fk_game_tournament`.
+
+### 3.6 Logging and Metrics
+- Use a consistent `<service_name>` tag for logs across all services.
+  - Example: `[api_gateway] INFO Request received`.
+- Name metrics descriptively and consistently:
+  - Example: `http_request_duration_seconds`, `user_login_attempts_total`.
+
+
+## 4. Docker
+
+### 4.1 General Docker Practices
+- Don't pull precompiled images from DockerHub
+- Build images from the latest stable version of **alpine**
+- Avoid running containers as `root` user
+- Keep containers stateless, use external storage for persistent data
+- Use docker secrets for sensitive credentials
+  - Example:
+    ```yaml
+    secrets:
+      - source: nginx_key
+        target: /etc/ssl/private/nginx.key
+        uid: 1001
+        mode: 0400
+    ```
+- Use multi stage builds to separate between `official` and `pongfumasters`
+- Only run **initialization scripts** in the entrypoints
+- Prioritize minimalism
+
+### 4.2 Docker Compose
+- Example:
+  ```yaml
+  services:
+
+    nginx:
+      build:
+        context: ./services/nginx
+        dockerfile: Dockerfile
+        args:
+
+      container_name: nginx
+      environment:
+      volumes:
+        - nginx_cert:/etc/ssl/certs/nginx.crt:ro
+      secrets:
+        - source: nginx_key
+          target: /etc/ssl/private/nginx.key
+          uid: 1001
+          mode: 0400
+      ports:
+        - "80:80"
+        - "443:443"
+      networks:
+        - edge
+      restart: always
+      depends_on:
+      init: true
+
+    api_gateway:
+  
+  volumes:
+    nginx_cert:
+  
+  secrets:
+
+  networks:
+    edge:
+      driver: bridge
+      ipam:
+        config:
+          - subnet: 192.168.1.0/30
+    core:
+      internal: true
+    data:
+      internal: true
+    monitoring:
+      internal: true
+  ```
+- Only build from Dockerfiles
+- Only pass the strictly necessary **environvment variables**
+- Never include the whole .env file
+- Environvment variables that are only needed during **build time** should be passed as `args`
+- Always specify **volumes** permissions
+
+### Dockerfile
+- Example:
+  ```Dockerfile
+  FROM alpine:3.19 as official
+
+  SHELL ["/bin/ash", "-c"]
+
+  RUN apk add --no-cache ruby protobuf
+
+  RUN mkdir -p /etc/api_gateway/conf.d
+  RUN touch /var/log/api_gateway.log
+
+  COPY ./build/app/                 /app
+  COPY ./build/default_conf.yaml    /etc/api_gateway/conf.d/
+
+  RUN adduser -DHS api_gateway
+  RUN chown -R api_gateway:api_gateway /app /etc/api_gateway /var/log/api_gateway.log
+  RUN chmod -R +x /usr/local/bin/
+
+  WORKDIR /app
+  RUN gem install bundler
+  RUN bundle install
+  WORKDIR /app/proto
+  RUN protoc --ruby_out=./ user.proto match.proto tournament.proto
+
+  WORKDIR /etc/api_gateway/conf.d/
+  EXPOSE 3000
+
+  ENTRYPOINT ["./main.rb"]
+  HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:3000/api/v1/ping"]
+
+  FROM official as pongfumasters
+
+  RUN mkdir -p /shared
+
+  USER api_gateway
+  WORKDIR /shared
+  VOLUME ["/shared"]
+
+  CMD ["-c", "/shared/conf/production.yaml"]
+  ```
+  - Always specify the `SHELL`
+  - Keep the **order** of instructions as in the example
+  - Never use `--chmod` or `--chown` directly on `ADD` or `COPY` commands
+  - Always specify a `WORKDIR`
+  - Always specify a `HEALTHCHECK`
+  - Always include default configurations
+  - Document open ports with `EXPOSE`
+  - Keep consistency between all Dockerfiles

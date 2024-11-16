@@ -19,7 +19,7 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - edgenet
+      - edge
     restart: always
     depends_on:
     init: true
@@ -37,7 +37,7 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - edgenet
+      - edge
     restart: always
     depends_on:
       nginx:
@@ -57,7 +57,7 @@ services:
     ports:
       - 50052:50052
     networks:
-      - corenet
+      - core
     restart: always
     depends_on:
     init: true
@@ -75,7 +75,7 @@ services:
     ports:
       - 
     networks:
-      - corenet
+      - core
     restart: always
     depends_on:
     init: true
@@ -93,7 +93,7 @@ services:
     ports:
       - 
     networks:
-      - corenet
+      - core
     restart: always
     depends_on:
     init: true
@@ -111,7 +111,7 @@ services:
     ports:
       -
     networks:
-      - corenet
+      - core
     restart: always
     depends_on:
     init: true
@@ -129,7 +129,7 @@ services:
     ports:
       - 
     networks:
-      - corenet
+      - core
     restart: always
     depends_on:
     init: true
@@ -147,7 +147,7 @@ services:
     ports:
       - 
     networks:
-      - corenet
+      - core
     restart: always
     depends_on:
     init: true
@@ -165,7 +165,7 @@ services:
     ports:
       - 50052:50052
     networks:
-      - datanet
+      - data
     restart: always
     depends_on:
       postgresql:
@@ -186,7 +186,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - datanet
+      - data
     restart: always
     depends_on:
     init: true
@@ -204,7 +204,7 @@ services:
     ports:
       - 
     networks:
-      - monitoringnet
+      - monitoring
     restart: always
     depends_on:
     init: true
@@ -222,7 +222,7 @@ services:
     ports:
       - 
     networks:
-      - monitoringnet
+      - monitoring
     restart: always
     depends_on:
     init: true
@@ -240,7 +240,7 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - monitoringnet
+      - monitoring
     restart: always
     depends_on:
     init: true
@@ -251,14 +251,14 @@ volumes:
 secrets:
 
 networks:
-  edgenet:
+  edge:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.1.0/30
-  corenet:
+  core:
     internal: true
-  datanet:
+  data:
     internal: true
-  monitoringnet:
+  monitoring:
     internal: true

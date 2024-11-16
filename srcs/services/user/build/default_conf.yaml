@@ -6,8 +6,8 @@ logging:
   file:   /dev/stdout
 
 addresses:
-  db_gateway: db_gateway.datanet:50052
-  auth:       auth.corenet:50052
+  db_gateway: db_gateway.data:50052
+  auth:       auth.core:50052
 
 display_name:
   min_length: 3

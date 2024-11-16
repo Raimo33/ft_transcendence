@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/11/05 15:50:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/16 10:14:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ EXPOSE 80 443
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-fks", "nginx.edgenet:443"]
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-fks", "nginx.edge:443"]
 
 FROM official as pongfumasters
 
