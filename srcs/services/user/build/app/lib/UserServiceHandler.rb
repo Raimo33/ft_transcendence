@@ -26,9 +26,9 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   include EmailValidator
 
   def initialize(grpc_client)
-    @grpc_client = grpc_client
-    @logger = ConfigurableLogger.instance.logger
-    @config = ConfigLoader.config
+    @grpc_client  = grpc_client
+    @logger       = ConfigurableLogger.instance.logger
+    @config       = ConfigLoader.config
 
     @db_pool = PG::Pool.new(
       dbname:           @config[:database][:name],
@@ -322,9 +322,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     Async do |task|
 
       grpc_task = task.async do
-        grpc_request  = AuthUserService::Generate2FASecretRequest.new
-        @logger.debug("Sending 'Generate2FASecret' request to Auth service: #{grpc_request.inspect}")
-        @grpc_client.auth.generate_2fa_secret(grpc_request)
+        @grpc_client.generate_2fa_secret(request.requester_user_id)
       end
 
       db_task = task.async do
@@ -491,15 +489,11 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       totp_secret = db_response.getvalue(0, 0)
     end
 
-    grpc_request = AuthUserService::Check2FACodeRequest.new(totp_secret: totp_secret, totp_code: request.totp_code)
-    @logger.debug("Sending 'Check2FACode' request to Auth service: #{grpc_request.inspect}")
-    grpc_response = @grpc_client.auth.check_2fa_code(grpc_request)
-    raise "AuthService failed to check 2FA code" unless grpc_response
-
-    is_valid = grpc_response&.is_valid
+    response = @grpc_client.check_2fa_code(totp_secret, request.totp_code)
+    raise "AuthService failed to check 2FA code" unless response
 
     @logger.info("2FA code for user with id '#{request.requester_user_id}' checked successfully")
-    is_valid ? UserService::Check2FACodeResponse.new(status_code: 204) : UserService::Check2FACodeResponse.new(status_code: 401)
+    response.success ? UserService::Check2FACodeResponse.new(status_code: 204) : UserService::Check2FACodeResponse.new(status_code: 401)
   rescue PG::UniqueViolation => e
     @logger.error("Unique constraint violation: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: 409)
@@ -553,14 +547,13 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       two_factor_auth_enabled = db_response.getvalue(0, 1)
       logger.info("User with id '#{user_id}' requires 2FA") if two_factor_auth_enabled
 
-      grpc_request = AuthUserService::GenerateJWTRequest.new(user_id: user_id, auth_level: 1, pending_2fa: two_factor_auth_enabled)
-      @logger.debug("Sending 'GenerateJWT' request to Auth service: #{grpc_request.inspect}")
-      grpc_response = @grpc_client.auth.generate_jwt(grpc_request)
-      jwt_token = grpc_response&.jwt_token
-      raise "AuthService failed to generate JWT token" unless jwt_token
+      response = @grpc_client.generate_jwt(user_id, 1, two_factor_auth_enabled)
+      
+      jwt = grpc_response&.jwt
+      raise "AuthService failed to generate JWT" unless jwt
 
       @logger.info("User with email '#{request.email}' logged in successfully")
-      return UserService::LoginUserResponse.new(status_code: 200, jwt_token: jwt_token)
+      return UserService::LoginUserResponse.new(status_code: 200, jwt: jwt)
     end
   rescue PG::UniqueViolation => e
     @logger.error("Unique constraint violation: #{e.message}")
@@ -741,18 +734,18 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     
   def check_email_domain(email)
     domain = email.split('@').last
-    response = @grpc_client.call(AuthUserService::CheckDomainRequest.new(domain: domain))
+    response = @grpc_client.check_domain(domain)
     raise "Invalid email domain" unless response&.is_allowed
   end
 
   def check_password(password)
-    @psw_format           ||= create_regex_format(@config[:password][:min_length], @config[:password][:max_length], @config[:password][:charset], @config[:password][:policy])
+    @psw_format ||= create_regex_format(@config[:password][:min_length], @config[:password][:max_length], @config[:password][:charset], @config[:password][:policy])
 
     raise "Invalid password format" unless @psw_format =~ password
   end
 
   def check_display_name(display_name)
-    @dn_format       ||= crete_regex_format(@config[:display_name][:min_length], @config[:display_name][:max_length], @config[:display_name][:charset], @config[:display_name][:policy])
+    @dn_format ||= crete_regex_format(@config[:display_name][:min_length], @config[:display_name][:max_length], @config[:display_name][:charset], @config[:display_name][:policy])
 
     raise "Invalid display name format" unless @dn_format =~ display_name
   end
@@ -767,13 +760,15 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   end
 
   def hash_password(password)
-    response = @grpc_client.call(AuthUserService::HashPasswordRequest.new(password: password))
-    response&.hashed_password
+    response = @grpc_client.hash_password(password)
+
+    raise "AuthService failed to hash password" unless response
+    response.hashed_password
   end
 
   def compress_avatar(avatar)
     avatar_decoded = Base64.decode64(avatar)
-    avatar_image = MiniMagick::Image.read(avatar_decoded)
+    avatar_image   = MiniMagick::Image.read(avatar_decoded)
     
     avatar_image.format(@config[:avatar][:standard_format])
     avatar_image.to_blob

@@ -28,13 +28,11 @@ message GetUserMatchesRequest
   string                user_id            = 2;
   uint32                limit              = 3;
   uint32                offset             = 4;
-  string                etag               = 7;
 }
 message GetUserMatchesResponse
 {
   uint16          status_code  = 1;
   repeated Match  matches      = 2;
-  string          etag         = 3;
 }
 
 // v1/matches POST
@@ -66,13 +64,11 @@ message GetMatchRequest
 {
   string requester_user_id  = 1;
   string match_id            = 2;
-  string etag                = 3;
 }
 message GetMatchResponse
 {
   uint16 status_code  = 1;
   Match  match        = 2;
-  string etag         = 3;
 }
 
 // v1/matches/{match_id} DELETE

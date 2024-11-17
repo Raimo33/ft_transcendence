@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 20:55:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 18:34:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,9 +24,6 @@ require_relative "./modules/ActionFailedException"
 require_relative "./modules/Structs"
 
 class ClientHandler
-
-  Request = Struct.new(:method, :path_params, :query_params, :headers, :body)
-  Response = Struct.new(:status_code, :headers, :body)
 
   def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
     @config         = ConfigLoader.instance.config
@@ -89,9 +86,8 @@ class ClientHandler
           barrier.async do
             check_auth(request.resource.expected_auth_level, request.headers["authorization"])
 
-            grpc_request   = Mapper.map_request_to_grpc_request(request, request.operation_id, request.caller_id)
-            grpc_response  = @grpc_client.call(grpc_request)
-            response       = Mapper.map_grpc_response_to_response(grpc_response, request.operation_id)
+            grpc_response = @grpc_client.send(request)
+            response = #TODO parse da grpc a http
 
             response_queue.enqueue(current_priority, response)
           rescue StandardError => e

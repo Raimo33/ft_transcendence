@@ -97,22 +97,48 @@ class ConfigLoader
 
   private
 
-  def validate
-    raise "Config cannot be empty" if @config.nil?
+  def validate(schema = REQUIRED_KEYS, config = @config, path = [])
+    raise "Config cannot be empty" if config.nil?
     
-    REQUIRED_KEYS.each do |key, spec|
-      raise "Missing required key: #{key}" unless @config.key?(key)
+    schema.each do |key, spec|
+      current_path = path + [key]
+      path_str = current_path.join('.')
       
-      if spec.is_a?(Hash)
-        raise "Value for #{key} must be a Hash" unless @config[key].is_a?(Hash)
-        spec.each do |subkey, type|
-          raise "Missing #{key}.#{subkey}" unless @config[key].key?(subkey)
-          raise "#{key}.#{subkey} must be a #{type}" unless @config[key][subkey].is_a?(type)
-        end
-      else
-        raise "#{key} must be a #{spec}" unless @config[key].is_a?(spec)
+      unless config.key?(key)
+        raise "Missing required key: #{path_str}"
       end
+
+      validate_value(config[key], spec, current_path)
     end
-  end 
+  end
+
+  def validate_value(value, spec, path)
+    path_str = path.join('.')
+
+    case spec
+    when Hash
+      unless value.is_a?(Hash)
+        raise "Value for #{path_str} must be a Hash, got #{value.class}"
+      end
+      validate(spec, value, path)
+    when Array
+      unless value.is_a?(Array)
+        raise "Value for #{path_str} must be an Array, got #{value.class}"
+      end
+      
+      if spec.size == 1
+        element_type = spec.first
+        value.each_with_index do |element, index|
+          validate_value(element, element_type, path + [index])
+        end
+      end
+    when Class
+      unless value.is_a?(spec)
+        raise "#{path_str} must be a #{spec}, got #{value.class}"
+      end
+    else
+      raise "Invalid schema specification for #{path_str}"
+    end
+  end
 
 end

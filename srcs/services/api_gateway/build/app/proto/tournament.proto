@@ -29,13 +29,11 @@ message GetUserTournamentsRequest
   string                     user_id             = 2;
   uint32                     limit               = 3;
   uint32                     offset              = 4;
-  string                     etag                = 7;
 }
 message GetUserTournamentsResponse
 {
   uint16               status_code = 1;
   repeated Tournament  tournaments = 2;
-  string               etag        = 3;
 }
 
 // v1/tournaments POST
@@ -67,13 +65,11 @@ message GetTournamentRequest
 {
   string requester_user_id  = 1;
   string tournament_id       = 2;
-  string etag                = 3;
 }
 message GetTournamentResponse
 {
   uint16     status_code   = 1;
   Tournament tournament    = 2;
-  string     etag          = 3;
 }
 
 // v1/tournaments/{tournament_id} DELETE

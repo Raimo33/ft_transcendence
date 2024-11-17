@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/16 18:15:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 17:42:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             text/plain:
               schema:
@@ -68,6 +70,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -97,6 +101,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -120,6 +126,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -149,6 +157,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -176,6 +186,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -215,6 +227,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -462,6 +476,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -494,6 +510,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -558,7 +576,7 @@ paths:
     post:
       operationId: loginUser
       summary: User login
-      description: Authenticate the user and return a JWT token for session management.
+      description: Authenticate the user and return a JWT for session management.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
       requestBody:
@@ -580,14 +598,16 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  jwt_token:
-                    $ref: "#/components/schemas/jwt_token"
-                required: [jwt_token]
+                  jwt:
+                    $ref: "#/components/schemas/jwt"
+                required: [jwt]
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
@@ -646,6 +666,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -703,6 +725,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -739,6 +763,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -767,6 +793,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -824,6 +852,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -875,6 +905,8 @@ paths:
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
           content:
             application/json:
               schema:
@@ -998,8 +1030,8 @@ components:
         secret:
           $ref: "#/components/schemas/totp_secret"
 
-    jwt_token:
-      description: JWT token for session management.
+    jwt:
+      description: JWT for session management.
       type: string
       example: "<Header>.<Payload>.<Signature>"
 
@@ -1157,6 +1189,12 @@ components:
 
   headers:
 
+    Conent-Type:
+      description: The MIME type of the request body.
+      schema:
+        type: string
+      example: application/json
+
     Content-Length:
       description: The length of the request body in octets (8-bit bytes).
       schema:
@@ -1174,7 +1212,7 @@ components:
       description: Not modified. The resource has not changed since the last request.
 
     Unauthorized: #HTTP 401
-      description: Unauthorized. JWT token is missing or invalid.
+      description: Unauthorized. JWT is missing or invalid.
 
     Forbidden: #HTTP 403
       description: Forbidden. The user does not have permission to perform the action.

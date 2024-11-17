@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/07 18:16:50 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 20:38:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 17:43:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -225,9 +225,9 @@ class RequestParser
   end
 
   def extract_caller_identifier(headers)
-    jwt_token = extract_token(headers["authorization"])
+    jwt = extract_token(headers["authorization"])
 
-    jwt_token || headers["x-forwarded-for"] || headers["x-real-ip"]
+    jwt || headers["x-forwarded-for"] || headers["x-real-ip"]
   end
 
   def extract_token(authorization_header)
