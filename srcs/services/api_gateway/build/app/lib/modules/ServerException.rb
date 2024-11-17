@@ -1,23 +1,39 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    ActionFailedException.rb                           :+:      :+:    :+:    #
+#    ServerException.rb                                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/26 08:37:11 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 20:34:11 by craimond         ###   ########.fr        #
+#    Created: 2024/11/17 20:26:55 by craimond          #+#    #+#              #
+#    Updated: 2024/11/17 20:26:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-module ActionFailedException
+module ServerException
+
+  EXCEPTIONS_TO_STATUS_CODE_MAP = {
+    BadRequest         => 400,
+    Unauthorized       => 401,
+    Forbidden          => 403,
+    NotFound           => 404,
+    MethodNotAllowed   => 405,
+    RequestTimeout     => 408,
+    Conflict           => 409,
+    TooManyRequests    => 429,
+    InternalServer     => 500,
+    NotImplemented     => 501,
+    BadGateway         => 502,
+    ServiceUnavailable => 503,
+    GatewayTimeout     => 504
+  }.freeze
 
   class BaseError < StandardError
     attr_reader :status_code
 
-    def initialize
-      @status_code = Mapper::EXCEPTION_TO_STATUS_CODE_MAP[self.class] || 500
-      super(self.class.name.split("::").last)
+    def initialize(message = nil)
+      @status_code = EXCEPTIONS_TO_STATUS_CODE_MAP[self.class] || 500
+      super(message || self.class.name.split('::').last)
     end
   end
 
@@ -34,4 +50,5 @@ module ActionFailedException
   class BadGateway         < BaseError; end
   class ServiceUnavailable < BaseError; end
   class GatewayTimeout     < BaseError; end
+
 end

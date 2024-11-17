@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/07 18:16:50 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 17:43:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 20:34:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,23 +27,23 @@ class RequestParser
 
     request_line, header_lines = headers_part.split("\r\n", 2)
     request.http_method, full_path, _ = request_line.split(" ", 3)
-    raise ActionFailedException::BadRequest unless request.method && full_path
+    raise ServerException::BadRequest unless request.method && full_path
 
     raw_path, _ = full_path.split("?", 2)
-    raise ActionFailedException::BadRequest unless raw_path
+    raise ServerException::BadRequest unless raw_path
 
     endpoint = endpoint_tree.find_endpoint(raw_path)
-    raise ActionFailedException::NotFound unless endpoint
+    raise ServerException::NotFound unless endpoint
     
     resource = endpoint.resources[request.http_method]
-    raise ActionFailedException::MethodNotAllowed unless resource
+    raise ServerException::MethodNotAllowed unless resource
 
     expected_request = resource.expected_request
     request.headers = parse_headers(expected_request.allowed_headers, header_lines)
     content_length = request.headers["content-length"]&.to_i
 
     if resource.body_required
-      raise ActionFailedException::LengthRequired unless content_length
+      raise ServerException::LengthRequired unless content_length
     end
 
     check_auth(resource, headers["authorization"])
@@ -231,7 +231,7 @@ class RequestParser
   end
 
   def extract_token(authorization_header)
-    raise ActionFailedException::BadRequest unless authorization_header&.start_with?("Bearer ")
+    raise ServerException::BadRequest unless authorization_header&.start_with?("Bearer ")
 
     authorization_header.sub("Bearer ", "").strip
   end

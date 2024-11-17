@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 22:02:46 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 20:31:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,11 +31,11 @@ class Server
     @logger = ConfigurableLogger.instance.logger
 
     @logger.info("Initializing server...")
-    @grpc_client = GrpcClient.new
-    @endpoint_tree = EndpointTree.new('')
+    @grpc_client    = GrpcClient.new
+    @endpoint_tree  = EndpointTree.new('')
     @swagger_parser = SwaggerParser.new("/app/config/openapi.yaml")
-    @jwt_validator = JWTValidator.new
-    @clients = Async::Queue.new
+    @jwt_validator  = JWTValidator.new
+    @clients        = Async::Queue.new
 
     @swagger_parser.fill_endpoint_tree(@endpoint_tree)
   rescue StandardError => e
@@ -48,9 +48,10 @@ class Server
     Sync do
       @logger.info("Starting server...")
       bind_address, port = @config[:bind].split(":")
-      endpoint = Async::IO::Endpoint.tcp(bind_address, port)
+      endpoint           = Async::IO::Endpoint.tcp(bind_address, port)
+      semaphore          = Async::Semaphore.new(@config[:limits][:max_connections])
+
       @logger.debug("Server listening on #{bind_address}:#{port}")
-      semaphore = Async::Semaphore.new(@config[:limits][:max_connections])
 
       Thread.new { process_requests }
 
@@ -70,6 +71,7 @@ class Server
 
   def handle_connection(socket)
     @logger.debug("Handling connection: #{socket}")
+
     client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator)
     @clients.enqueue(client_handler)
     client_handler.read_requests

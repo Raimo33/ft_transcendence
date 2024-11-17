@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 18:33:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 19:50:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -83,7 +83,287 @@ class GrpcClient
     end
   end
 
-  #TODO add more methods (from mapper)
+  def get_user_stauts(user_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::GetUserStatusRequest.new(
+        user_id: user_id
+      )
+
+      @stubs[:user].get_user_status(grpc_request)
+    end
+  end
+
+  def get_user_matches(requester_user_id:, user_id:, limit:, offset:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Match::GetUserMatchesRequest.new(
+        requester_user_id: requester_user_id,
+        user_id:           user_id,
+        limit:             limit,
+        offset:            offset
+      )
+
+      @stubs[:match].get_user_matches(grpc_request)
+    end
+  end
+
+  def get_user_tournaments(requester_user_id:, user_id:, limit:, offset:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Tournament::GetUserTournamentsRequest.new(
+        requester_user_id: requester_user_id,
+        user_id:           user_id,
+        limit:             limit,
+        offset:            offset
+      )
+
+      @stubs[:tournament].get_user_tournaments(grpc_request)
+    end
+  end
+
+  def delete_account(requester_user_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::DeleteAccountRequest.new(
+        requester_user_id: requester_user_id
+      )
+
+      @stubs[:user].delete_account(grpc_request)
+    end
+  end
+
+  def get_private_profile(requester_user_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::GetPrivateProfileRequest.new(
+        requester_user_id: requester_user_id
+      )
+
+      @stubs[:user].get_private_profile(grpc_request)
+    end
+  end
+
+  def update_profile(requester_user_id:, display_name:, avatar:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::UpdateProfileRequest.new(
+        requester_user_id:  requester_user_id,
+        display_name:       display_name,
+        avatar:             avatar
+      )
+
+      @stubs[:user].update_profile(grpc_request)
+    end
+  end
+
+  def update_password(requester_user_id:, old_password:, new_password:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::UpdatePasswordRequest.new(
+        requester_user_id: requester_user_id,
+        old_password:      old_password,
+        new_password:      new_password
+      )
+
+      @stubs[:user].update_password(grpc_request)
+    end
+  end
+
+  def update_email
+    #TOOD implement
+  end
+
+  def enable_2fa(requester_user_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::Enable2FARequest.new(
+        requester_user_id: requester_user_id,
+      )
+
+      @stubs[:user].enable_2fa(grpc_request)
+    end
+  end
+
+  def get_2fa_status(requester_user_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::Get2FAStatusRequest.new(
+        requester_user_id: requester_user_id
+      )
+
+      @stubs[:user].get_2fa_status(grpc_request)
+    end
+  end
+
+  def disable_2fa(requester_user_id:, totp_code:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::Disable2FARequest.new(
+        requester_user_id: requester_user_id,
+        totp_code:         totp_code
+      )
+
+      @stubs[:user].disable_2fa(grpc_request)
+    end
+  end
+
+  def check_2fa_code(requester_user_id:, totp_code:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::Check2FACodeRequest.new(
+        requester_user_id: requester_user_id,
+        totp_code:         totp_code
+      )
+
+      @stubs[:user].check_2fa_code(grpc_request)
+    end
+  end
+
+  def login_user(email:, password:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::LoginUserRequest.new(
+        email:    email,
+        password: password
+      )
+
+      @stubs[:user].login_user(grpc_request)
+    end
+  end
+
+  def add_friend(requester_user_id:, friend_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::AddFriendRequest.new(
+        requester_user_id: requester_user_id,
+        friend_id:         friend_id
+      )
+
+      @stubs[:user].add_friend(grpc_request)
+    end
+  end
+
+  def get_friends(requester_user_id:, limit:, offset:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::GetFriendsRequest.new(
+        requester_user_id: requester_user_id,
+        limit:             limit,
+        offset:            offset
+      )
+
+      @stubs[:user].get_friends(grpc_request)
+    end
+  end
+
+  def remove_friend(requester_user_id:, friend_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = User::RemoveFriendRequest.new(
+        requester_user_id: requester_user_id,
+        friend_id:         friend_id
+      )
+
+      @stubs[:user].remove_friend(grpc_request)
+    end
+  end
+
+  def create_match(requester_user_id:, invited_user_ids:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Match::CreateMatchRequest.new(
+        requester_user_id: requester_user_id,
+        invited_user_ids:  invited_user_ids
+      )
+
+      @stubs[:match].create_match(grpc_request)
+    end
+  end
+
+  def join_match(requester_user_id:, match_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Match::JoinMatchRequest.new(
+        requester_user_id: requester_user_id,
+        match_id:          match_id
+      )
+
+      @stubs[:match].join_match(grpc_request)
+    end
+  end
+
+  def get_match(requester_user_id:, match_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Match::GetMatchRequest.new(
+        requester_user_id: requester_user_id,
+        match_id:          match_id
+      )
+
+      @stubs[:match].get_match(grpc_request)
+    end
+  end
+
+  def leave_match(requester_user_id:, match_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Match::LeaveMatchRequest.new(
+        requester_user_id: requester_user_id,
+        match_id:          match_id
+      )
+
+      @stubs[:match].leave_match(grpc_request)
+    end
+  end
+
+  def create_tournament(requester_user_id:, invited_user_ids:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Tournament::CreateTournamentRequest.new(
+        requester_user_id: requester_user_id,
+        invited_user_ids:  invited_user_ids
+      )
+
+      @stubs[:tournament].create_tournament(grpc_request)
+    end
+  end
+
+  def join_tournament(requester_user_id:, tournament_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Tournament::JoinTournamentRequest.new(
+        requester_user_id: requester_user_id,
+        tournament_id:     tournament_id
+      )
+
+      @stubs[:tournament].join_tournament(grpc_request)
+    end
+  end
+
+  def get_tournament(requester_user_id:, tournament_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Tournament::GetTournamentRequest.new(
+        requester_user_id: requester_user_id,
+        tournament_id:     tournament_id
+      )
+
+      @stubs[:tournament].get_tournament(grpc_request)
+    end
+  end
+
+  def leave_tournament(requester_user_id:, tournament_id:)
+    handle_grpc_call(__method__) do
+
+      grpc_request = Tournament::LeaveTournamentRequest.new(
+        requester_user_id: requester_user_id,
+        tournament_id:     tournament_id
+      )
+
+      @stubs[:tournament].leave_tournament(grpc_request)
+    end
+  end
 
   private
 

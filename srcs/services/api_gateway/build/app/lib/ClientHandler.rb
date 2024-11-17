@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 18:34:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 20:34:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,12 +18,32 @@ require_relative "BlockingPriorityQueue"
 require_relative "JwtValidator"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
-require_relative "Mapper"
 require_relative "RequestParser"
-require_relative "./modules/ActionFailedException"
+require_relative "./modules/ServerException"
 require_relative "./modules/Structs"
+require_relative "./modules/Mapper"
 
 class ClientHandler
+
+  STATUS_CODE_TO_MESSAGE_MAP = {
+    200 => "OK",
+    201 => "Created",
+    204 => "No Content",
+    304 => "Not Modified",
+    400 => "Bad Request",
+    401 => "Unauthorized",
+    403 => "Forbidden",
+    404 => "Not Found",
+    405 => "Method Not Allowed",
+    408 => "Request Timeout",
+    409 => "Conflict",
+    429 => "Too Many Requests",
+    500 => "Internal Server Error",
+    501 => "Not Implemented",
+    502 => "Bad Gateway",
+    503 => "Service Unavailable",
+    504 => "Gateway Timeout"
+  }.freeze
 
   def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
     @config         = ConfigLoader.instance.config
@@ -68,7 +88,7 @@ class ClientHandler
             last_task = subtask.async { send_response(stream, response) }
           rescue StandardError => e
             @logger.error("Failed to process response: #{e}")
-            send_error(e.status_code)            
+            send_error(e.status_code)
         end
       end
       
@@ -122,15 +142,15 @@ class ClientHandler
   end
 
   def check_auth(expected_auth_level, authorization_header)
-    raise ActionFailedException::Unauthorized unless authorization_header
+    raise ServerException::Unauthorized unless authorization_header
 
     token = extract_token(authorization_header)
-    raise ActionFailedException::Unauthorized unless @jwt_validator.token_valid?(token)
-    raise ActionFailedException::Forbidden    unless @jwt_validator.token_authorized?(token, expected_auth_level)
+    raise ServerException::Unauthorized unless @jwt_validator.token_valid?(token)
+    raise ServerException::Forbidden    unless @jwt_validator.token_authorized?(token, expected_auth_level)
   end
 
   def extract_token(authorization_header)
-    raise ActionFailedException::BadRequest unless authorization_header&.start_with?("Bearer ")
+    raise ServerException::BadRequest unless authorization_header&.start_with?("Bearer ")
 
     authorization_header.sub("Bearer ", "").strip
   end

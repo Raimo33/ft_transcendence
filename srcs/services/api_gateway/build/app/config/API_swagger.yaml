@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 17:42:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/17 19:46:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -528,6 +528,19 @@ paths:
       operationId: disable2FA
       summary: Disable 2fa
       description: Disable two-factor authentication for a user account.
+      parameters:
+        - $ref: "#/components/parameters/Content-Length"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                totp_code:
+                  $ref: "#/components/schemas/totp_code"
+              required: [totp_code]
+              additionalProperties: false
+        required: true
       security:
         - jwtAuth: []
       responses:
