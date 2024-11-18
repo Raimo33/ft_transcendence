@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:41:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -57,8 +57,8 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def register_user(email:, password:, display_name:, avatar:)
-    handle_grpc_call(__method__) do
+  def register_user(email, password, display_name, avatar)
+    handle_grpc_call do
 
       grpc_request = User::RegisterUserRequest.new(
         email:        email,
@@ -71,8 +71,8 @@ class GrpcClient
     end
   end
 
-  def get_user_profile(requester_user_id:, user_id:)
-    handle_grpc_call(__method__) do
+  def get_user_profile(requester_user_id, user_id)
+    handle_grpc_call do
 
       grpc_request = User::GetUserProfileRequest.new(
         requester_user_id: requester_user_id,
@@ -83,8 +83,8 @@ class GrpcClient
     end
   end
 
-  def get_user_stauts(user_id:)
-    handle_grpc_call(__method__) do
+  def get_user_stauts(user_id)
+    handle_grpc_call do
 
       grpc_request = User::GetUserStatusRequest.new(
         user_id: user_id
@@ -94,8 +94,8 @@ class GrpcClient
     end
   end
 
-  def get_user_matches(requester_user_id:, user_id:, limit:, offset:)
-    handle_grpc_call(__method__) do
+  def get_user_matches(requester_user_id, user_id, limit, offset)
+    handle_grpc_call do
 
       grpc_request = Match::GetUserMatchesRequest.new(
         requester_user_id: requester_user_id,
@@ -108,8 +108,8 @@ class GrpcClient
     end
   end
 
-  def get_user_tournaments(requester_user_id:, user_id:, limit:, offset:)
-    handle_grpc_call(__method__) do
+  def get_user_tournaments(requester_user_id, user_id, limit, offset)
+    handle_grpc_call do
 
       grpc_request = Tournament::GetUserTournamentsRequest.new(
         requester_user_id: requester_user_id,
@@ -122,8 +122,8 @@ class GrpcClient
     end
   end
 
-  def delete_account(requester_user_id:)
-    handle_grpc_call(__method__) do
+  def delete_account(requester_user_id)
+    handle_grpc_call do
 
       grpc_request = User::DeleteAccountRequest.new(
         requester_user_id: requester_user_id
@@ -133,8 +133,8 @@ class GrpcClient
     end
   end
 
-  def get_private_profile(requester_user_id:)
-    handle_grpc_call(__method__) do
+  def get_private_profile(requester_user_id)
+    handle_grpc_call do
 
       grpc_request = User::GetPrivateProfileRequest.new(
         requester_user_id: requester_user_id
@@ -144,8 +144,8 @@ class GrpcClient
     end
   end
 
-  def update_profile(requester_user_id:, display_name:, avatar:)
-    handle_grpc_call(__method__) do
+  def update_profile(requester_user_id, display_name, avatar)
+    handle_grpc_call do
 
       grpc_request = User::UpdateProfileRequest.new(
         requester_user_id:  requester_user_id,
@@ -157,8 +157,8 @@ class GrpcClient
     end
   end
 
-  def update_password(requester_user_id:, old_password:, new_password:)
-    handle_grpc_call(__method__) do
+  def update_password(requester_user_id, old_password, new_password)
+    handle_grpc_call do
 
       grpc_request = User::UpdatePasswordRequest.new(
         requester_user_id: requester_user_id,
@@ -174,8 +174,8 @@ class GrpcClient
     #TOOD implement
   end
 
-  def enable_2fa(requester_user_id:)
-    handle_grpc_call(__method__) do
+  def enable_2fa(requester_user_id)
+    handle_grpc_call do
 
       grpc_request = User::Enable2FARequest.new(
         requester_user_id: requester_user_id,
@@ -185,8 +185,8 @@ class GrpcClient
     end
   end
 
-  def get_2fa_status(requester_user_id:)
-    handle_grpc_call(__method__) do
+  def get_2fa_status(requester_user_id)
+    handle_grpc_call do
 
       grpc_request = User::Get2FAStatusRequest.new(
         requester_user_id: requester_user_id
@@ -196,8 +196,8 @@ class GrpcClient
     end
   end
 
-  def disable_2fa(requester_user_id:, totp_code:)
-    handle_grpc_call(__method__) do
+  def disable_2fa(requester_user_id, totp_code)
+    handle_grpc_call do
 
       grpc_request = User::Disable2FARequest.new(
         requester_user_id: requester_user_id,
@@ -208,8 +208,8 @@ class GrpcClient
     end
   end
 
-  def check_2fa_code(requester_user_id:, totp_code:)
-    handle_grpc_call(__method__) do
+  def check_2fa_code(requester_user_id, totp_code)
+    handle_grpc_call do
 
       grpc_request = User::Check2FACodeRequest.new(
         requester_user_id: requester_user_id,
@@ -220,8 +220,8 @@ class GrpcClient
     end
   end
 
-  def login_user(email:, password:)
-    handle_grpc_call(__method__) do
+  def login_user(email, password)
+    handle_grpc_call do
 
       grpc_request = User::LoginUserRequest.new(
         email:    email,
@@ -232,8 +232,8 @@ class GrpcClient
     end
   end
 
-  def add_friend(requester_user_id:, friend_id:)
-    handle_grpc_call(__method__) do
+  def add_friend(requester_user_id, friend_id)
+    handle_grpc_call do
 
       grpc_request = User::AddFriendRequest.new(
         requester_user_id: requester_user_id,
@@ -244,8 +244,8 @@ class GrpcClient
     end
   end
 
-  def get_friends(requester_user_id:, limit:, offset:)
-    handle_grpc_call(__method__) do
+  def get_friends(requester_user_id, limit, offset)
+    handle_grpc_call do
 
       grpc_request = User::GetFriendsRequest.new(
         requester_user_id: requester_user_id,
@@ -257,8 +257,8 @@ class GrpcClient
     end
   end
 
-  def remove_friend(requester_user_id:, friend_id:)
-    handle_grpc_call(__method__) do
+  def remove_friend(requester_user_id, friend_id)
+    handle_grpc_call do
 
       grpc_request = User::RemoveFriendRequest.new(
         requester_user_id: requester_user_id,
@@ -269,8 +269,8 @@ class GrpcClient
     end
   end
 
-  def create_match(requester_user_id:, invited_user_ids:)
-    handle_grpc_call(__method__) do
+  def create_match(requester_user_id, invited_user_ids)
+    handle_grpc_call do
 
       grpc_request = Match::CreateMatchRequest.new(
         requester_user_id: requester_user_id,
@@ -281,8 +281,8 @@ class GrpcClient
     end
   end
 
-  def join_match(requester_user_id:, match_id:)
-    handle_grpc_call(__method__) do
+  def join_match(requester_user_id, match_id)
+    handle_grpc_call do
 
       grpc_request = Match::JoinMatchRequest.new(
         requester_user_id: requester_user_id,
@@ -293,8 +293,8 @@ class GrpcClient
     end
   end
 
-  def get_match(requester_user_id:, match_id:)
-    handle_grpc_call(__method__) do
+  def get_match(requester_user_id, match_id)
+    handle_grpc_call do
 
       grpc_request = Match::GetMatchRequest.new(
         requester_user_id: requester_user_id,
@@ -305,8 +305,8 @@ class GrpcClient
     end
   end
 
-  def leave_match(requester_user_id:, match_id:)
-    handle_grpc_call(__method__) do
+  def leave_match(requester_user_id, match_id)
+    handle_grpc_call do
 
       grpc_request = Match::LeaveMatchRequest.new(
         requester_user_id: requester_user_id,
@@ -317,8 +317,8 @@ class GrpcClient
     end
   end
 
-  def create_tournament(requester_user_id:, invited_user_ids:)
-    handle_grpc_call(__method__) do
+  def create_tournament(requester_user_id, invited_user_ids)
+    handle_grpc_call do
 
       grpc_request = Tournament::CreateTournamentRequest.new(
         requester_user_id: requester_user_id,
@@ -329,8 +329,8 @@ class GrpcClient
     end
   end
 
-  def join_tournament(requester_user_id:, tournament_id:)
-    handle_grpc_call(__method__) do
+  def join_tournament(requester_user_id, tournament_id)
+    handle_grpc_call do
 
       grpc_request = Tournament::JoinTournamentRequest.new(
         requester_user_id: requester_user_id,
@@ -341,8 +341,8 @@ class GrpcClient
     end
   end
 
-  def get_tournament(requester_user_id:, tournament_id:)
-    handle_grpc_call(__method__) do
+  def get_tournament(requester_user_id, tournament_id)
+    handle_grpc_call do
 
       grpc_request = Tournament::GetTournamentRequest.new(
         requester_user_id: requester_user_id,
@@ -353,8 +353,8 @@ class GrpcClient
     end
   end
 
-  def leave_tournament(requester_user_id:, tournament_id:)
-    handle_grpc_call(__method__) do
+  def leave_tournament(requester_user_id, tournament_id)
+    handle_grpc_call do
 
       grpc_request = Tournament::LeaveTournamentRequest.new(
         requester_user_id: requester_user_id,
@@ -367,7 +367,7 @@ class GrpcClient
 
   private
 
-  def create_channel(addr:, credentials:)
+  def create_channel(addr, credentials)
     @logger.debug("Creating channel to #{addr}")
     GRPC::Core::Channel.new(addr, nil, credentials)
   rescue StandardError => e

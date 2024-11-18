@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:43:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,7 +69,7 @@ class Server
 
   private
 
-  def handle_connection(socket:)
+  def handle_connection(socket)
     @logger.debug("Handling connection: #{socket}")
 
     client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator)

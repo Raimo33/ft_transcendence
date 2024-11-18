@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 15:30:08 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:41:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,7 @@ class ConfigurableLogger
     @logger.level = LOG_LEVELS_MAP[log_level.uppercase] || Logger::INFO
   end
 
-  def add(severity:, message: = nil, progname: = nil, &block:)
+  def add(severity, message: = nil, progname: = nil, &block)
     message = "[#{@tag}] #{message}"
     super(severity, message, progname, &block)
   end

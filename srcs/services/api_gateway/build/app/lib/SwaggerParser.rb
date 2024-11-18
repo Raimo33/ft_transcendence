@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:43:36 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ require_relative "./modules/Structs"
 
 class SwaggerParser
 
-  def initialize(file_path:)
+  def initialize(file_path)
     @logger = ConfigurableLogger.instance.logger
     @logger.info("Parsing OpenAPI spec")
     @logger.debug("OpenAPI spec file path: #{file_path}")
@@ -27,7 +27,7 @@ class SwaggerParser
     raise "Failed to parse OpenAPI spec: #{e}"
   end
 
-  def fill_endpoint_tree(endpoint_tree:)
+  def fill_endpoint_tree(endpoint_tree)
     @openapi_spec.paths.each do |path, path_item|
       path_item.operations.each do |http_method, operation|
         endpoint_tree.add_resource(path, build_resource(http_method, operation))
@@ -37,7 +37,7 @@ class SwaggerParser
 
   private
 
-  def build_resource(http_method:, operation:)
+  def build_resource(http_method, operation)
     Resource.new.tap do |r|
       r.path_template       = operation.path
       r.http_method         = http_method
@@ -47,11 +47,11 @@ class SwaggerParser
     end
   end
 
-  def requires_auth?(operation:)
+  def requires_auth?(operation)
     operation.security.present?
   end
 
-  def extract_request(operation:)
+  def extract_request(operation)
     ExpectedRequest.new.tap do |r|
       r.allowed_path_params   = extract_request_params(operation, "path")
       r.allowed_query_params  = extract_request_params(operation, "query")
@@ -60,7 +60,7 @@ class SwaggerParser
     end
   end
 
-  def extract_request_params(operation:, param_type:)
+  def extract_request_params(operation, param_type)
     {}.tap do |params|
       operation.parameters.each do |param|
         next unless param.in == param_type
@@ -75,7 +75,7 @@ class SwaggerParser
     end
   end
 
-  def extract_request_body(operation:)
+  def extract_request_body(operation)
     return nil unless operation.request_body
   
     content = operation.request_body.content["application/json"]

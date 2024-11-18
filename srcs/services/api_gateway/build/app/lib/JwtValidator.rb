@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:42:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,7 @@ require_relative "../proto/auth_api_gateway_pb"
 
 class JwtValidator
 
-  def initialize(grpc_client:)
+  def initialize(grpc_client)
     @config = ConfigLoader.instance.config
     @logger = ConfigurableLogger.instance.logger
     @grpc_client = grpc_client
@@ -29,14 +29,14 @@ class JwtValidator
     @last_fetched = nil
   end
 
-  def token_valid?(token:)
+  def token_valid?(token)
     decoded_token = decode_token(token)
     return false unless decoded_token
 
     validate_claims(decoded_token)
   end
 
-  def token_authorized?(token:, expected_auth_level:)
+  def token_authorized?(token, expected_auth_level)
     decoded_token = decode_token(token)
     return false unless decoded_token
 
@@ -47,7 +47,7 @@ class JwtValidator
     return token_auth >= expected_auth_level
   end 
 
-  def get_subject(token:)
+  def get_subject(token)
     decoded_token = decode_token(token)
     return false unless decoded_token
 
@@ -56,7 +56,7 @@ class JwtValidator
 
   private
 
-  def decode_token(token:)
+  def decode_token(token)
     public_key = fetch_public_key
 
     JWT.decode(token, public_key, true, { algorithm: @algorithm })
@@ -86,7 +86,7 @@ class JwtValidator
     raise "Failed to fetch public key: #{e}"
   end
 
-  def validate_claims(decoded_token:)
+  def validate_claims(decoded_token)
     exp = decoded_token[0]["exp"] + @config[:jwt][:clock_skew]
     iat = decoded_token[0]["iat"] - @config[:jwt][:clock_skew]
     aud = decoded_token[0]["aud"]

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:46:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,36 +49,36 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def generate_2fa_secret(user_id:)
-    handle_grpc_call(__method__) do
+  def generate_2fa_secret(user_id)
+    handle_grpc_call do
       grpc_request   = AuthUserService::Generate2faSecretRequest.new(user_id: user_id)
       @stubs["auth"].generate_2fa_secret(grpc_request)
     end
   end
 
-  def check_2fa_code(totp_secret:, totp_code:)
-    handle_grpc_call(__method__) do
+  def check_2fa_code(totp_secret, totp_code)
+    handle_grpc_call do
       grpc_request   = AuthUserService::Check2faCodeRequest.new(totp_secret: totp_secret, totp_code: totp_code)
       @stubs["auth"].check_2fa_code(grpc_request)
     end
   end
 
-  def generate_jwt(user_id:, auth_level:, pending_2fa:)
-    handle_grpc_call(__method__) do
+  def generate_jwt(user_id, auth_level, pending_2fa)
+    handle_grpc_call do
       grpc_request   = AuthUserService::GenerateJwtRequest.new(user_id: user_id, auth_level: auth_level, pending_2fa: pending_2fa)
       @stubs["auth"].generate_jwt(grpc_request)
     end
   end
 
-  def check_domain(domain:)
-    handle_grpc_call(__method__) do
+  def check_domain(domain)
+    handle_grpc_call do
       grpc_request   = AuthUserService::CheckDomainRequest.new(domain: domain)
       @stubs["auth"].check_domain(grpc_request)
     end
   end
 
-  def hash_password(password:)
-    handle_grpc_call(__method__) do
+  def hash_password(password)
+    handle_grpc_call do
       grpc_request   = AuthUserService::HashPasswordRequest.new(password: password)
       @stubs["auth"].hash_password(grpc_request)
     end
@@ -86,7 +86,7 @@ class GrpcClient
 
   private
 
-  def create_channel(addr:, credentials:)
+  def create_channel(addr, credentials)
     @logger.debug("Creating channel to #{addr}")
     GRPC::Core::Channel.new(addr, nil, credentials)
   rescue StandardError => e

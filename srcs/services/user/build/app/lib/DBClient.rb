@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:45:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 18:27:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,7 @@ class DBClient
     )
   end
 
-  def query(sql:, params: = [])
+  def query(sql, params: = [])
     @logger.debug("Executing query: #{sql}")
 
     @pool.connection do |conn|
@@ -55,7 +55,7 @@ class DBClient
     end
   end
 
-  def prepare_and_execute(name:, sql:, params: = [])
+  def prepare_and_execute(name, sql, params: = [])
     @logger.debug("Preparing and executing statement: #{sql}")
 
     @pool.connection do |conn|
