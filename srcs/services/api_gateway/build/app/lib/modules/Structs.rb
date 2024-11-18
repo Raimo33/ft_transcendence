@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/28 19:55:38 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 17:36:13 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 19:24:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,7 @@ module Structs
 
   Request   = Struct.new(
     :http_method,
+    :path,
     :path_params,
     :query_params,
     :headers,
@@ -41,7 +42,6 @@ module Structs
     :http_method,
     :expected_auth_level,
     :expected_request,
-    :expected_responses,
     :operation_id,
     :keyword_init: true
   )

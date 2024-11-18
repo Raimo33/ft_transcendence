@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:27:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 19:25:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,6 +45,9 @@ class ClientHandler
     504 => "Gateway Timeout"
   }.freeze
 
+  BUFFER_SIZE = 4096
+  READ_SIZE   = 1024
+
   def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
     @config         = ConfigLoader.instance.config
     @logger         = ConfigurableLogger.instance.logger
@@ -56,23 +59,22 @@ class ClientHandler
   end
 
   def read_requests
-    buffer = String.new
-    parser = RequestParser.new
+    buffer = String.new(capacity: BUFFER_SIZE)
+    parser = RequestParser.new(@endpoint_tree)
 
-    while chunk = @stream.read(4096)
+    while chunk = @stream.read(READ_SIZE)
       buffer << chunk
 
-      while request = parser.parse_request(buffer, @endpoint_tree, @config)
+      while request = parser.parse_request(buffer)
         @request_queue.enqueue(request)
       rescue StandardError => e
         @logger.error("Failed to parse request: #{e}")
         send_error(e.status_code)
-        skip_request(buffer)
       end
     end
   end
 
-  def process_requests
+  def process_requests #TODO ricerchera la request.path nell resource tree per fare i check del caso anche rispetto ad expected request
     response_queue = BlockingPriorityQueue.new
     barrier        = Async::Barrier.new
     last_task      = nil
@@ -129,17 +131,6 @@ class ClientHandler
   end
 
   private
-
-  def skip_request(buffer)
-    until next_request_index = buffer.index(REQUEST_START_REGEX)
-      buffer.clear
-      more_data = @stream.read(4096)
-      break unless more_data
-      buffer << more_data
-    end
-    
-    buffer.slice!(0, next_request_index) if next_request_index
-  end
 
   def check_auth(expected_auth_level, authorization_header)
     raise ServerException::Unauthorized unless authorization_header
