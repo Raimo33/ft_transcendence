@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/10 15:33:59 by craimond          #+#    #+#              #
-#    Updated: 2024/11/16 11:47:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:40:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,7 +53,7 @@ class ConfigLoader
     @config = nil
   end
 
-  def load(config_file)
+  def load(config_file:)
     raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
 
     @config_file = config_file

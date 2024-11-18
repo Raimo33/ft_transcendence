@@ -6,9 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/07 18:16:50 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 20:34:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:43:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+#TODO refactor totale
 
 class RequestParser
 
@@ -16,7 +18,7 @@ class RequestParser
     @logger = ConfigurableLogger.instance.logger
   end
 
-  def parse_request(buffer, endpoint_tree, config)
+  def parse_request(buffer:, endpoint_tree:, config:)
     request = Request.new
 
     header_end = buffer.index("\r\n\r\n")
@@ -63,7 +65,7 @@ class RequestParser
 
   private
 
-  def parse_headers(allowed_headers, raw_headers)
+  def parse_headers(allowed_headers:, raw_headers:)
     headers = {}
   
     received_headers = raw_headers.split("\n").each_with_object({}) do |line, hash|
@@ -98,7 +100,7 @@ class RequestParser
     headers
   end
 
-  def parse_path_params(allowed_path_params, path_template, raw_path)
+  def parse_path_params(allowed_path_params:, path_template:, raw_path:)
     path_params = {}
     
     template_segments = path_template.split('/').reject(&:empty?)
@@ -138,7 +140,7 @@ class RequestParser
     path_params
   end
 
-  def parse_body(allowed_body, raw_body)
+  def parse_body(allowed_body:, raw_body:)
     result = {}
   
     begin
@@ -209,7 +211,7 @@ class RequestParser
     result
   end  
   
-  def parse_value(value, type, param_name)
+  def parse_value(value:, type:, param_name:)
     case type
     when "integer"
       Integer(value) rescue raise "Invalid integer for body parameter: #{param_name}"
@@ -224,13 +226,13 @@ class RequestParser
     end
   end
 
-  def extract_caller_identifier(headers)
+  def extract_caller_identifier(headers:)
     jwt = extract_token(headers["authorization"])
 
     jwt || headers["x-forwarded-for"] || headers["x-real-ip"]
   end
 
-  def extract_token(authorization_header)
+  def extract_token(authorization_header:)
     raise ServerException::BadRequest unless authorization_header&.start_with?("Bearer ")
 
     authorization_header.sub("Bearer ", "").strip

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/16 11:50:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:32:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,7 @@ class Orchestrator
     Signal.trap("SIGHUP") { reload_config }
     Signal.trap("SIGTERM") { shutdown }
 
-    @logger.info("Starting worker process...")
+    @logger.info("Starting worker process")
     spawn_worker
 
     sleep
@@ -75,7 +75,7 @@ class Orchestrator
   end
 
   def shutdown
-    @logger.info("Shutting down...")
+    @logger.info("Shutting down")
     if @worker_pid
       @logger.debug("Terminating worker process {}".format(@worker_pid))
       Process.kill("TERM", @worker_pid)

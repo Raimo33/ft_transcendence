@@ -81,7 +81,7 @@ class ConfigLoader
     @config = nil
   end
 
-  def load(config_file)
+  def load(config_file:)
     raise "Config file #{config_file} does not exist" unless File.exist?(config_file)
 
     @config_file = config_file
@@ -97,7 +97,7 @@ class ConfigLoader
 
   private
 
-  def validate(schema = REQUIRED_KEYS, config = @config, path = [])
+  def validate(schema: = REQUIRED_KEYS, config: = @config, path: = [])
     raise "Config cannot be empty" if config.nil?
     
     schema.each do |key, spec|
@@ -112,7 +112,7 @@ class ConfigLoader
     end
   end
 
-  def validate_value(value, spec, path)
+  def validate_value(value:, spec:, path:)
     path_str = path.join('.')
 
     case spec

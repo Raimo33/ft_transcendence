@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 19:50:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:41:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -367,7 +367,7 @@ class GrpcClient
 
   private
 
-  def create_channel(addr, credentials)
+  def create_channel(addr:, credentials:)
     @logger.debug("Creating channel to #{addr}")
     GRPC::Core::Channel.new(addr, nil, credentials)
   rescue StandardError => e

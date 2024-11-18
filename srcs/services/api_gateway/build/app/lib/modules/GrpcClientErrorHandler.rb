@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/17 16:22:25 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 15:19:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:40:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ module GrpcClientErrorHandler
 
   private
 
-  def handle_grpc_call(operation_name)
+  def handle_grpc_call(operation_name:)
     @logger.debug("Starting #{operation_name}")
     
     yield

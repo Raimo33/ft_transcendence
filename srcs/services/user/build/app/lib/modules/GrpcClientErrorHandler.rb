@@ -16,7 +16,7 @@ module GrpcClientErrorHandler
 
   private
 
-  def handle_grpc_call(operation_name)
+  def handle_grpc_call(operation_name:)
     @logger.debug("Starting #{operation_name}")
     
     yield

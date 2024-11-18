@@ -35,7 +35,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     @default_avatar = load_default_avatar
   end
 
-  def register_user(request, _metadata)
+  def register_user(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.email, request.password, request.display_name]
@@ -85,7 +85,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     barrier.stop
   end
 
-  def get_user_profile(request, _metadata)
+  def get_user_profile(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id, request.user_id]
@@ -112,7 +112,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::GetUserProfileResponse.new(status_code: 500)
   end
 
-  def delete_account(request, _metadata)
+  def delete_account(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
@@ -132,7 +132,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::DeleteAccountResponse.new(status_code: 500)
   end
 
-  def get_private_profile(request, _metadata)
+  def get_private_profile(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
@@ -161,7 +161,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::GetPrivateProfileResponse.new(status_code: 500)
   end
 
-  def update_profile(request, _metadata)
+  def update_profile(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
@@ -203,7 +203,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     barrier.stop
   end
 
-  def enable_2fa(request, _metadata)
+  def enable_2fa(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
@@ -242,7 +242,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     grpc_task.stop
   end
 
-  def get_2fa_status(request, _metadata)
+  def get_2fa_status(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
@@ -264,7 +264,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::Get2FAStatusResponse.new(status_code: 500)
   end
 
-  def disable_2fa(request, _metadata)
+  def disable_2fa(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
   
     required_fields = [request.requester_user_id]
@@ -294,7 +294,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::Disable2FAResponse.new(status_code: 500)
   end  
 
-  def check_2fa_code(request, _metadata)
+  def check_2fa_code(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id, request.totp_code]
@@ -319,7 +319,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::Check2FACodeResponse.new(status_code: 500)
   end
 
-  def login_user(request, _metadata)
+  def login_user(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.email, request.password]
@@ -354,7 +354,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     barrier.stop
   end
   
-  def add_friend(request, _metadata)
+  def add_friend(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id, request.friend_user_id]
@@ -374,7 +374,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::LoginUserResponse.new(status_code: 500)
   end
 
-  def get_friends(request, _metadata)
+  def get_friends(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
@@ -399,7 +399,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     UserService::LoginUserResponse.new(status_code: 500)
   end
 
-  def remove_friend(request, _metadata)
+  def remove_friend(request:, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id, request.friend_user_id]
@@ -427,19 +427,19 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     Base64.encode64(avatar)
   end
 
-  def check_email(email)
+  def check_email(email:)
     @logger.debug("Checking email: #{email}")
     check_email_format(email)
     check_email_domain(email)
   end
 
-  def check_email_format(email)
+  def check_email_format(email:)
     unless EmailValidator.valid?(email, mx: false)
       raise ServerExceptions::BadRequest.new("Invalid email format or blacklisted domain")
     end
   end
 
-  def check_email_domain(email)
+  def check_email_domain(email:)
     domain   = email.split('@').last
     response = @grpc_client.check_domain(domain)
     unless response&.is_allowed
@@ -447,7 +447,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
   end
 
-  def check_password(password)
+  def check_password(password:)
     @psw_format ||= create_regex_format(
       @config[:password][:min_length],
       @config[:password][:max_length],
@@ -460,7 +460,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
   end
 
-  def check_display_name(display_name)
+  def check_display_name(display_name:)
     @dn_format ||= create_regex_format(
       @config[:display_name][:min_length],
       @config[:display_name][:max_length],
@@ -473,7 +473,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
   end
 
-  def check_avatar(avatar)
+  def check_avatar(avatar:)
     avatar_decoded = Base64.decode64(avatar)
     avatar_image   = MiniMagick::Image.read(avatar_decoded)
 
@@ -486,14 +486,14 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
   end
 
-  def hash_password(password)
+  def hash_password(password:)
     response = @grpc_client.hash_password(password)
     raise ServerExceptions::ServiceUnavailable.new("Password service unavailable") if response.nil?
     raise ServerExceptions::InternalError.new("Failed to hash password") if response.hashed_password.nil?
     response.hashed_password
   end
 
-  def compress_avatar(avatar)
+  def compress_avatar(avatar:)
     avatar_decoded = Base64.decode64(avatar)
     avatar_image   = MiniMagick::Image.read(avatar_decoded)
     
@@ -501,7 +501,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     avatar_image.to_blob
   end
 
-  def decompress_avatar(avatar)
+  def decompress_avatar(avatar:)
     avatar_image = MiniMagick::Image.read(avatar)
 
     avatar_image.format(@config[:avatar][:standard_format])
@@ -510,7 +510,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     Base64.encode64(processed_avatar_binary_data)
   end
   
-  def create_regex_format(min_length, max_length, charset, policy)
+  def create_regex_format(min_length:, max_length:, charset:, policy:)
     length_regex = "^.{#{min_length},#{max_length}}$"
 
     lowercase_pattern  = "[#{charset[:lowercase]}]"

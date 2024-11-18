@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 18:44:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/09 20:09:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:36:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ class BlockingPriorityQueue
     @condition = Async::Condition.new
   end
 
-  def enqueue(sequence, item)
+  def enqueue(sequence:, item:)
     @queue[sequence] = item
     @condition.signal if sequence == @next_sequence
   end

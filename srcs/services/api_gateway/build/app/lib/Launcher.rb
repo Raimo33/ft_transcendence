@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 15:56:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:42:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ class Launcher
   DEFAULT_CONFIG_FILE = "/etc/api_gateway/conf.d/default_config.yaml"
   DEFAULT_PID_FILE    = "/var/run/api_gateway.pid"
 
-  def initialize(args)
+  def initialize(args:)
     @options = parse_options(args)
     @config_file = @options[:config_file] || DEFAULT_CONFIG_FILE
 
@@ -42,7 +42,7 @@ class Launcher
 
   private
 
-  def parse_options(args)
+  def parse_options(args:)
     options = {}
     parser = OptionParser.new do |opts|
       opts.banner = "Usage: #{$PROGRAM_NAME} [-c config] [-s signal]"
@@ -98,7 +98,7 @@ class Launcher
     send_signal(signal)
   end
 
-  def send_signal(signal)
+  def send_signal(signal:)
     pid = read_pid
     unless pid
       puts "Cannot read PID file #{@@pid_file} or process is not running"

@@ -31,7 +31,7 @@ module ServerException
   class BaseError < StandardError
     attr_reader :status_code
 
-    def initialize(message = nil)
+    def initialize(message: = nil)
       @status_code = EXCEPTIONS_TO_STATUS_CODE_MAP[self.class] || 500
       super(message || self.class.name.split('::').last)
     end

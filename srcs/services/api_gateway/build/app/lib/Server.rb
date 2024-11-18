@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 20:31:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:43:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,7 @@ class Server
     @config = ConfigLoader.config
     @logger = ConfigurableLogger.instance.logger
 
-    @logger.info("Initializing server...")
+    @logger.info("Initializing server")
     @grpc_client    = GrpcClient.new
     @endpoint_tree  = EndpointTree.new('')
     @swagger_parser = SwaggerParser.new("/app/config/openapi.yaml")
@@ -46,7 +46,7 @@ class Server
 
   def run
     Sync do
-      @logger.info("Starting server...")
+      @logger.info("Starting server")
       bind_address, port = @config[:bind].split(":")
       endpoint           = Async::IO::Endpoint.tcp(bind_address, port)
       semaphore          = Async::Semaphore.new(@config[:limits][:max_connections])
@@ -63,13 +63,13 @@ class Server
   end
 
   def stop
-    @logger.info("Stopping server...")
+    @logger.info("Stopping server")
     @grpc_client.close
   end
 
   private
 
-  def handle_connection(socket)
+  def handle_connection(socket:)
     @logger.debug("Handling connection: #{socket}")
 
     client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator)

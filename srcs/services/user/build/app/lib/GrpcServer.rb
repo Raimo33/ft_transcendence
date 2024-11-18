@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/15 22:04:03 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:32:51 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ class GrpcServer
     @logger = ConfigurableLogger.instance.logger
     @config = ConfigLoader.config
 
-    @logger.info("Initializing gRPC server...")
+    @logger.info("Initializing gRPC server")
     @server = GRPC::RpcServer.new
 
     bind_address, port = @config[:bind].split(":")

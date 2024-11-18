@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 20:34:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 17:40:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,7 +45,7 @@ class ClientHandler
     504 => "Gateway Timeout"
   }.freeze
 
-  def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
+  def initialize(socket:, endpoint_tree:, grpc_client:, jwt_validator:)
     @config         = ConfigLoader.instance.config
     @logger         = ConfigurableLogger.instance.logger
     @stream         = Async::IO::Stream.new(socket)
@@ -141,7 +141,7 @@ class ClientHandler
     buffer.slice!(0, next_request_index) if next_request_index
   end
 
-  def check_auth(expected_auth_level, authorization_header)
+  def check_auth(expected_auth_level:, authorization_header:)
     raise ServerException::Unauthorized unless authorization_header
 
     token = extract_token(authorization_header)
@@ -155,7 +155,7 @@ class ClientHandler
     authorization_header.sub("Bearer ", "").strip
   end
 
-  def send_response(response)
+  def send_response(response:)
     return send_error(500) unless response
     return send_error(response.status_code) if response.status_code >= 400
 
