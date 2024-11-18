@@ -1,7 +1,7 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    GrpcErrorHandler.rb                                :+:      :+:    :+:    #
+#    GrpcClientErrorHandler.rb                                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
@@ -12,7 +12,7 @@
 
 require_relative "ServerException"
 
-module GrpcErrorHandler
+module GrpcClientErrorHandler
 
   private
 

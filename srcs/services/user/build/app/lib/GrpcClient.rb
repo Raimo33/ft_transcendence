@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/17 18:39:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/18 15:54:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,16 +14,16 @@ require "grpc"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
 require_relative "../proto/auth_pb"
-require_relative "modules/GrpcErrorHandler"
+require_relative "modules/GrpcClientErrorHandler"
 
 class GrpcClient
-  include GrpcErrorHandler
+  include GrpcClientErrorHandler
   
   def initialize
-    @logger.info("Initializing grpc client")
-
     @config   = ConfigLoader.config
     @logger   = ConfigurableLogger.instance.logger
+
+    @logger.info("Initializing gRPC client")
     @channels = {}
     @stubs    = {}
 
