@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 18:42:10 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 19:28:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/19 18:18:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,7 +35,7 @@ class RequestParser
   
     raw_path, raw_query = raw_full_path.split('?')
 
-    request.path         = get_corresponding_path(raw_path)
+    request.path         = get_corresponding_path(request.http_method, raw_path)
     request.path_params  = parse_path_params(raw_path)
     request.query_params = parse_query_params(raw_query)
 
@@ -78,11 +78,11 @@ class RequestParser
     path
   end
 
-  def get_corresponding_path(raw_path)
-    node = @endpoint_tree.find_endpoint(raw_path)
-    return nil unless node
+  def get_corresponding_path(http_method, raw_path)
+    resource = @endpoint_tree.find_endpoint(http_method, raw_path)
+    return nil unless resource
 
-    node.content.keys.first
+    resource.path
   end
 
   #TODO altri metodi che fanno esclusivamente parsing, non checks rispetto a expected request

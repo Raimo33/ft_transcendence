@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/19 17:16:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,7 +49,8 @@ class Server
       @logger.info("Starting server")
       bind_address, port = @config[:bind].split(":")
       endpoint           = Async::IO::Endpoint.tcp(bind_address, port)
-      semaphore          = Async::Semaphore.new(@config[:limits][:max_connections])
+      semaphore          = Async::Semaphore.new(@config[:limits][:max_concurrent_clients])
+      barrier            = Async::Barrier.new
 
       @logger.debug("Server listening on #{bind_address}:#{port}")
 
@@ -57,8 +58,13 @@ class Server
 
       loop do
         endpoint.accept do |socket|
-          semaphore.async { handle_connection(socket) }
+          semaphore.acquire
+          barrier.async { handle_connection(socket) }
+          semaphore.release
+        end
       end
+    ensure
+      barrier.stop
     end
   end
 
@@ -81,15 +87,21 @@ class Server
 
   def process_requests
     Async do |task|
+      semaphore = Async::Semaphore.new(@config[:limits][:max_concurrent_clients])
+      barrier   = Async::Barrier.new
+  
       loop do
-        begin
-          client_handler = @clients.dequeue
-          task.async { client_handler.process_requests }
-        rescue StandardError => e
-          client_info = client_handler&.socket || "unknown"
-          @logger.error("Unable to process client: #{client_info}: #{e}")
-        end
+        semaphore.acquire
+        client_handler = @clients.dequeue
+        barrier.async { client_handler.process_requests }
+        semaphore.release
+      rescue StandardError => e
+        client_identifier = client_handler&.socket || "unknown"
+        @logger.error("Unable to process client: #{client_identifier}: #{e}")
+      ensure
+        barrier.stop
       end
+
     end
   end
 

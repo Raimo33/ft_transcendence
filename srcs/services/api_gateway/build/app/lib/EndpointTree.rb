@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:45:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/19 18:17:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ class EndpointTree
     @root = Tree::TreeNode.new("root")
   end
 
-  def add_endpoint(path, resource)
+  def add_resource(path, http_method, resource)
     parts = path.split('/').reject(&:empty?)
     current_node = @root
 
@@ -31,10 +31,10 @@ class EndpointTree
     end
 
     current_node.content ||= {}
-    current_node.content[resource.http_method] = resource
+    current_node.content[http_method] = resource
   end
 
-  def find_endpoint(raw_path)
+  def find_resource(http_method, raw_path)
     parts = raw_path.split('/').reject(&:empty?)
     current_node = @root
 
@@ -50,6 +50,6 @@ class EndpointTree
       end
     end
 
-    current_node
+    current_node.content[http_method]
   end
 end

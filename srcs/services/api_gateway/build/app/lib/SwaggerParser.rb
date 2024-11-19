@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/19 18:13:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,9 @@ class SwaggerParser
     @logger = ConfigurableLogger.instance.logger
     @logger.info("Parsing OpenAPI spec")
     @logger.debug("OpenAPI spec file path: #{file_path}")
+
     @openapi_spec = Openapi3Parser.load_file(file_path)
+
     @logger.info("OpenAPI spec parsed")
   rescue StandardError => e
     raise "Failed to parse OpenAPI spec: #{e}"
@@ -30,37 +32,32 @@ class SwaggerParser
   def fill_endpoint_tree(endpoint_tree)
     @openapi_spec.paths.each do |path, path_item|
       path_item.operations.each do |http_method, operation|
-        endpoint_tree.add_resource(path, build_resource(http_method, operation))
+        resource = build_resource(path, operation)
+        endpoint_tree.add_resource(path, http_method, resource)
       end
     end
   end
 
   private
 
-  def build_resource(http_method, operation)
+  def build_resource(operation)
     Resource.new.tap do |r|
-      r.path_template       = operation.path
-      r.http_method         = http_method
-      r.expected_auth_level = requires_auth?(operation)
-      r.expected_request    = extract_request(operation)
+      r.expected_request    = extract_operation_request(operation)
       r.operation_id        = operation.operation_id
     end
   end
 
-  def requires_auth?(operation)
-    operation.security.present?
-  end
-
-  def extract_request(operation)
+  def extract_operation_request(operation)
     ExpectedRequest.new.tap do |r|
-      r.allowed_path_params   = extract_request_params(operation, "path")
-      r.allowed_query_params  = extract_request_params(operation, "query")
-      r.allowed_headers       = extract_request_params(operation, "header")
-      r.allowed_body          = extract_request_body(operation)
+      r.allowed_path_params   = extract_operation_request_params(operation, "path")
+      r.allowed_query_params  = extract_operation_request_params(operation, "query")
+      r.allowed_headers       = extract_operation_request_params(operation, "header")
+      r.allowed_body          = extract_operation_request_body(operation)
+      r.expected_auth_level   = operation.extensions["x-auth-level"]
     end
   end
 
-  def extract_request_params(operation, param_type)
+  def extract_operation_request_params(operation, param_type)
     {}.tap do |params|
       operation.parameters.each do |param|
         next unless param.in == param_type
@@ -75,7 +72,7 @@ class SwaggerParser
     end
   end
 
-  def extract_request_body(operation)
+  def extract_operation_request_body(operation)
     return nil unless operation.request_body
   
     content = operation.request_body.content["application/json"]

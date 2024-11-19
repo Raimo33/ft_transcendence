@@ -12,7 +12,8 @@ jwt:
   audience: "api_gateway"
 
 limits:
-  max_connections: 1000
+  max_concurrent_clients: 1000
+  max_concurrent_requests_per_client: 100
 
 addresses:
   user:       "user.core:50052"

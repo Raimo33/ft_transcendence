@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 19:25:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/19 17:36:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -55,7 +55,8 @@ class ClientHandler
     @endpoint_tree  = endpoint_tree
     @grpc_client    = grpc_client
     @jwt_validator  = jwt_validator
-    @request_queue  = Async::Queue.new    
+    @request_queue  = Async::Queue.new
+    @response_queue = BlockingPriorityQueue.new 
   end
 
   def read_requests
@@ -74,63 +75,81 @@ class ClientHandler
     end
   end
 
-  def process_requests #TODO ricerchera la request.path nell resource tree per fare i check del caso anche rispetto ad expected request
-    response_queue = BlockingPriorityQueue.new
-    barrier        = Async::Barrier.new
-    last_task      = nil
+  def process_requests
+    barrier = Async::Barrier.new
 
-    Async do |task|
-      response_processor = task.async do |subtask|
-        loop do
-          begin
-            response = response_queue.dequeue
-            break if response == :exit_signal
-
-            last_task&.wait
-            last_task = subtask.async { send_response(stream, response) }
-          rescue StandardError => e
-            @logger.error("Failed to process response: #{e}")
-            send_error(e.status_code)
-        end
-      end
-      
-      request_processor = task.async do
-        priority = 0
-        while request = @request_queue.dequeue
-          current_priority = priority
-          priority += 1
-
-          if request.path == "/ping"
-            response_queue.enqueue(current_priority, Response.new(200, {"Content-Length" => "16"}, "pong...fumasters"))
-            next
-          end
-
-          barrier.async do
-            check_auth(request.resource.expected_auth_level, request.headers[:authorization])
-
-            grpc_response = @grpc_client.send(request)
-            response = #TODO parse da grpc a http
-
-            response_queue.enqueue(current_priority, response)
-          rescue StandardError => e
-            @logger.error("Failed to process request: #{e}")
-            send_error(e.status_code)
-          end
-        end
-
-        barrier.wait
-        response_queue.enqueue(priority, :exit_signal)
-      end
-
-      [response_processor, request_processor].each(&:wait)
-    end
+    barrier.async { send_responses }
+    barrier.async { fetch_responses }
   ensure
     barrier.stop
-    request_processor.stop
-    response_processor.stop
   end
 
   private
+
+  def send_responses
+    last_task = nil
+    loop do
+      response = @response_queue.dequeue
+      break if response == :exit_signal
+
+      last_task&.wait
+      last_task = async { send_response(stream, response) }
+    rescue StandardError => e
+      @logger.error("Failed to process response: #{e}")
+      send_error(e.status_code)
+    ensure
+      last_task&.wait
+    end
+  end
+
+  def fetch_responses
+    barrier     = Async::Barrier.new
+    semaphore   = Async::Semaphore.new(@config[:limits][:max_concurrent_requests_per_client])
+    priority    = 0
+
+    while request = @request_queue.dequeue
+      priority++
+  
+      semaphore.acquire
+
+      barrier.async do
+        validate_request(request)
+        fetch_response(request)
+        @response_queue.enqueue(priority, response)
+      end
+
+      semaphore.release
+      
+    rescue StandardError => e
+      @logger.error("Failed to process request: #{e}")
+      send_error(e.status_code)
+    end
+
+    barrier.wait
+    @response_queue.enqueue(priority, :exit_signal)
+  ensure
+    barrier.stop
+  end
+
+  def validate_request(request)
+    #TODO ricerchera la request.path nell resource tree per fare i check del caso anche rispetto ad expected request
+    endpoint = @endpoint_tree.find(request.path)
+    raise ServerException::NotFound unless endpoint
+
+    resource = endpoint.content[request.http_method]
+    raise ServerException::MethodNotAllowed unless resource
+    
+    expected_request = resource.expected_request
+  
+    check_auth(expected_request.auth_level, request.headers["Authorization"])
+  end
+  
+  def fetch_response(request)
+    return @response_queue.enqueue(priority, Response.new(200, {"Content-Length" => "16"}, "pong...fumasters")) if request.path == "/ping"
+
+    grpc_response = @grpc_client.send(#TODO mapping)
+    #TODO parse da grpc a http
+  end
 
   def check_auth(expected_auth_level, authorization_header)
     raise ServerException::Unauthorized unless authorization_header
