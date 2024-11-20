@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:50:08 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 15:50:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/20 04:05:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -73,9 +73,9 @@ module DBClientErrorHandler
     raise ServerException::Unauthorized.new(e.message)
   rescue PG::Error => e
     @logger.error("Unhandled PostgreSQL error: #{e.message}")
-    raise ServerException::InternalServer.new(e.message)
+    raise ServerException::InternalServerError.new(e.message)
   rescue StandardError => e
     @logger.error("Unexpected error: #{e.message}")
-    raise ServerException::InternalServer.new(e.message)
+    raise ServerException::InternalServerError.new(e.message)
   end
 end

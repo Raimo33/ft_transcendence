@@ -21,7 +21,7 @@ module ServerException
     RequestTimeout     => 408,
     Conflict           => 409,
     TooManyRequests    => 429,
-    InternalServer     => 500,
+    InternalServerError     => 500,
     NotImplemented     => 501,
     BadGateway         => 502,
     ServiceUnavailable => 503,
@@ -45,7 +45,7 @@ module ServerException
   class RequestTimeout     < BaseError; end
   class Conflict           < BaseError; end
   class TooManyRequests    < BaseError; end
-  class InternalServer     < BaseError; end
+  class InternalServerError     < BaseError; end
   class NotImplemented     < BaseError; end
   class BadGateway         < BaseError; end
   class ServiceUnavailable < BaseError; end

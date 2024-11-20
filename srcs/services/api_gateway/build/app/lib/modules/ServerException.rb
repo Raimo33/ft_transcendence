@@ -13,19 +13,19 @@
 module ServerException
 
   EXCEPTIONS_TO_STATUS_CODE_MAP = {
-    BadRequest         => 400,
-    Unauthorized       => 401,
-    Forbidden          => 403,
-    NotFound           => 404,
-    MethodNotAllowed   => 405,
-    RequestTimeout     => 408,
-    Conflict           => 409,
-    TooManyRequests    => 429,
-    InternalServer     => 500,
-    NotImplemented     => 501,
-    BadGateway         => 502,
-    ServiceUnavailable => 503,
-    GatewayTimeout     => 504
+    BadRequest            => 400,
+    Unauthorized          => 401,
+    Forbidden             => 403,
+    NotFound              => 404,
+    MethodNotAllowed      => 405,
+    RequestTimeout        => 408,
+    Conflict              => 409,
+    TooManyRequests       => 429,
+    InternalServerError   => 500,
+    NotImplemented        => 501,
+    BadGateway            => 502,
+    ServiceUnavailable    => 503,
+    GatewayTimeout        => 504
   }.freeze
 
   class BaseError < StandardError
@@ -37,18 +37,18 @@ module ServerException
     end
   end
 
-  class BadRequest         < BaseError; end
-  class Unauthorized       < BaseError; end
-  class Forbidden          < BaseError; end
-  class NotFound           < BaseError; end
-  class MethodNotAllowed   < BaseError; end
-  class RequestTimeout     < BaseError; end
-  class Conflict           < BaseError; end
-  class TooManyRequests    < BaseError; end
-  class InternalServer     < BaseError; end
-  class NotImplemented     < BaseError; end
-  class BadGateway         < BaseError; end
-  class ServiceUnavailable < BaseError; end
-  class GatewayTimeout     < BaseError; end
+  class BadRequest           < BaseError; end
+  class Unauthorized         < BaseError; end
+  class Forbidden            < BaseError; end
+  class NotFound             < BaseError; end
+  class MethodNotAllowed     < BaseError; end
+  class RequestTimeout       < BaseError; end
+  class Conflict             < BaseError; end
+  class TooManyRequests      < BaseError; end
+  class InternalServerError  < BaseError; end
+  class NotImplemented       < BaseError; end
+  class BadGateway           < BaseError; end
+  class ServiceUnavailable   < BaseError; end
+  class GatewayTimeout       < BaseError; end
 
 end

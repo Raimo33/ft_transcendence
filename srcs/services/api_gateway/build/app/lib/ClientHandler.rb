@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/19 17:36:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/20 04:57:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,6 +71,7 @@ class ClientHandler
       rescue StandardError => e
         @logger.error("Failed to parse request: #{e}")
         send_error(e.status_code)
+        parser.skip_request(buffer)
       end
     end
   end
@@ -141,7 +142,7 @@ class ClientHandler
     
     expected_request = resource.expected_request
   
-    check_auth(expected_request.auth_level, request.headers["Authorization"])
+    check_auth(expected_request.auth_level, request.headers["authorization"])
   end
   
   def fetch_response(request)

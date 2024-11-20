@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/17 16:22:25 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:25:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/20 04:05:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,6 @@ module GrpcClientErrorHandler
     raise ServerException::ServiceUnavailable.new(e.message)
   rescue GRPC::Internal, GRPC::BadStatus, GRPC::Unknown => e
     @logger.error("Internal error during #{operation_name}: #{e.message}")
-    raise ServerException::InternalServer.new(e.message)
+    raise ServerException::InternalServerError.new(e.message)
   end
 end

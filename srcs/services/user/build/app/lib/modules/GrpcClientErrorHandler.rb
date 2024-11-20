@@ -31,6 +31,6 @@ module GrpcClientErrorHandler
     raise ServerException::ServiceUnavailable.new(e.message)
   rescue GRPC::Internal, GRPC::BadStatus, GRPC::Unknown => e
     @logger.error("Internal error during #{operation_name}: #{e.message}")
-    raise ServerException::InternalServer.new(e.message)
+    raise ServerException::InternalServerError.new(e.message)
   end
 end

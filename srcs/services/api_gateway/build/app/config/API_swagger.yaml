@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/19 18:08:43 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/20 05:47:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,6 +49,7 @@ paths:
       x-auth-level: 0
       parameters:
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       requestBody:
         content:
           application/json:
@@ -287,6 +288,7 @@ paths:
       description: Enable two-factor authentication for the current user account.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -371,6 +373,7 @@ paths:
       description: Check the validity of the two-factor authentication code provided by the user.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
         - $ref: "#/components/parameters/totp_code"
       security:
         - jwtAuth: []
@@ -395,6 +398,7 @@ paths:
       description: Authenticate the user and return a JWT for session management.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       x-auth-level: 0
       requestBody:
         content:
@@ -442,6 +446,7 @@ paths:
       description: Add a user to the friend list.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       requestBody:
         content:
           application/json:
@@ -524,6 +529,7 @@ paths:
       description: Initialize a new Pong match by providing the match settings and the opponent user IDs.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       requestBody:
         content:
           application/json:
@@ -576,6 +582,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/match_id"
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -657,6 +664,7 @@ paths:
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
       parameters:
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       requestBody:
         content:
           application/json:
@@ -703,6 +711,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/tournament_id"
         - $ref: "#/components/parameters/Content-Length"
+        - $ref: "#/components/parameters/Transfer-Encoding"
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -986,6 +995,13 @@ components:
         minimum: 0
       example: 12345
       required: true
+    
+    Transfer-Encoding:
+      description: The form of encoding used in the request body.
+      schema:
+        type: string
+        enum: [chunked, compress, deflate, gzip, identity]
+      example: chunked
 
     token:
       description: verification token for credentials recovery/validation
@@ -1030,13 +1046,13 @@ components:
   headers:
 
     Content-Type:
-      description: The MIME type of the request body.
+      description: The MIME type of the response body.
       schema:
         type: string
       example: application/json
 
     Content-Length:
-      description: The length of the request body in octets (8-bit bytes).
+      description: The length of the response body in octets (8-bit bytes).
       schema:
         type: integer
         format: int32

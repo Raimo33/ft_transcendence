@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/19 18:13:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/20 04:10:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -64,9 +64,9 @@ class SwaggerParser
   
         params[param.name.to_sym] = {
           required: param.required,
-          style: param.style,
-          explode: param.explode,
-          schema: param.schema
+          style:    param.style,
+          explode:  param.explode,
+          schema:   param.schema
         }
       end
     end
@@ -80,7 +80,7 @@ class SwaggerParser
   
     {
       required: operation.request_body.required?,
-      schema: content.schema
+      schema:   content.schema
     }
   end
 
