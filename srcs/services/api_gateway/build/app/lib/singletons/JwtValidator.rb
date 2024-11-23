@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 11:24:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,16 +15,18 @@ require "net/http"
 require "json"
 require "base64"
 require "openssl"
+require "singleton"
 require_relative "ConfigLoader"
 require_relative "ConfigurableLogger"
 require_relative "../proto/auth_api_gateway_pb"
 
 class JwtValidator
+  include Singleton
 
-  def initialize(grpc_client)
+  def initialize
     @config = ConfigLoader.instance.config
     @logger = ConfigurableLogger.instance.logger
-    @grpc_client = grpc_client
+    @grpc_client = GrpcClient.instance
     @public_key = nil
     @last_fetched = nil
   end

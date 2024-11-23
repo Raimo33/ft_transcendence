@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/28 19:55:38 by craimond          #+#    #+#              #
-#    Updated: 2024/11/19 18:18:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 11:59:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,11 +28,9 @@ module Structs
   Request   = Struct.new(
     :http_method,
     :path,
-    :path_params,
     :query_params,
     :headers,
     :body,
-    :resource
   )
 
   Resource  = Struct.new(

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/20 06:06:29 by craimond          #+#    #+#              #
-#    Updated: 2024/11/20 06:08:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 11:59:28 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -153,8 +153,13 @@ class RequestParser
     @partial_request.method = words[0].upcase.to_sym
     raise ServerException::BadRequest.new("Invalid method") unless RECOGNISED_METHODS.include?(@partial_request.method)
 
-    @partial_request.path = words[1]
-    raise ServerException::BadRequest.new("Missing path") unless @partial_request.path
+    full_path = words[1]
+    raise ServerException::BadRequest.new("Invalid path") unless full_path
+    raw_path, raw_query = raw_path.split("?")
+    raise ServerException::BadRequest.new("Invalid path") unless raw_path
+    @partial_request.path = raw_path
+    @partial_request.query_params = 
+
 
     @partial_request.version = words[2]
     raise ServerException::BadRequest.new("Missing version") unless @partial_request.version == "HTTP/1.1"

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/19 17:16:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 11:41:36 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,25 +19,23 @@ require_relative "SwaggerParser"
 require_relative "JWTValidator"
 require_relative "ClientHandler"
 require_relative "GrpcClient"
-require_relative "ConfigLoader"
-require_relative "ConfigurableLogger"
+require_relative "singletons/ConfigLoader"
+require_relative "singletons/ConfigurableLogger"
 
 class Server
 
   def initialize
     Signal.trap("SIGTERM") { stop }
 
-    @config = ConfigLoader.config
+    @config = ConfigLoader.instance.config
     @logger = ConfigurableLogger.instance.logger
 
     @logger.info("Initializing server")
-    @grpc_client    = GrpcClient.new
-    @endpoint_tree  = EndpointTree.new('')
-    @swagger_parser = SwaggerParser.new("/app/config/openapi.yaml")
-    @jwt_validator  = JWTValidator.new
-    @clients        = Async::Queue.new
 
-    @swagger_parser.fill_endpoint_tree(@endpoint_tree)
+    @swagger_parser    = SwaggerParser.new("/app/config/openapi.yaml")
+    @clients           = Async::Queue.new
+
+    @swagger_parser.fill_endpoint_tree
   rescue StandardError => e
     raise "Failed to initialize server: #{e}"
   ensure
@@ -78,7 +76,7 @@ class Server
   def handle_connection(socket)
     @logger.debug("Handling connection: #{socket}")
 
-    client_handler = ClientHandler.new(socket, @endpoint_tree, @grpc_client, @jwt_validator)
+    client_handler = ClientHandler.new(socket)
     @clients.enqueue(client_handler)
     client_handler.read_requests
   rescue StandardError => e

@@ -6,12 +6,12 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/02 16:45:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 11:36:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "optparse"
-require_relative "ConfigLoader"
+require_relative "singletons/ConfigLoader"
 require_relative "Orchestrator"
 
 class Launcher
@@ -23,7 +23,8 @@ class Launcher
     @options = parse_options(args)
     @config_file = @options[:config_file] || DEFAULT_CONFIG_FILE
 
-    config = ConfigLoader.instance.load(@config_file)
+    @config_loader = ConfigLoader.instance
+    config = @config_loader.load(@config_file)
     @pid_file = config[:pid_file] || DEFAULT_PID_FILE
   rescue StandardError => e
     STDERR.puts "Error during initialization: #{e}"

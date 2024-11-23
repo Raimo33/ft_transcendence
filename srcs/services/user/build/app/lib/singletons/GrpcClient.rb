@@ -6,21 +6,23 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/18 18:27:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 11:31:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
-require_relative "ConfigLoader"
-require_relative "ConfigurableLogger"
+require "singleton"
+require_relative "singletons/ConfigLoader"
+require_relative "singletons/ConfigurableLogger"
 require_relative "../proto/auth_pb"
 require_relative "modules/GrpcClientErrorHandler"
 
 class GrpcClient
+  include Singleton
   include GrpcClientErrorHandler
   
   def initialize
-    @config   = ConfigLoader.config
+    @config   = ConfigLoader.instance.config
     @logger   = ConfigurableLogger.instance.logger
 
     @logger.info("Initializing gRPC client")

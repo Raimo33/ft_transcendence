@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/20 04:57:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 12:01:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,8 +16,8 @@ require "async/queue"
 require "async/barrier"
 require_relative "BlockingPriorityQueue"
 require_relative "JwtValidator"
-require_relative "ConfigLoader"
-require_relative "ConfigurableLogger"
+require_relative "singletons/ConfigLoader"
+require_relative "singletons/ConfigurableLogger"
 require_relative "RequestParser"
 require_relative "./modules/ServerException"
 require_relative "./modules/Structs"
@@ -48,20 +48,21 @@ class ClientHandler
   BUFFER_SIZE = 4096
   READ_SIZE   = 1024
 
-  def initialize(socket, endpoint_tree, grpc_client, jwt_validator)
-    @config         = ConfigLoader.instance.config
-    @logger         = ConfigurableLogger.instance.logger
-    @stream         = Async::IO::Stream.new(socket)
-    @endpoint_tree  = endpoint_tree
-    @grpc_client    = grpc_client
-    @jwt_validator  = jwt_validator
-    @request_queue  = Async::Queue.new
-    @response_queue = BlockingPriorityQueue.new 
+  def initialize(socket)
+    @config            = ConfigLoader.instance.config
+    @logger            = ConfigurableLogger.instance.logger
+    @endpoint_tree     = EndpointTree.instance
+    @grpc_client       = GrpcClient.instance
+    @request_validator = RequestValidator.instance
+    
+    @stream            = Async::IO::Stream.new(socket)
+    @request_queue     = Async::Queue.new
+    @response_queue    = BlockingPriorityQueue.new 
   end
 
   def read_requests
     buffer = String.new(capacity: BUFFER_SIZE)
-    parser = RequestParser.new(@endpoint_tree)
+    parser = RequestParser.new
 
     while chunk = @stream.read(READ_SIZE)
       buffer << chunk
@@ -114,7 +115,7 @@ class ClientHandler
       semaphore.acquire
 
       barrier.async do
-        validate_request(request)
+        @request_validator.validate_request(request)
         fetch_response(request)
         @response_queue.enqueue(priority, response)
       end
@@ -131,33 +132,12 @@ class ClientHandler
   ensure
     barrier.stop
   end
-
-  def validate_request(request)
-    #TODO ricerchera la request.path nell resource tree per fare i check del caso anche rispetto ad expected request
-    endpoint = @endpoint_tree.find(request.path)
-    raise ServerException::NotFound unless endpoint
-
-    resource = endpoint.content[request.http_method]
-    raise ServerException::MethodNotAllowed unless resource
-    
-    expected_request = resource.expected_request
-  
-    check_auth(expected_request.auth_level, request.headers["authorization"])
-  end
   
   def fetch_response(request)
     return @response_queue.enqueue(priority, Response.new(200, {"Content-Length" => "16"}, "pong...fumasters")) if request.path == "/ping"
 
     grpc_response = @grpc_client.send(#TODO mapping)
     #TODO parse da grpc a http
-  end
-
-  def check_auth(expected_auth_level, authorization_header)
-    raise ServerException::Unauthorized unless authorization_header
-
-    token = extract_token(authorization_header)
-    raise ServerException::Unauthorized unless @jwt_validator.token_valid?(token)
-    raise ServerException::Forbidden    unless @jwt_validator.token_authorized?(token, expected_auth_level)
   end
 
   def extract_token(authorization_header)

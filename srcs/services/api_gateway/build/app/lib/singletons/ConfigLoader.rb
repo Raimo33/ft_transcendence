@@ -6,12 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/10 15:33:59 by craimond          #+#    #+#              #
-#    Updated: 2024/11/19 17:12:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 11:20:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'set'
 require 'yaml'
+require 'singleton'
 
 #TODO studiare safe_load di yaml
 
