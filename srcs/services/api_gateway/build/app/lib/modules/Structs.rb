@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/28 19:55:38 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 11:59:54 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 12:36:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,21 +19,21 @@ module Structs
     :auth_level
   )
 
-  Response  = Struct.new(
+  Response = Struct.new(
     :status_code,
     :headers,
     :body
   )
 
-  Request   = Struct.new(
+  Request = Struct.new(
     :http_method,
-    :path,
+    :path_params,
     :query_params,
     :headers,
     :body,
   )
 
-  Resource  = Struct.new(
+  Resource = Struct.new(
     :operation_id,
     :path,
     :expected_request

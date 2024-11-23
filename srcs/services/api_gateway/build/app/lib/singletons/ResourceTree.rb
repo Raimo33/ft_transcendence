@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/24 15:55:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 11:20:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 12:11:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ require_relative "./modules/Structs"
 require 'tree'
 require 'singleton'
 
-class EndpointTree
+class ResourceTree
   include Singleton
 
   attr_accessor :root

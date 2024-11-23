@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/25 18:47:57 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 11:41:36 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 12:53:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ require "async"
 require "async/io"
 require "async/queue"
 require "async/semaphore"
-require_relative "EndpointTree"
+require_relative "ResourceTree"
 require_relative "SwaggerParser"
 require_relative "JWTValidator"
 require_relative "ClientHandler"
@@ -35,7 +35,7 @@ class Server
     @swagger_parser    = SwaggerParser.new("/app/config/openapi.yaml")
     @clients           = Async::Queue.new
 
-    @swagger_parser.fill_endpoint_tree
+    @swagger_parser.fill_resource_tree
   rescue StandardError => e
     raise "Failed to initialize server: #{e}"
   ensure

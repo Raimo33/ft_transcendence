@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/26 16:09:19 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 12:01:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 12:58:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,9 +51,9 @@ class ClientHandler
   def initialize(socket)
     @config            = ConfigLoader.instance.config
     @logger            = ConfigurableLogger.instance.logger
-    @endpoint_tree     = EndpointTree.instance
+    @resource_tree     = ResourceTree.instance
     @grpc_client       = GrpcClient.instance
-    @request_validator = RequestValidator.instance
+    @jwt_validator     = JwtValidator.instance
     
     @stream            = Async::IO::Stream.new(socket)
     @request_queue     = Async::Queue.new
@@ -115,7 +115,7 @@ class ClientHandler
       semaphore.acquire
 
       barrier.async do
-        @request_validator.validate_request(request)
+        check_auth(request.headers["authorization"])
         fetch_response(request)
         @response_queue.enqueue(priority, response)
       end
@@ -138,6 +138,15 @@ class ClientHandler
 
     grpc_response = @grpc_client.send(#TODO mapping)
     #TODO parse da grpc a http
+  end
+
+  def check_auth(authorization_header)
+    return if expected_auth_level == 0
+
+    raise ServerException::Unauthorized unless authorization_header
+    token = extract_token(authorization_header)
+    raise ServerException::Unauthorized unless @jwt_validator.token_valid?(token)
+    raise ServerException::Forbidden    unless @jwt_validator.token_authorized?(token, expected_auth_level)
   end
 
   def extract_token(authorization_header)

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/27 14:52:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 11:41:03 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 12:53:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ require "openapi3_parser"
 require_relative "singletons/ConfigLoader"
 require_relative "singletons/ConfigurableLogger"
 require_relative "./modules/Structs"
-require_relative "./singletons/EndpointTree"
+require_relative "./singletons/ResourceTree"
 
 class SwaggerParser
 
@@ -30,12 +30,12 @@ class SwaggerParser
     raise "Failed to parse OpenAPI spec: #{e}"
   end
 
-  def fill_endpoint_tree
-    endpoint_tree = EndpointTree.instance
+  def fill_resource_tree
+    resource_tree = ResourceTree.instance
     @openapi_spec.paths.each do |path, path_item|
       path_item.operations.each do |http_method, operation|
         resource = build_resource(path, operation)
-        endpoint_tree.add_resource(path, http_method, resource)
+        resource_tree.add_resource(path, http_method, resource)
       end
     end
   end
