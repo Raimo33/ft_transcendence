@@ -31,7 +31,6 @@ message GetUserMatchesRequest
 }
 message GetUserMatchesResponse
 {
-  uint16          status_code  = 1;
   repeated Match  matches      = 2;
 }
 
@@ -44,7 +43,6 @@ message CreateMatchRequest
 }
 message CreateMatchResponse
 {
-  uint16  status_code  = 1;
   string  match_id     = 2;
 }
 
@@ -56,7 +54,6 @@ message JoinMatchRequest
 }
 message JoinMatchResponse
 {
-  uint16  status_code = 1;
 }
 
 // v1/matches/{match_id} GET
@@ -67,7 +64,6 @@ message GetMatchRequest
 }
 message GetMatchResponse
 {
-  uint16 status_code  = 1;
   Match  match        = 2;
 }
 
@@ -79,5 +75,4 @@ message LeaveMatchRequest
 }
 message LeaveMatchResponse
 {
-  uint16  status_code = 1;
 }

@@ -25,14 +25,13 @@ message Tournament
 // v1/users/{user_id}/tournaments GET
 message GetUserTournamentsRequest
 {
-  string                     requester_user_id  = 1;
-  string                     user_id             = 2;
-  uint32                     limit               = 3;
-  uint32                     offset              = 4;
+  string  requester_user_id  = 1;
+  string  user_id             = 2;
+  uint32  limit               = 3;
+  uint32  offset              = 4;
 }
 message GetUserTournamentsResponse
 {
-  uint16               status_code = 1;
   repeated Tournament  tournaments = 2;
 }
 
@@ -45,7 +44,6 @@ message CreateTournamentRequest
 }
 message CreateTournamentResponse
 {
-  uint16  status_code    = 1;
   string  tournament_id  = 2;
 }
 
@@ -57,7 +55,6 @@ message JoinTournamentRequest
 }
 message JoinTournamentResponse
 {
-  uint16  status_code = 1;
 }
 
 // v1/tournaments/{tournament_id} GET
@@ -68,7 +65,6 @@ message GetTournamentRequest
 }
 message GetTournamentResponse
 {
-  uint16     status_code   = 1;
   Tournament tournament    = 2;
 }
 
@@ -80,5 +76,4 @@ message LeaveTournamentRequest
 }
 message LeaveTournamentResponse
 {
-  uint16 status_code = 1;
 }

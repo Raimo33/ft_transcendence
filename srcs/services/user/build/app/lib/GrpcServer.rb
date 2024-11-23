@@ -6,19 +6,19 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 11:31:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 17:02:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
-require_relative "singletons/ConfigLoader"
+require_relative "singletons/ConfigHandler"
 require_relative "singletons/ConfigurableLogger"
 
 class GrpcServer
 
   def initialize
     @logger = ConfigurableLogger.instance.logger
-    @config = ConfigLoader.instance.config
+    @config = ConfigHandler.instance.config
 
     @logger.info("Initializing gRPC server")
     @server = GRPC::RpcServer.new

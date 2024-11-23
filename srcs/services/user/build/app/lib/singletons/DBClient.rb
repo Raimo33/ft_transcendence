@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 11:31:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 17:02:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,14 +15,14 @@ require 'pgpool'
 require 'singleton'
 require_relative 'DBClientErrorHandler'
 require_relative 'ConfigurableLogger'
-require_relative 'ConfigLoader'
+require_relative 'ConfigHandler'
 
 class DBClient
   include Singleton
   include DBClientErrorHandler
 
   def initialize
-    @config   = ConfigLoader.instance.config
+    @config   = ConfigHandler.instance.config
     @logger   = ConfigurableLogger.instance.logger
 
     @pool = PGPool.connect(
