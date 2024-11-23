@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    API_swagger.yaml                                   :+:      :+:    :+:    #
+#    openapi.yaml                                       :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/20 05:47:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 16:11:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,10 +36,13 @@ paths:
             Content-Type:
               $ref: "#/components/headers/Content-Type"
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "pong"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "pong"
 
   /users:
     post:
@@ -997,6 +1000,8 @@ components:
       required: true
     
     Transfer-Encoding:
+      name: Transfer-Encoding
+      in: header
       description: The form of encoding used in the request body.
       schema:
         type: string

@@ -2,7 +2,7 @@ require 'singleton'
 require 'set'
 require 'yaml'
 
-class ConfigLoader
+class ConfigHandler
   include Singleton
 
   REQUIRED_KEYS =

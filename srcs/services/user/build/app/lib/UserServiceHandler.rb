@@ -17,7 +17,7 @@ require "base64"
 require "mini_magick"
 require "async"
 require "email_validator"
-require_relative "singletons/ConfigLoader"
+require_relative "singletons/ConfigHandler"
 require_relative "singletons/ConfigurableLogger"
 require_relative "modules/ServerException"
 require_relative "modules/DBClientErrorHandler"
@@ -29,7 +29,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
 
   def initialize(grpc_client)
     @logger         = ConfigurableLogger.instance.logger
-    @config         = ConfigLoader.instance.config
+    @config         = ConfigHandler.instance.config
   
     @grpc_client    = grpc_client
     @db_client      = DBClient.instance

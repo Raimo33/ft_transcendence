@@ -6,19 +6,19 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/23 20:39:15 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 11:31:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/23 17:02:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative "GrpcClient"
 require_relative "Server"
-require_relative "singletons/ConfigLoader"
+require_relative "singletons/ConfigHandler"
 require_relative "singletons/ConfigurableLogger"
 
 class Orchestrator
 
   def initialize
-    @config = ConfigLoader.instance.config
+    @config = ConfigHandler.instance.config
     @worker_pid = nil
     @master_pid = Process.pid
 

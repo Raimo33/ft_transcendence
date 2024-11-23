@@ -56,7 +56,6 @@ message RegisterUserRequest
 message RegisterUserResponse
 {
   string  user_id      = 1;
-  uint16  status_code  = 2;
 }
 
 // v1/users/{user_id}/profile GET
@@ -68,7 +67,6 @@ message GetUserProfileRequest
 message GetUserProfileResponse
 {
   optional UserProfile  profile     = 1;
-  required uint16       status_code = 2;
 }
 
 // v1/users/{user_id}/status GET
@@ -80,7 +78,6 @@ message GetUserStatusRequest
 message GetUserStatusResponse
 {
   string  user_status = 1;
-  uint16  status_code = 2;
 }
 
 // v1/user DELETE
@@ -90,7 +87,6 @@ message DeleteAccountRequest
 }
 message DeleteAccountResponse
 {
-  uint16  status_code = 1;
 }
 
 // v1/user/profile GET
@@ -101,7 +97,6 @@ message GetPrivateProfileRequest
 message GetPrivateProfileResponse
 {
   optional User    profile      = 1;
-  required uint16  status_code  = 2;
 }
 
 // v1/user/profile PATCH
@@ -113,7 +108,6 @@ message UpdateProfileRequest
 }
 message UpdateProfileResponse
 {
-  uint16  status_code = 1;
 }
 
 // v1/user/password PUT
@@ -125,7 +119,6 @@ message UpdatePasswordRequest
 }
 message UpdatePasswordResponse
 {
-  uint16  status_code = 1;
 }
 
 // // v1/user/password/reset POST
@@ -135,7 +128,7 @@ message UpdatePasswordResponse
 // }
 // message RequestPasswordResetResponse
 // {
-//   required uint16  status_code = 1;
+//
 // }
 
 // // v1/user/password/reset/{token} POST
@@ -145,7 +138,7 @@ message UpdatePasswordResponse
 // }
 // message CheckPasswordResetTokenResponse
 // {
-//   required uint16  status_code = 1;
+//
 // }
 
 // // v1/user/password/reset/{token} PATCH
@@ -156,7 +149,7 @@ message UpdatePasswordResponse
 // }
 // message ResetPasswordResponse
 // {
-//   required uint16  status_code = 1;
+//
 // }
 
 // // v1/user/email PATCH
@@ -169,7 +162,7 @@ message UpdatePasswordResponse
 // }
 // message UpdateEmailResponse
 // {
-//   required uint16  status_code = 1;
+//
 // }
 
 // // v1/user/email/verify POST
@@ -179,7 +172,7 @@ message UpdatePasswordResponse
 // }
 // message VerifyEmailResponse
 // {
-//   required uint16  status_code = 1;
+//
 // }
 
 // // v1/user/email/verify POST
@@ -189,7 +182,7 @@ message UpdatePasswordResponse
 // }
 // message VerifyEmailResponse
 // {
-//   required uint16  status_code = 1;
+//
 // }
 
 // v1/user/2fa POST
@@ -200,7 +193,6 @@ message Enable2FARequest
 message Enable2FAResponse
 {
   string totp_secret = 1;
-  uint16 status_code = 2;
 }
 
 // v1/users/{user_id}/2fa GET
@@ -210,7 +202,6 @@ message Get2FAStatusRequest
 }
 message Get2FAStatusResponse
 {
-  uint16 status_code             = 1;
   bool   two_factor_auth_enabled = 2;
 }
 
@@ -221,7 +212,6 @@ message Disable2FARequest
 }
 message Disable2FAResponse
 {
-  uint16  status_code = 1;
 }
 
 // v1/user/2fa/verify POST
@@ -232,7 +222,6 @@ message Check2FACodeRequest
 }
 message Check2FACodeResponse
 {
-  uint16  status_code = 1;
 }
 
 // v1/user/login POST
@@ -244,7 +233,6 @@ message LoginUserRequest
 message LoginUserResponse
 {
   string jwt = 2;
-  uint16 status_code = 1;
 }
 
 // v1/user/friends POST
@@ -255,7 +243,6 @@ message AddFriendRequest
 }
 message AddFriendResponse
 {
-  uint16  status_code = 1;
 }
 
 // v1/user/friends GET
@@ -267,7 +254,6 @@ message GetFriendsRequest
 }
 message GetFriendsResponse
 {
-  required uint16           status_code = 1;
   optional repeated string  friend_ids  = 2;
 }
 
@@ -279,5 +265,4 @@ message RemoveFriendRequest
 }
 message RemoveFriendResponse
 {
-  uint16  status_code = 1;
 }
