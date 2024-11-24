@@ -105,13 +105,13 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     )
 
     @logger.info("User profile for user with id '#{request.user_id}' retrieved successfully")
-    UserService::GetUserProfileResponse.new(status_code: 200, profile: user_profile)
+    UserService::GetUserPublicProfileResponse.new(status_code: 200, profile: user_profile)
   rescue ServerException => e
     @logger.error("Failed to get user profile: #{e.message}")
-    UserService::GetUserProfileResponse.new(status_code: e.status_code)
+    UserService::GetUserPublicProfileResponse.new(status_code: e.status_code)
   rescue StandardError => e
     @logger.error("Failed to get user profile: #{e}")
-    UserService::GetUserProfileResponse.new(status_code: 500)
+    UserService::GetUserPublicProfileResponse.new(status_code: 500)
   end
 
   def delete_account(request, _metadata)
@@ -149,18 +149,18 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       email:                    db_response.getvalue(0, 1),
       display_name:             db_response.getvalue(0, 2),
       avatar:                   db_response.getvalue(0, 3) || @default_avatar,
-      two_factor_auth_enabled:  db_response.getvalue(0, 4),
+      tfa_status:  db_response.getvalue(0, 4),
       status:                   db_response.getvalue(0, 5)
     )
   
     @logger.info("Private profile for user with id '#{request.requester_user_id}' retrieved successfully")
-    UserService::GetPrivateProfileResponse.new(status_code: 200, profile: private_profile)
+    UserService::GetUserPrivateProfileResponse.new(status_code: 200, profile: private_profile)
   rescue ServerException => e
     @logger.error("Failed to get private profile: #{e.message}")
-    UserService::GetPrivateProfileResponse.new(status_code: e.status_code)
+    UserService::GetUserPrivateProfileResponse.new(status_code: e.status_code)
   rescue StandardError => e
     @logger.error("Failed to get private profile: #{e}")
-    UserService::GetPrivateProfileResponse.new(status_code: 500)
+    UserService::GetUserPrivateProfileResponse.new(status_code: 500)
   end
 
   def update_profile(request, _metadata)
@@ -205,7 +205,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     barrier.stop
   end
 
-  def enable_2fa(request, _metadata)
+  def enable_tfa(request, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
@@ -213,67 +213,67 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   
     db_task = Async do
       @logger.debug("Querying database for 2FA status of user with id '#{request.requester_user_id}'")
-      @db_client.query("SELECT two_factor_auth_enabled FROM Users WHERE id = $1", [request.requester_user_id])
+      @db_client.query("SELECT tfa_status FROM Users WHERE id = $1", [request.requester_user_id])
     end
     grpc_task = Async do
       @logger.debug("Generating 2FA secret for user with id '#{request.requester_user_id}'")
-      @grpc_client.generate_2fa_secret(request.requester_user_id)
+      @grpc_client.generate_tfa_secret(request.requester_user_id)
     end
 
     db_response = db_task.wait
     raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
-    two_factor_auth_enabled = db_response.getvalue(0, 0)
-    raise ServerException::Conflict("2FA already enabled for user with id '#{request.requester_user_id}'") if two_factor_auth_enabled
+    tfa_status = db_response.getvalue(0, 0)
+    raise ServerException::Conflict("2FA already enabled for user with id '#{request.requester_user_id}'") if tfa_status
 
     grpc_response = grpc_task.wait
     totp_secret   = grpc_response.totp_secret
 
     @logger.debug("Updating database to enable 2FA for user with id '#{request.requester_user_id}'")
-    @db_client.query("UPDATE Users SET two_factor_auth_enabled = true, totp_secret = $1 WHERE id = $2", [totp_secret, request.requester_user_id])
+    @db_client.query("UPDATE Users SET tfa_status = true, totp_secret = $1 WHERE id = $2", [totp_secret, request.requester_user_id])
   
     @logger.info("2FA enabled successfully for user with id '#{request.requester_user_id}'")
-    return UserService::Enable2FAResponse.new(status_code: 200, totp_secret: totp_secret)
+    return UserService::EnableTFAResponse.new(status_code: 200, totp_secret: totp_secret)
   rescue ServerException => e
     @logger.error("Failed to enable 2FA: #{e.message}")
-    UserService::Enable2FAResponse.new(status_code: e.status_code)
+    UserService::EnableTFAResponse.new(status_code: e.status_code)
   rescue StandardError => e
     @logger.error("Failed to enable 2FA: #{e}")
-    UserService::Enable2FAResponse.new(status_code: 500)
+    UserService::EnableTFAResponse.new(status_code: 500)
   ensure
     db_task.stop
     grpc_task.stop
   end
 
-  def get_2fa_status(request, _metadata)
+  def get_tfa_status(request, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
     @logger.debug("Querying database for 2FA status of user with id '#{request.requester_user_id}'")
-    db_response = @db_client.query("SELECT two_factor_auth_enabled FROM Users WHERE id = $1", [request.requester_user_id])
+    db_response = @db_client.query("SELECT tfa_status FROM Users WHERE id = $1", [request.requester_user_id])
     raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
   
-    two_factor_auth_enabled = db_response.getvalue(0, 0)
+    tfa_status = db_response.getvalue(0, 0)
   
     @logger.info("2FA status for user with id '#{request.requester_user_id}' retrieved successfully")
-    return UserService::Get2FAStatusResponse.new(status_code: 200, two_factor_auth_enabled: two_factor_auth_enabled)
+    return UserService::GetTFAStatusResponse.new(status_code: 200, tfa_status: tfa_status)
   rescue ServerException => e
     @logger.error("Failed to get 2FA status: #{e.message}")
-    UserService::Get2FAStatusResponse.new(status_code: e.status_code)
+    UserService::GetTFAStatusResponse.new(status_code: e.status_code)
   rescue StandardError => e
     @logger.error("Failed to get 2FA status: #{e}")
-    UserService::Get2FAStatusResponse.new(status_code: 500)
+    UserService::GetTFAStatusResponse.new(status_code: 500)
   end
 
-  def disable_2fa(request, _metadata)
+  def disable_tfa(request, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
   
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
   
     @logger.debug("Disabling 2FA for user with id '#{request.requester_user_id}'")
-    db_response = @db_client.query("UPDATE Users SET two_factor_auth_enabled = false, totp_secret = NULL WHERE id = $1 AND two_factor_auth_enabled = true", [request.requester_user_id])
+    db_response = @db_client.query("UPDATE Users SET tfa_status = false, totp_secret = NULL WHERE id = $1 AND tfa_status = true", [request.requester_user_id])
   
     if db_response.cmd_tuples.zero?
       @logger.debug("Querying database to check if user with id '#{request.requester_user_id}' exists")
@@ -287,16 +287,16 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     end
   
     @logger.info("2FA disabled successfully for user with id '#{request.requester_user_id}'")
-    return UserService::Disable2FAResponse.new(status_code: 204)
+    return UserService::DisableTFAResponse.new(status_code: 204)
   rescue ServerException => e
     @logger.error("Failed to disable 2FA: #{e.message}")
-    UserService::Disable2FAResponse.new(status_code: e.status_code)
+    UserService::DisableTFAResponse.new(status_code: e.status_code)
   rescue StandardError => e
     @logger.error("Failed to disable 2FA: #{e}")
-    UserService::Disable2FAResponse.new(status_code: 500)
+    UserService::DisableTFAResponse.new(status_code: 500)
   end  
 
-  def check_2fa_code(request, _metadata)
+  def check_tfa_code(request, _metadata)
     @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id, request.totp_code]
@@ -308,17 +308,17 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     
     totp_secret = db_response.getvalue(0, 0)
 
-    grpc_response = @grpc_client.check_2fa_code(totp_secret, request.totp_code)
+    grpc_response = @grpc_client.check_tfa_code(totp_secret, request.totp_code)
     code_valid    = grpc_response.success
 
     @logger.info("2FA code for user with id '#{request.requester_user_id}' checked successfully")
-    code_valid ? UserService::Check2FACodeResponse.new(status_code: 204) : UserService::Check2FACodeResponse.new(status_code: 401)
+    code_valid ? UserService::CheckTFACodeResponse.new(status_code: 204) : UserService::CheckTFACodeResponse.new(status_code: 401)
   rescue ServerException => e
     @logger.error("Failed to check 2FA code: #{e.message}")
-    UserService::Check2FACodeResponse.new(status_code: e.status_code)
+    UserService::CheckTFACodeResponse.new(status_code: e.status_code)
   rescue StandardError => e
     @logger.error("Failed to check 2FA code: #{e}")
-    UserService::Check2FACodeResponse.new(status_code: 500)
+    UserService::CheckTFACodeResponse.new(status_code: 500)
   end
 
   def login_user(request, _metadata)
@@ -333,15 +333,15 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     hashed_password = barrier.async { hash_password(request.password) }
 
     @logger.debug("Querying database for user with email '#{request.email}'")
-    db_response = @db_client.query("SELECT id, two_factor_auth_enabled FROM Users WHERE email = $1 AND psw = $2", [request.email, hashed_password]) do |conn|
+    db_response = @db_client.query("SELECT id, tfa_status FROM Users WHERE email = $1 AND psw = $2", [request.email, hashed_password]) do |conn|
     raise ServerException::NotFound("User with email '#{request.email}' not found") if db_response.ntuples.zero?
 
     user_id                 = db_response.getvalue(0, 0)
-    two_factor_auth_enabled = db_response.getvalue(0, 1)
+    tfa_status = db_response.getvalue(0, 1)
 
-    logger.info("User with id '#{user_id}' requires 2FA") if two_factor_auth_enabled
+    logger.info("User with id '#{user_id}' requires 2FA") if tfa_status
 
-    grpc_response = @grpc_client.generate_jwt(user_id, 1, two_factor_auth_enabled)
+    grpc_response = @grpc_client.generate_jwt(user_id, 1, tfa_status)
     jwt           = grpc_response.jwt
 
     @logger.info("User with email '#{request.email}' logged in successfully")

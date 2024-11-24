@@ -19,7 +19,7 @@ CREATE TABLE Users
   totp_secret              text,
   display_name             varchar(25) NOT NULL,
   avatar                   bytea,
-  two_factor_auth_enabled  boolean DEFAULT false NOT NULL,
+  tfa_status  boolean DEFAULT false NOT NULL,
   current_status           user_status DEFAULT 'F' NOT NULL,
 
   CONSTRAINT pk_users               PRIMARY KEY (id),
@@ -36,12 +36,14 @@ CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I
 CREATE TABLE Matches
 (
   id                   uuid NOT NULL,
+  creator_id           uuid NOT NULL,
   current_status       match_status DEFAULT 'O' NOT NULL,
   started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
   finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
   tournament_id        uuid,
 
   CONSTRAINT           pk_matches                PRIMARY KEY (id),
+  CONSTRAINT           fk_matches_creator_id     FOREIGN KEY (creator_id) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT           unq_matches_tournament_id UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT           unq_matches_websocket_url UNIQUE (websocket_url) DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT           fk_matches_tournament     FOREIGN KEY (tournament_id) REFERENCES GameTournament(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
@@ -59,11 +61,13 @@ CREATE TYPE tournament_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: complet
 CREATE TABLE Tournaments
 (
   id                   uuid  NOT NULL,
+  creator_id           uuid  NOT NULL,
   current_status       tournament_status DEFAULT 'O' NOT NULL,
   started_timestamp    timestamptz DEFAULT CURRENT_TIMESTAMP,
   finished_timestamp   timestamptz DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT  pk_tournaments          PRIMARY KEY (id),
+  CONSTRAINT  fk_tournaments_creator  FOREIGN KEY (creator_id) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT  chk_started_timestamp   CHECK (started_timestamp  <= NOW()),
   CONSTRAINT  chk_finished_timestamp  CHECK (finished_timestamp <= NOW())
 );
@@ -120,7 +124,7 @@ CREATE TABLE UserTournaments
 CREATE INDEX idx_usertournaments_user_id                ON UserTournaments(user_id);
 CREATE INDEX idx_usertournaments_tournament_id_position ON UserTournaments(tournament_id, position);
 
-CREATE VIEW UserProfiles AS
+CREATE VIEW UserPublicProfiles AS
 SELECT 
   id,
   display_name,
@@ -135,7 +139,7 @@ SELECT
   email,
   display_name,
   avatar,
-  two_factor_auth_enabled,
+  tfa_status,
   current_status,
 FROM
   Users

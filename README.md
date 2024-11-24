@@ -361,8 +361,7 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 - Names should be short but descriptive, prioritizing clarity over brevity.
 
 ### 3.1 File and Folder names
-- Use **lowercase** for folder names with underscore (`_`) as separators.
-- Use **UpperCamelCase** for Class files
+- Use **snake_case** for folder and file names.
 - **Class** files should have the same name as the Class
 - Use `.template` suffix on files that need environvment variables substitution
 
@@ -452,44 +451,31 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 ### Dockerfile
 - Template:
   ```Dockerfile
-  FROM alpine:3.19 as official
+  FROM alpine:3.19
 
   SHELL ["/bin/ash", "-c"]
 
   RUN apk add --no-cache
 
-  RUN mkdir -p /etc/service_name/conf.d
-  RUN touch /var/log/service_name.log
+  RUN mkdir -p
 
-  COPY
-  COPY ./build/default_conf.yaml    /etc/service_name/conf.d/
+  COPY ./build/
 
   RUN adduser -DHS service_name
-  RUN chown -R service_name:service_name /etc/service_name /var/log/service_name.log
+  RUN chown -R service_name:service_name 
   RUN chmod -R +x /usr/local/bin/
 
-  WORKDIR /etc/service_name/conf.d/
+  WORKDIR
   EXPOSE 
 
   ENTRYPOINT []
   HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD []
-
-  FROM official as pongfumasters
-
-  RUN mkdir -p /shared
-
-  USER service_name
-  WORKDIR /shared
-  VOLUME ["/shared"]
-
-  CMD ["-c", "/shared/conf/production.yaml"]
   ```
   - Always specify the `SHELL`
   - Keep the **order** of instructions as in the example
   - Never use `--chmod` or `--chown` directly on `ADD` or `COPY` commands
   - Always specify a `WORKDIR`
   - Always specify a `HEALTHCHECK`
-  - Always include default configurations
   - Document open ports with `EXPOSE`
   - Use full paths even if `WORKDIR` is set
   - Keep consistency between all Dockerfiles

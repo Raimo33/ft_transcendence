@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 17:40:57 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/24 17:48:02 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,11 +23,10 @@ class Server
   end
 
   def call(env)
-    request = Falcon::Request.new(env)
     validated_request = env[OpenapiFirst::REQUEST]
 
     handler = find_handler(validated_request.operation['operationId'])
-    response = handler.call(validated_request.params)
+    response = handler.call(validated_request.params, env['requesting_user_id'])
 
     response
   end

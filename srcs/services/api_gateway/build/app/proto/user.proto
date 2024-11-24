@@ -2,267 +2,112 @@ syntax = "proto3";
 
 package user.api_gateway;
 
+import "google/protobuf/empty.proto";
 
 service UserAPIGatewayService
 {
-  rpc RegisterUser                  (RegisterUserRequest)                  returns (RegisterUserResponse) {}
-  rpc GetUserProfile                (GetUserProfileRequest)                returns (GetUserProfileResponse) {}
-  rpc GetUserStatus                 (GetUserStatusRequest)                 returns (GetUserStatusResponse) {}
-  rpc DeleteAccount                 (DeleteAccountRequest)                 returns (DeleteAccountResponse) {}
-  rpc GetPrivateProfile             (GetPrivateProfileRequest)             returns (GetPrivateProfileResponse) {}
-  rpc UpdateProfile                 (UpdateProfileRequest)                 returns (UpdateProfileResponse) {}
-  rpc UpdatePassword                (UpdatePasswordRequest)                returns (UpdatePasswordResponse) {}
-  // rpc RequestPasswordReset          (RequestPasswordResetRequest)          returns (RequestPasswordResetResponse) {}
-  // rpc CheckPasswordResetToken       (CheckPasswordResetTokenRequest)       returns (CheckPasswordResetTokenResponse) {}
-  // rpc ResetPassword                 (ResetPasswordRequest)                 returns (ResetPasswordResponse) {}
-  // rpc UpdateEmail                   (UpdateEmailRequest)                   returns (UpdateEmailResponse) {}
-  // rpc CheckEmailVerificationToken   (CheckEmailVerificationTokenRequest)   returns (VerifyEmailResponse) {}
-  rpc Enable2FA                     (Enable2FARequest)                     returns (Enable2FAResponse) {}
-  rpc Get2FAStatus                  (Get2FAStatusRequest)                  returns (Get2FAStatusResponse) {}
-  rpc Disable2FA                    (Disable2FARequest)                    returns (Disable2FAResponse) {}
-  rpc Check2FACode                  (Check2FACodeRequest)                  returns (Check2FACodeResponse) {}
-  rpc LoginUser                     (LoginUserRequest)                     returns (LoginUserResponse) {}
-  rpc LogoutUser                    (LogoutUserRequest)                    returns (LogoutUserResponse) {}
-  rpc AddFriend                     (AddFriendRequest)                     returns (AddFriendResponse) {}
-  rpc GetFriends                    (GetFriendsRequest)                    returns (GetFriendsResponse) {}
-  rpc RemoveFriend                  (RemoveFriendRequest)                  returns (RemoveFriendResponse) {}
+  rpc RegisterUser            (RegisterUserRequest)           returns (RegisterUserResponse)  {}
+  rpc GetUserPublicProfile    (GetUserPublicProfileRequest)   returns (UserPublicProfile)     {}
+  rpc GetUserStatus           (GetUserStatusRequest)          returns (UserStatus)            {}
+  rpc DeleteAccount           (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
+  rpc GetUserPrivateProfile   (google.protobuf.Empty)         returns (UserPrivateProfile)    {}
+  rpc UpdateProfile           (UpdateProfileRequest)          returns (google.protobuf.Empty) {}
+  rpc EnableTFA               (google.protobuf.Empty)         returns (TotpSecret)            {} 
+  rpc GetTFAStatus            (google.protobuf.Empty)         returns (TFAStatus)             {} 
+  rpc DisableTFA              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
+  rpc CheckTFACode            (CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
+  rpc LoginUser               (LoginUserRequest)              returns (JWT)                   {}                 
+  rpc LogoutUser              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
+  rpc AddFriend               (AddFriendRequest)              returns (google.protobuf.Empty) {}
+  rpc GetFriends              (google.protobuf.Empty)         returns (Friends)               {}
+  rpc RemoveFriend            (RemoveFriendRequest)           returns (google.protobuf.Empty) {}
 }
 
-message UserProfile
-{
-  required string  id            = 1;
-  required string  display_name  = 2;
-  required string  avatar        = 3;
-  required string  status        = 4;
-}
-message User
-{
-  required string  id                      = 1;
-  required string  display_name            = 2;
-  required string  avatar                  = 3;
-  required string  status                  = 4;
-  required string  email                   = 7;
-  required bool    two_factor_auth_enabled = 8;
-}
-
-// v1/users POST
 message RegisterUserRequest
 {
-  string email         = 1;
-  string password      = 2;
-  string display_name  = 3;
-  string avatar        = 4;
+  string email        = 1;
+  string password     = 2;
+  string display_name = 3;
 }
 message RegisterUserResponse
 {
-  string  user_id      = 1;
+  string user_id = 1;
 }
 
-// v1/users/{user_id}/profile GET
-message GetUserProfileRequest
+message GetUserPublicProfileRequest
 {
-  required string requester_user_id  = 1;
-  required string user_id            = 2;
+  string user_id = 1;
 }
-message GetUserProfileResponse
+message UserPublicProfile
 {
-  optional UserProfile  profile     = 1;
+  string id            = 1;
+  string display_name  = 2;
+  string avatar        = 3;
+  string status        = 4;
 }
 
-// v1/users/{user_id}/status GET
 message GetUserStatusRequest
 {
-  string  requester_user_id  = 1;
-  string  user_id            = 2;
+  string user_id = 1;
 }
-message GetUserStatusResponse
+message UserStatus
 {
-  string  user_status = 1;
+  string user_status = 1;
 }
 
-// v1/user DELETE
-message DeleteAccountRequest
+message UserPrivateProfile
 {
-  string  requester_user_id = 1;
-}
-message DeleteAccountResponse
-{
-}
-
-// v1/user/profile GET
-message GetPrivateProfileRequest
-{
-  required string requester_user_id  = 1;
-}
-message GetPrivateProfileResponse
-{
-  optional User    profile      = 1;
+  string id              = 1;
+  string display_name    = 2;
+  string email           = 3;
+  string avatar          = 4;
+  bool   tfa_status      = 5;
+  string status          = 6;
 }
 
-// v1/user/profile PATCH
 message UpdateProfileRequest
 {
-  string  requester_user_id   = 1;
-  string  display_name        = 2;
-  string  avatar              = 3;
-}
-message UpdateProfileResponse
-{
+  string display_name  = 1;
+  string avatar        = 2;
 }
 
-// v1/user/password PUT
-message UpdatePasswordRequest
-{
-  string  requester_user_id   = 1;
-  string  old_password        = 2;
-  string  new_password        = 3;
-}
-message UpdatePasswordResponse
-{
-}
-
-// // v1/user/password/reset POST
-// message RequestPasswordResetRequest
-// {
-//   required string email = 1;
-// }
-// message RequestPasswordResetResponse
-// {
-//
-// }
-
-// // v1/user/password/reset/{token} POST
-// message CheckPasswordResetTokenRequest
-// {
-//   required string  token = 1;
-// }
-// message CheckPasswordResetTokenResponse
-// {
-//
-// }
-
-// // v1/user/password/reset/{token} PATCH
-// message ResetPasswordRequest
-// {
-//   required string  token         = 1;
-//   required string  new_password  = 2;
-// }
-// message ResetPasswordResponse
-// {
-//
-// }
-
-// // v1/user/email PATCH
-// message UpdateEmailRequest
-// {
-//   required string  requester_user_id = 1;
-//   required string  new_email          = 2;
-//   required string  current_password   = 3;
-//   optional string  totp_code          = 4;
-// }
-// message UpdateEmailResponse
-// {
-//
-// }
-
-// // v1/user/email/verify POST
-// message VerifyEmailRequest
-// {
-//   required string requester_user_id = 1;
-// }
-// message VerifyEmailResponse
-// {
-//
-// }
-
-// // v1/user/email/verify POST
-// message CheckEmailVerificationTokenRequest
-// {
-//   required string  token = 1;
-// }
-// message VerifyEmailResponse
-// {
-//
-// }
-
-// v1/user/2fa POST
-message Enable2FARequest
-{
-  string  requester_user_id = 1;
-}
-message Enable2FAResponse
+message TotpSecret
 {
   string totp_secret = 1;
 }
 
-// v1/users/{user_id}/2fa GET
-message Get2FAStatusRequest
+message TFAStatus
 {
-  string requester_user_id = 1;
-}
-message Get2FAStatusResponse
-{
-  bool   two_factor_auth_enabled = 2;
+  bool tfa_status = 1;
 }
 
-// v1/user/2fa DELETE
-message Disable2FARequest
+message CheckTFACodeRequest
 {
-  string requester_user_id = 1;
-}
-message Disable2FAResponse
-{
+  string totp_code = 1;
 }
 
-// v1/user/2fa/verify POST
-message Check2FACodeRequest
-{
-  string  requester_user_id  = 1;
-  string  totp_code          = 2;
-}
-message Check2FACodeResponse
-{
-}
-
-// v1/user/login POST
 message LoginUserRequest
 {
-  string email     = 1;
-  string password  = 2;
-}
-message LoginUserResponse
-{
-  string jwt = 2;
+  string email    = 1;
+  string password = 2;
 }
 
-// v1/user/friends POST
+message JWT
+{
+  string jwt = 1;
+}
+
 message AddFriendRequest
 {
-  string  requester_user_id = 1;
-  string  friend_id          = 2;
-}
-message AddFriendResponse
-{
+  string friend_id = 1;
 }
 
-// v1/user/friends GET
-message GetFriendsRequest
+message Friends
 {
-  required string          requester_user_id   = 1;
-  optional uint32          limit                = 2;
-  optional uint32          offset               = 3;
-}
-message GetFriendsResponse
-{
-  optional repeated string  friend_ids  = 2;
+  repeated string friend_ids = 1;
 }
 
-// v1/user/friends/{friend_id} DELETE
 message RemoveFriendRequest
 {
-  string  requester_user_id  = 1;
-  string  friend_id           = 2;
-}
-message RemoveFriendResponse
-{
+  string friend_id = 1;
 }

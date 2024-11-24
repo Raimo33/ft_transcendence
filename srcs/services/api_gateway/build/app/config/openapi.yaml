@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 16:11:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/24 20:23:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   title: Pongfumasters API
   description: REST-ful API to interact with the Pongfumasters gateway.
@@ -36,13 +36,10 @@ paths:
             Content-Type:
               $ref: "#/components/headers/Content-Type"
           content:
-            application/json:
+            text/plain:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "pong"
+                type: string
+                example: "pong...FUMASTERS!"
 
   /users:
     post:
@@ -50,9 +47,6 @@ paths:
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other  fields.
       x-auth-level: 0
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
       requestBody:
         content:
           application/json:
@@ -94,7 +88,7 @@ paths:
           $ref: "#/components/responses/ContentTooLarge"
   /users/{user_id}/profile:
     get:
-      operationId: getUserProfile 
+      operationId: getUserPublicProfile 
       summary: Get user profile
       description: Retrieve the public profile of a user account by providing the user ID.
       parameters:
@@ -113,7 +107,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/UserPublicProfile"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "431":
@@ -226,10 +220,9 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/profile:
     get:
-      operationId: getPrivateProfile
+      operationId: getUserPrivateProfile
       summary: Get current user"s profile
       description: Retrieve detailed information about the current user.
-      parameters:
       x-auth-level: 1
       security:
         - jwtAuth: []
@@ -244,7 +237,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/UserPrivateProfile"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "411":
@@ -255,8 +248,6 @@ paths:
       operationId: updateProfile
       summary: Update user profile
       description: Update the public profile of the current user.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
       requestBody:
         content:
           application/json:
@@ -284,14 +275,11 @@ paths:
           $ref: "#/components/responses/ContentTooLarge"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/2fa:
+  /user/tfa:
     post:
-      operationId: enable2FA
-      summary: Setup 2fa
+      operationId: enableTFA
+      summary: Setup tfa
       description: Enable two-factor authentication for the current user account.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -322,8 +310,8 @@ paths:
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
-      operationId: get2FAStatus
-      summary: Get 2fa status
+      operationId: getTFAStatus
+      summary: Get tfa status
       description: Retrieve the two-factor authentication status of a user account.
       parameters:
         - $ref: "#/components/parameters/user_id"
@@ -332,7 +320,7 @@ paths:
       x-auth-level: 1
       responses:
         "200":
-          description: Returns the 2fa status of the current user.
+          description: Returns the tfa status of the current user.
           headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
@@ -343,19 +331,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  two_factor_auth_enabled:
-                    $ref: "#/components/schemas/two_factor_auth_enabled"
-                required: [two_factor_auth_enabled]
+                  tfa_status:
+                    $ref: "#/components/schemas/tfa_status"
+                required: [tfa_status]
         "401":
           $ref: "#/components/responses/Unauthorized"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
-      operationId: disable2FA
-      summary: Disable 2fa
+      operationId: disableTFA
+      summary: Disable tfa
       description: Disable two-factor authentication for a user account.
       parameters:
-        - $ref: "#/components/parameters/Content-Length"
         - $ref: "#/components/parameters/totp_code"
       security:
         - jwtAuth: []
@@ -369,14 +356,12 @@ paths:
           $ref: "#/components/responses/Conflict"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/2fa/verify:
+  /user/tfa/verify:
     post:
-      operationId: check2FACode
-      summary: Check 2fa code
+      operationId: checkTFACode
+      summary: Check tfa code
       description: Check the validity of the two-factor authentication code provided by the user.
       parameters:
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
         - $ref: "#/components/parameters/totp_code"
       security:
         - jwtAuth: []
@@ -399,9 +384,6 @@ paths:
       operationId: loginUser
       summary: User login
       description: Authenticate the user and return a JWT for session management.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
       x-auth-level: 0
       requestBody:
         content:
@@ -447,9 +429,6 @@ paths:
       operationId: addFriend
       summary: Add a friend
       description: Add a user to the friend list.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
       requestBody:
         content:
           application/json:
@@ -507,7 +486,7 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/friends/{friend_id}:
     delete:
-      operationId: removeFriend0
+      operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
@@ -530,20 +509,15 @@ paths:
       operationId: createMatch
       summary: Start a new match
       description: Initialize a new Pong match by providing the match settings and the opponent user IDs.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                invited_user_ids:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/user_id"
-              required: [invited_user_ids]
+                invited_user_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [invited_user_id]
               additionalProperties: false
         required: true
       security:
@@ -564,8 +538,6 @@ paths:
                 properties:
                   match_id:
                     $ref: "#/components/schemas/match_id"
-                  websocket_url:
-                    $ref: "#/components/schemas/websocket_url"
                 required: [match_id]
         "401":
           $ref: "#/components/responses/Unauthorized"
@@ -578,41 +550,6 @@ paths:
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /matches/{match_id}:
-    post:
-      operationId: joinMatch
-      summary: Join an ongoing match
-      description: Allows a user to join an ongoing match by providing the match ID.
-      parameters:
-        - $ref: "#/components/parameters/match_id"
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
-      security:
-        - jwtAuth: []
-      x-auth-level: 1
-      responses:
-        "200":
-          description: Returns the websocket URL of the match.
-          headers:
-            Content-Length:
-              $ref: "#/components/headers/Content-Length"
-            Content-Type:
-              $ref: "#/components/headers/Content-Type"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  websocket_url:
-                    $ref: "#/components/schemas/websocket_url"
-                required: [websocket_url]
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
       operationId: getMatch
       summary: Get match info
@@ -644,7 +581,48 @@ paths:
       description: Exit and terminate the ongoing match.
       parameters:
         - $ref: "#/components/parameters/match_id"
-        - $ref: "#/components/parameters/Content-Length"
+      security:
+        - jwtAuth: []
+      x-auth-level: 1
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "431":
+          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  /matches/{match_id}/accept:
+    post:
+      operationId: acceptMatchInvitation
+      summary: Accept match invitation
+      description: Accept an invitation to join a match by providing the match ID.
+      parameters:
+        - $ref: "#/components/parameters/match_id"
+      security:
+        - jwtAuth: []
+      x-auth-level: 1
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "431":
+          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  /matches/{match_id}/decline:
+    post:
+      operationId: declineMatchInvitation
+      summary: Decline match invitation
+      description: Decline an invitation to join a match by providing the match ID.
+      parameters:
+        - $ref: "#/components/parameters/match_id"
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -665,22 +643,6 @@ paths:
       operationId: createTournament
       summary: Start a new tournament
       description: Initialize a new Pong tournament by providing a list of users to invite and tournament mode.
-      parameters:
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                invited_user_ids:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/user_id"
-              required: [invited_user_ids]
-              additionalProperties: false
-        required: true
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -707,32 +669,6 @@ paths:
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /tournaments/{tournament_id}:
-    post:
-      operationId: joinTournament
-      summary: Join an ongoing tournament
-      description: Allows an invited user to join an ongoing tournament by providing the tournament ID.
-      parameters:
-        - $ref: "#/components/parameters/tournament_id"
-        - $ref: "#/components/parameters/Content-Length"
-        - $ref: "#/components/parameters/Transfer-Encoding"
-      security:
-        - jwtAuth: []
-      x-auth-level: 1
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
       operationId: getTournament
       summary: Get tournament info
@@ -743,7 +679,7 @@ paths:
       responses:
         "200":
           description: Returns match information.
-          headers:
+          headers: #TODO rimuovere content length ovunque
             Content-Length:
               $ref: "#/components/headers/Content-Length"
             Content-Type:
@@ -757,9 +693,52 @@ paths:
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
+      operationId: cancelTournament
+      summary: Cancel a tournament
+      description: Cancel an ongoing tournament and remove all participants.
+      parameters:
+        - $ref: "#/components/parameters/tournament_id"
+      security:
+        - jwtAuth: []
+      x-auth-level: 1
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "431":
+          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  /tournaments/{tournament_id}/partecipants:
+    post:
+      operationId: joinTournament
+      summary: Join a tournament
+      description: Register the current user to participate in a tournament.
+      parameters:
+        - $ref: "#/components/parameters/tournament_id"
+      security:
+        - jwtAuth: []
+      x-auth-level: 1
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "411":
+          $ref: "#/components/responses/LengthRequired"
+        "413":
+          $ref: "#/components/responses/ContentTooLarge"
+        "431":
+          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+    delete:
       operationId: leaveTournament
-      summary: Leave the specified tournament
-      description: Exit and resign from the ongoing tournament.
+      summary: Leave a tournament
+      description: Unregister the current user from a tournament.
       parameters:
         - $ref: "#/components/parameters/tournament_id"
       security:
@@ -842,8 +821,8 @@ components:
       format: int64
       example: 1634265600
 
-    two_factor_auth_enabled:
-      description: Status of the 2FA authentication for the user.
+    tfa_status:
+      description: Status of the TFA authentication for the user.
       type: boolean
       example: true
 
@@ -854,17 +833,17 @@ components:
       example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABjklEQVRIS+2Vv0oDQRDG..."
   
     totp_code:
-      description: TOTP code generated by the user for 2FA authentication.
+      description: TOTP code generated by the user for TFA authentication.
       type: string #string because it can contain leading zeros
       example: "123456"
 
     totp_secret:
-      description: TOTP secret key for generating 2FA codes.
+      description: TOTP secret key for generating TFA codes.
       type: string
       example: "otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}"
 
     totp_key:
-      description: Represents a 2FA private key for a user.
+      description: Represents a TFA private key for a user.
       type: object
       properties:
         qr_code:
@@ -877,13 +856,8 @@ components:
       type: string
       example: "<Header>.<Payload>.<Signature>"
 
-    websocket_url:
-      description: WebSocket URL for real-time interaction during the match. Used by clients to establish connections and interact with the game in real-time.
-      type: string
-      format: uri
-      example: "wss://example.com/ws"
 
-    UserProfile:
+    UserPublicProfile:
       description: Represents a public user profile with limited information.
       type: object
       properties: 
@@ -897,18 +871,18 @@ components:
           $ref: "#/components/schemas/user_status"
       required: [id, display_name, avatar, status]
 
-    User:
+    UserPrivateProfile:
       description: Represents a private user profile with additional information.
       type: object
       allOf:
-        - $ref: "#/components/schemas/UserProfile"
+        - $ref: "#/components/schemas/UserPublicProfile"
         - properties:
             email:
               $ref: "#/components/schemas/user_email"
-            two_factor_auth_enabled:
-              $ref: "#/components/schemas/two_factor_auth_enabled"
+            tfa_status:
+              $ref: "#/components/schemas/tfa_status"
           additionalProperties: false
-      required: [id, display_name, avatar, status, email, two_factor_auth_enabled]
+      required: [id, display_name, avatar, status, email, tfa_status]
 
     Match:
       description: Represents a match of Pong between two players.
@@ -916,8 +890,9 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/match_id"
+        creator_id:
+          $ref: "#/components/schemas/user_id"
         player_ids:
-          description: Array of user_ids representing the players in the match.
           type: array
           items:
             $ref: "#/components/schemas/user_id"
@@ -927,7 +902,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_timestamp:
           $ref: "#/components/schemas/timestamp"
-      required: [id, player_ids, status, started_timestamp]
+      required: [id, creator_id, player_ids, status, started_timestamp]
 
     Tournament:
       description: Represents a Pong tournament, containing multiple matches and players.
@@ -935,8 +910,9 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/tournament_id"
+        creator_id:
+          $ref: "#/components/schemas/user_id"
         match_ids:
-          description: Array of match_ids in the tournament.
           type: array
           items:
             $ref: "#/components/schemas/match_id"
@@ -946,7 +922,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_timestamp:
           $ref: "#/components/schemas/timestamp"
-      required: [id, match_ids, status, started_timestamp]
+      required: [id, creator_id, match_ids, status, started_timestamp]
 
   parameters:
 
@@ -988,26 +964,6 @@ components:
     #                     Headers                         #
     #######################################################
 
-    Content-Length:
-      description: The length of the request body in octets (8-bit bytes).
-      name: Content-Length
-      in: header
-      schema:
-        type: integer
-        format: int32
-        minimum: 0
-      example: 12345
-      required: true
-    
-    Transfer-Encoding:
-      name: Transfer-Encoding
-      in: header
-      description: The form of encoding used in the request body.
-      schema:
-        type: string
-        enum: [chunked, compress, deflate, gzip, identity]
-      example: chunked
-
     token:
       description: verification token for credentials recovery/validation
       name: token
@@ -1017,7 +973,7 @@ components:
       required: true
     
     totp_code:
-      description: TOTP code generated by the user for 2FA authentication.
+      description: TOTP code generated by the user for TFA authentication.
       name: totp_code
       in: header
       schema:

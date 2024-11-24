@@ -5,7 +5,7 @@ package auth.api_gateway;
 
 service AuthAPIGatewayService
 {
-  rpc GetPublicKeys(GetPublicKeysRequest) returns (GetPublicKeysResponse);
+  rpc GetUserPublicKeys(google.protobuf.Empty) returns (PublicKeys);
 }
 
 message PublicKey
@@ -16,11 +16,7 @@ message PublicKey
   bool             is_current  = 4;
 }
 
-message GetPublicKeysRequest
+message PublicKeys
 {
-}
-
-message GetPublicKeysResponse
-{
-  repeated PublicKey public_keys = 1;
+  repeated PublicKey  keys = 1;
 }

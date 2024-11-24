@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 17:02:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/24 17:30:51 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,23 +51,23 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def generate_2fa_secret(user_id)
+  def generate_tfa_secret(user_id)
     handle_grpc_call do
-      grpc_request   = AuthUserService::Generate2faSecretRequest.new(user_id: user_id)
-      @stubs["auth"].generate_2fa_secret(grpc_request)
+      grpc_request   = AuthUserService::GeneratetfaSecretRequest.new(user_id: user_id)
+      @stubs["auth"].generate_tfa_secret(grpc_request)
     end
   end
 
-  def check_2fa_code(totp_secret, totp_code)
+  def check_tfa_code(totp_secret, totp_code)
     handle_grpc_call do
-      grpc_request   = AuthUserService::Check2faCodeRequest.new(totp_secret: totp_secret, totp_code: totp_code)
-      @stubs["auth"].check_2fa_code(grpc_request)
+      grpc_request   = AuthUserService::ChecktfaCodeRequest.new(totp_secret: totp_secret, totp_code: totp_code)
+      @stubs["auth"].check_tfa_code(grpc_request)
     end
   end
 
-  def generate_jwt(user_id, auth_level, pending_2fa)
+  def generate_jwt(user_id, auth_level, pending_tfa)
     handle_grpc_call do
-      grpc_request   = AuthUserService::GenerateJwtRequest.new(user_id: user_id, auth_level: auth_level, pending_2fa: pending_2fa)
+      grpc_request   = AuthUserService::GenerateJwtRequest.new(user_id: user_id, auth_level: auth_level, pending_tfa: pending_tfa)
       @stubs["auth"].generate_jwt(grpc_request)
     end
   end

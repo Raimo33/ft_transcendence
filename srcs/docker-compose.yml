@@ -31,6 +31,7 @@ services:
       args:
     container_name: api_gateway
     environment:
+      - RACK_ENV=production
     volumes:
       - ./services/api_gateway/shared/:/shared/:ro
     secrets:

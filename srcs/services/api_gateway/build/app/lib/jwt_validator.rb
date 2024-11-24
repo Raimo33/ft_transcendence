@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 17:06:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/24 17:14:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,22 +25,16 @@ class JwtValidator
     @last_fetched = nil
   end
 
-  def validate_token(token, auth_level)
+  def validate_token(auth_header, auth_level)
+    token = auth_header.split(' ').last
     decoded_token = decode_token(token)
-    return false unless decoded_token
-    
+    return nil unless decoded_token
+
     claims = decoded_token[0]
-    return false unless validate_claims(claims)
-    return false unless claims["auth_level"].to_i >= auth_level
+    return nil unless validate_claims(claims)
+    return nil unless claims["auth_level"].to_i >= auth_level
 
-    true
-  end
-
-  def get_subject(token)
-    decoded_token = decode_token(token)
-    return false unless decoded_token
-
-    decoded_token[0]["sub"]
+    claims["sub"]
   end
 
   private
@@ -69,7 +63,7 @@ class JwtValidator
   end
 
   def refresh_keys
-    response = @grpc_client.stubs[:auth].get_public_keys(Auth::GetPublicKeysRequest.new)
+    response = @grpc_client.stubs[:auth].get_public_keys(Auth::GetUserPublicKeysRequest.new)
     
     @public_keys.clear
     response.public_keys.each do |key|

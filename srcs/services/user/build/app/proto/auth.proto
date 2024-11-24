@@ -2,23 +2,21 @@ syntax = "proto3";
 
 package auth.user;
 
+import "google/protobuf/empty.proto";
+
 
 service AuthUserService
 {
-  rpc CheckDomain(CheckDomainRequest)             returns (CheckDomainResponse) {}
+  rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
   rpc HashPassword(HashPasswordRequest)           returns (HashedPassword) {}
-  rpc Generate2FASecret(Generate2FASecretRequest) returns (Generate2FASecretResponse) {}
-  rpc Check2FACode(Check2FACodeRequest)           returns (Check2FACodeResponse) {}
-  rpc GenerateJWT(GenerateJWTRequest)             returns (GenerateJWTResponse) {}
+  rpc GenerateTFASecret(google.protobuf.Empty)    returns (TFASecret) {}
+  rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
+  rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
 }
 
 message CheckDomainRequest
 {
   string domain = 1;
-}
-message CheckDomainResponse
-{
-  bool is_allowed = 1;
 }
 
 message HashPasswordRequest
@@ -30,31 +28,24 @@ message HashedPassword
   string hashed_password = 1;
 }
 
-message Generate2FASecretRequest
+message TFASecret
 {
-}
-message Generate2FASecretResponse
-{
-  string totp_secret = 1;
+  string secret = 1;
 }
 
-message Check2FACodeRequest
+message CheckTFACodeRequest
 {
   string totp_secret  = 1;
   string totp_code    = 2;
 }
-message Check2FACodeResponse
-{
-  bool success = 1;
-}
 
-message GenerateJWTRequest //TODO short lived 5m jwt for pending 2fa, long lived jwt for normal login
+message GenerateJWTRequest //TODO short lived 5m jwt for pending tfa, long lived jwt for normal login
 {
   string user_id     = 1;
   uint16 auth_level  = 2;
-  bool   pending_2fa = 3;
+  bool   pending_tfa = 3;
 }
-message GenerateJWTResponse
+message JWT
 {
   string jwt = 1;
 }

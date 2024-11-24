@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 15:07:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/24 20:29:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,11 +16,11 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache ruby protobuf
 
+COPY ./build/app/   /app
+
 RUN adduser -DHS api_gateway
 RUN chown -R api_gateway:api_gateway /app
 RUN chmod -R +x /usr/local/bin/
-
-COPY --chown=api_gateway:api_gateway ./build/app/ /app
 
 WORKDIR /app
 RUN gem install bundler

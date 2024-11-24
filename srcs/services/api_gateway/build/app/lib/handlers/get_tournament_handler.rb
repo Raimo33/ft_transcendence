@@ -1,23 +1,22 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    ping_handler.rb                                    :+:      :+:    :+:    #
+#    get_tournament_handler.rb                          :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/23 16:01:13 by craimond          #+#    #+#              #
-#    Updated: 2024/11/24 20:23:39 by craimond         ###   ########.fr        #
+#    Created: 2024/11/24 20:05:08 by craimond          #+#    #+#              #
+#    Updated: 2024/11/24 20:05:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
-class PingHandler < BaseHandler
+class GetTournamentHandler < BaseHandler
   def call(params, requesting_user_id)
-    [
-      200,
-      { 'Content-Type' => 'text/plain' },
-      ['pong...FUMASTERS!']
-    ]
+    grpc_request = Tournament::GetTournamentRequest.new(params)
+    metadata = build_request_metadata(requesting_user_id)
+    response = @grpc_client.stubs[:tournament].get_tournament(grpc_request, metadata)
+    build_response_json(response)
   end
 end

@@ -2,78 +2,54 @@ syntax = "proto3";
 
 package tournament.api_gateway;
 
+import "google/protobuf/empty.proto";
 
 service TournamentAPIGatewayService
 {
-  rpc GetUserTournaments    (GetUserTournamentsRequest)   returns (GetUserTournamentsResponse) {}
-  rpc CreateTournament      (CreateTournamentRequest)     returns (CreateTournamentResponse) {}
-  rpc JoinTournament        (JoinTournamentRequest)       returns (JoinTournamentResponse) {}
-  rpc GetTournament         (GetTournamentRequest)        returns (GetTournamentResponse) {}
-  rpc LeaveTournament       (LeaveTournamentRequest)      returns (LeaveTournamentResponse) {}
+  rpc GetUserTournaments           (GetUserTournamentsRequest)           returns (Tournaments)              {}
+  rpc CreateTournament             (google.protobuf.Empty)               returns (CreateTournamentResponse) {}
+  rpc GetTournament                (GetTournamentRequest)                returns (Tournament)               {}
+  rpc CancelTournament             (CancelTournamentRequest)             returns (google.protobuf.Empty)    {}
+  rpc JoinTournament               (JoinTournamentRequest)               returns (google.protobuf.Empty)    {}
+  rpc LeaveTournament              (LeaveTournamentRequest)              returns (google.protobuf.Empty)    {}
 }
 
+message GetUserTournamentsRequest
+{
+  string  user_id   = 1;
+  uint32  limit     = 2;
+  uint32  offset    = 3;
+}
+message Tournaments
+{
+  repeated Tournament  tournaments = 1;
+}
+
+message GetTournamentRequest
+{
+  string tournament_id  = 1;
+}
 message Tournament
 {
   string           id                  = 1;
-  string           mode                = 2;
+  string           creator_id          = 2;
   repeated string  match_ids           = 3;
   string           status              = 4;
   uint64           started_timestamp   = 5;
   uint64           finished_timestamp  = 6;
 }
 
-// v1/users/{user_id}/tournaments GET
-message GetUserTournamentsRequest
+message CancelTournamentRequest
 {
-  string  requester_user_id  = 1;
-  string  user_id             = 2;
-  uint32  limit               = 3;
-  uint32  offset              = 4;
-}
-message GetUserTournamentsResponse
-{
-  repeated Tournament  tournaments = 2;
+  string tournament_id  = 1;
 }
 
-// v1/tournaments POST
-message CreateTournamentRequest
-{
-  string           requester_user_id  = 1;
-  repeated string  invided_users_ids   = 2;
-  string           mode                = 3;
-}
-message CreateTournamentResponse
-{
-  string  tournament_id  = 2;
-}
-
-// v1/tournaments/{tournament_id} POST
 message JoinTournamentRequest
 {
-  string  requester_user_id = 1;
-  string  tournament_id      = 2;
-}
-message JoinTournamentResponse
-{
+  string tournament_id  = 1;
 }
 
-// v1/tournaments/{tournament_id} GET
-message GetTournamentRequest
-{
-  string requester_user_id  = 1;
-  string tournament_id       = 2;
-}
-message GetTournamentResponse
-{
-  Tournament tournament    = 2;
-}
-
-// v1/tournaments/{tournament_id} DELETE
 message LeaveTournamentRequest
 {
-  string requester_user_id  = 1;
-  string tournament_id       = 2;
-}
-message LeaveTournamentResponse
-{
+  string tournament_id  = 1;
 }

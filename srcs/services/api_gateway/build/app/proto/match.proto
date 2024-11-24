@@ -2,77 +2,65 @@ syntax = "proto3";
 
 package match.api_gateway;
 
+import "google/protobuf/empty.proto";
 
-service MatchAPIGatewayService
+
+service MatchService
 {
-  rpc GetUserMatches     (GetUserMatchesRequest)    returns (GetUserMatchesResponse) {}
-  rpc CreateMatch        (CreateMatchRequest)       returns (CreateMatchResponse) {}
-  rpc JoinMatch          (JoinMatchRequest)         returns (JoinMatchResponse) {}
-  rpc GetMatch           (GetMatchRequest)          returns (GetMatchResponse) {}
-  rpc LeaveMatch         (LeaveMatchRequest)        returns (LeaveMatchResponse) {}
+  rpc GetUserMatches(GetUserMatchesRequest)                 returns (Matches);
+  rpc CreateMatch(CreateMatchRequest)                       returns (CreateMatchResponse);
+  rpc GetMatch(GetMatchRequest)                             returns (Match);
+  rpc LeaveMatch(LeaveMatchRequest)                         returns (google.protobuf.Empty);
+  rpc AcceptMatchInvitation(AcceptMatchInvitationRequest)   returns (google.protobuf.Empty);
+  rpc DeclineMatchInvitation(DeclineMatchInvitationRequest) returns (google.protobuf.Empty);
 }
 
-message Match
-{
-  string           id                  = 1;
-  repeated string  player_ids          = 2;
-  string           status              = 3;
-  uint64           started_timestamp   = 4;
-  uint64           finished_timestamp  = 5;
-}
 
-// v1/users/{user_id}/matches GET
 message GetUserMatchesRequest
 {
-  string                requester_user_id = 1;
-  string                user_id            = 2;
-  uint32                limit              = 3;
-  uint32                offset             = 4;
+  string  user_id  = 1;
+  uint32  limit    = 2;
+  uint32  offset   = 3;
 }
-message GetUserMatchesResponse
+message Matches
 {
-  repeated Match  matches      = 2;
+  repeated Match matches = 1;
 }
 
-// v1/matches POST
-message CreateMatchRequest
+message CreateMatchRequest 
 {
-  string           requester_user_id  = 1;
-  repeated string  invited_user_ids    = 2;
-  MatchSettings    settings            = 3;
+  string  invited_user_id = 1;
 }
 message CreateMatchResponse
 {
-  string  match_id     = 2;
+  string  match_id = 1;
 }
 
-// v1/matches/{match_id} POST
-message JoinMatchRequest
-{
-  string  requester_user_id   = 1;
-  string  match_id             = 2;
-}
-message JoinMatchResponse
-{
-}
-
-// v1/matches/{match_id} GET
 message GetMatchRequest
 {
-  string requester_user_id  = 1;
-  string match_id            = 2;
+  string match_id = 1;
 }
-message GetMatchResponse
+message Match
 {
-  Match  match        = 2;
+  string           id                  = 1;
+  string           creator_id          = 2;
+  repeated string  player_ids          = 3;
+  string           status              = 4;
+  uint64           started_timestamp   = 5;
+  uint64           finished_timestamp  = 6;
 }
 
-// v1/matches/{match_id} DELETE
 message LeaveMatchRequest
 {
-  string  requester_user_id  = 1;
-  string  match_id            = 2;
+  string  match_id  = 1;
 }
-message LeaveMatchResponse
+
+message AcceptMatchInvitationRequest
 {
+  string  match_id = 1;
+}
+
+message DeclineMatchInvitationRequest
+{
+  string  match_id = 1;
 }
