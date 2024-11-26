@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/24 17:14:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/26 16:15:28 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -48,12 +48,12 @@ class JwtValidator
     return false unless public_key
 
     JWT.decode(token, public_key, true, {
-      algorithm:  @config[:jwt][:algorithm],
+      algorithm:  @config.dig(:jwt, :algorithm),
       verify_iat: true,
       verify_exp: true,
       verify_aud: true,
-      aud:        @config[:jwt][:audience],
-      leeway:     @config[:jwt][:clock_skew]
+      aud:        @config.dig(:jwt, :audience),
+      leeway:     @config.dig(:jwt, :clock_skew)
     })
   end
 
@@ -75,17 +75,17 @@ class JwtValidator
 
   def should_refresh_keys?
     return true if @last_fetched.nil?
-    Time.now - @last_fetched >= @config[:jwt][:key_refresh_interval]
+    Time.now - @last_fetched >= @config.dig(:jwt, :key_refresh_interval)
   end
 
   def validate_claims(claims)
     return false unless claims["exp"] && claims["iat"] && claims["aud"]
     
     now = Time.now.to_i
-    skew = @config[:jwt][:clock_skew]
+    skew = @config.dig(:jwt, :clock_skew)
 
     claims["exp"] + skew > now &&
     claims["iat"] - skew < now &&
-    claims["aud"] == @config[:jwt][:audience]
+    claims["aud"] == @config.dig(:jwt, :audience)
   end
 end

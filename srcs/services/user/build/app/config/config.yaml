@@ -1,25 +1,25 @@
-bind: 0.0.0.0:50052 #TODO passare come argomento tramite docker
-
 logging:
   level: info
-  file:  /dev/stdout
-  tag:   USER
+  file: /dev/stdout
+  tag: USER
 
 grpc:
   addresses:
     auth: auth.core:50052
   server:
+    host: 0.0.0.0
+    port: 50052
+    pool_size: 10
   client:
 
-  
 database:
-  host:      postgresql.data
-  port:      5432
-  name:      pongfumasters
-  user:      user
-  password:  password
+  host: postgresql.data
+  port: 5432
+  name: pongfumasters
+  user: user
+  password: password
   pool:
-    size:    10
+    size: 10
     timeout: 30
 
 display_name:
@@ -28,32 +28,32 @@ display_name:
   charset:
     lowercase: "abcdefghijklmnopqrstuvwxyz"
     uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    digits:    "0123456789"
-    special:   "!@#$%&*-_=+,.<>?"
+    digits: "0123456789"
+    special: "!@#$%&*-_=+,.<>?"
 
 password:
   min_length: 8
   max_length: 64
   charset:
-    lowercase:  "abcdefghijklmnopqrstuvwxyz"
-    uppercase:  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    digits:     "0123456789"
-    special:    "!@#$%&*-_=+,.<>?"
+    lowercase: "abcdefghijklmnopqrstuvwxyz"
+    uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    digits: "0123456789"
+    special: "!@#$%&*-_=+,.<>?"
   policy:
-    min_uppercase:  1
-    min_lowercase:  1
-    min_digits:     1
-    min_special:    0
+    min_uppercase: 1
+    min_lowercase: 1
+    min_digits: 1
+    min_special: 0
 
 avatar:
   max_size: 5242880
   max_dimensions:
-    width:  512
+    width: 512
     height: 512
   allowed_types:
     - image/jpeg
     - image/png
     - image/webp
   compression_quality: 80
-  standard_format: jpeg
+  format: jpeg
   default: /etc/default_avatar.jpg

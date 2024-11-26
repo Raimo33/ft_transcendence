@@ -6,30 +6,30 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 17:30:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/26 19:58:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'logger'
+require '../config_handler'
 
 class RequestLogger
   def initialize(app)
-    @app = app
+    @app    = app
     @logger = Logger.new($stdout)
+    @config = ConfigHandler.instance.config
+    @logger.formatter = proc do |severity, datetime, _, msg|
+      tag = @config.dig('logging', 'tag')
+      "[#{datetime.strftime('%Y-%m-%d %H:%M:%S.%L')}] #{severity} [#{tag}]: #{msg}\n"
+    end
   end
 
   def call(env)
     request = Rack::Request.new(env)
-    start_time = Time.now
 
-    @logger.info("Started #{request.request_method} \"#{request.fullpath}\" at #{start_time}")
-
+    @logger.info("Started #{request.request_method} #{request.path}")
     status, headers, response = @app.call(env)
-
-    end_time = Time.now
-    duration = (end_time - start_time) * 1000.0
-
-    @logger.info("Completed #{status} in #{duration.round(2)}ms")
+    @logger.info("Completed #{request.request_method} #{request.path}")
 
     [status, headers, response]
   end

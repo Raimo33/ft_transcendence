@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/25 17:49:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/26 19:36:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,30 +16,32 @@ require_relative "singletons/ConfigHandler"
 class GrpcServer
 
   def initialize
-    @config = ConfigHandler.instance.config
-    @server = GRPC::RpcServer.new(
-      pool_size: @config.fetch(:pool_size, 10),
-      #TODO controllare tutte le possibili flag 
-
+    @config   = ConfigHandler.instance.config
+    @services = ServiceRegistry.instance.services
+    @server   = GRPC::RpcServer.new(
+      server_host:          @config.dig(:grpc, :server, :host),
+      server_port:          @config.dig(:grpc, :server, :port),
+      pool_size:            @config.dig(:grpc, :server, :pool_size),
     )
+    middleware_registry = MiddlewareRegistry.instance
+    middleware_registry.use RequestLogger
+    middleware_registry.use ExceptionHandler
 
-    bind_address, port = @config[:bind].split(":")
-    @server.add_http2_port("#{bind_address}:#{port}", :this_port_is_insecure)
-    @server.handle(UserAPIGatewayServiceHandler.new)
+    pair_handlers
   rescue StandardError => e
-    raise "Failed to initialize gRPC server: #{e}"    
+    raise "Failed to initialize gRPC server: #{e}"
   end
 
   def run
-    @server.run_till_terminated
-  ensure
-    stop
-  end
-
-  def stop
-    @server.stop if defined?(@server)
+    @server.run_till_terminated_or_interrupted([1, "int", "TERM"])
   end
 
   private
+
+  def pair_handlers
+    @services.each do |service, handler|
+      @server.handle(service, wrapped_handler)
+    end
+  end
 
 end

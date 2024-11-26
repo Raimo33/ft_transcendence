@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    UserAPIGatewayServiceHandler.rb                              :+:      :+:    :+:    #
+#    user_api_gateway_service_handler.rb                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/08 20:01:35 by craimond          #+#    #+#              #
-#    Updated: 2024/11/12 12:37:40 by craimond         ###   ########.fr        #
+#    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
+#    Updated: 2024/11/26 20:05:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,18 +17,26 @@ require "base64"
 require "mini_magick"
 require "async"
 require "email_validator"
-require_relative "singletons/ConfigHandler"
-require_relative "modules/DBClientErrorHandler"
+require_relative "../config_handler"
+require_relative "../grpc_client"
+require_relative "../db_client"
+require_relative "../middleware/service_handler_middleware"
 require_relative "../proto/user_pb"
 require_relative "../proto/auth_user_pb"
 
+#TODO replace ServerExceptions con exceptions di grpc
+#TODO ricontrollare i return delle funzioni rispetto ai protofile
+#TODO prendere requesting_user_id dal metadata
+#TODO chiamare direttamente i metodi di grpc_client
+
 class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
+  include ServiceHandlerMiddleware
   include EmailValidator
 
-  def initialize(grpc_client)
-    @config         = ConfigHandler.instance.config
-    @grpc_client    = grpc_client
-    @db_client      = DBClient.instance
+  def initialize
+    @config       = ConfigHandler.instance.config
+    @grpc_client  = GrpcClient.instance
+    @db_client    = DBClient.instance
 
     @default_avatar = load_default_avatar
   end
@@ -336,7 +344,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   private
 
   def load_default_avatar
-    default_avatar_path = File.join(File.dirname(__FILE__), @config[:avatar][:default])
+    default_avatar_path = File.join(File.dirname(__FILE__), @config.dig(:avatar, :default_avatar))
     avatar              = File.read(default_avatar_path)
 
     Base64.encode64(avatar)
@@ -363,11 +371,12 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   end
 
   def check_password(password)
+    psw_config = @config[:password]
     @psw_format ||= create_regex_format(
-      @config[:password][:min_length],
-      @config[:password][:max_length],
-      @config[:password][:charset],
-      @config[:password][:policy]
+      psw_config[:min_length],
+      psw_config[:max_length],
+      psw_config[:charset],
+      psw_config[:policy]
     )
 
     unless @psw_format =~ password
@@ -376,11 +385,12 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   end
 
   def check_display_name(display_name)
+    dn_config = @config[:display_name]
     @dn_format ||= create_regex_format(
-      @config[:display_name][:min_length],
-      @config[:display_name][:max_length],
-      @config[:display_name][:charset],
-      @config[:display_name][:policy]
+      dn_config[:min_length],
+      dn_config[:max_length],
+      dn_config[:charset],
+      dn_config[:policy]
     )
 
     unless @dn_format =~ display_name
@@ -392,11 +402,11 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     avatar_decoded = Base64.decode64(avatar)
     avatar_image   = MiniMagick::Image.read(avatar_decoded)
 
-    unless @config[:avatar][:allowed_types].include?(avatar_image.mime_type)
+    unless @config.dig(:avatar, :allowed_types).include?(avatar_image.mime_type)
       raise ServerExceptions::BadRequest.new("Invalid avatar type")
     end
 
-    if avatar_image.size > @config[:avatar][:max_size]
+    if avatar_image.size > @config.dig(:avatar, :max_size)
       raise ServerExceptions::BadRequest.new("Avatar size exceeds maximum limit")
     end
   end
@@ -412,14 +422,14 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     avatar_decoded = Base64.decode64(avatar)
     avatar_image   = MiniMagick::Image.read(avatar_decoded)
     
-    avatar_image.format(@config[:avatar][:standard_format])
+    avatar_image.format(@config.dig(:avatar, :format))
     avatar_image.to_blob
   end
 
   def decompress_avatar(avatar)
     avatar_image = MiniMagick::Image.read(avatar)
 
-    avatar_image.format(@config[:avatar][:standard_format])
+    avatar_image.format(@config.dig(:avatar, :format))
     processed_avatar_binary_data = avatar_image.to_blob
     
     Base64.encode64(processed_avatar_binary_data)

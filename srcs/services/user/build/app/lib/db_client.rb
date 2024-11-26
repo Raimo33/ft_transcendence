@@ -6,31 +6,30 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/25 17:43:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/26 19:40:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'pg'
 require 'pgpool'
 require 'singleton'
-require_relative 'DBClientErrorHandler'
 require_relative 'ConfigHandler'
 
 class DBClient
   include Singleton
-  include DBClientErrorHandler
 
   def initialize
     @config   = ConfigHandler.instance.config
+    db_config = @config[:database]
 
     @pool = PGPool.connect(
-      host:               @config[:database][:host],
-      port:               @config[:database][:port],
-      dbname:             @config[:database][:dbname],
-      user:               @config[:database][:user],
-      password:           @config[:database][:password],
-      max_connections:    @config[:database][:pool][:size],
-      connection_timeout: @config[:database][:pool][:timeout]
+      host:               db_config[:host],
+      port:               db_config[:port],
+      dbname:             db_config[:dbname],
+      user:               db_config[:user],
+      password:           db_config[:password],
+      max_connections:    db_config.dig(:pool, :size),
+      connection_timeout: db_config.dig(:pool, :timeout)
     )
   end
 
