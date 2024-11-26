@@ -1,27 +1,27 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    GrpcServer.rb                                      :+:      :+:    :+:    #
+#    grpc_server.rb                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 17:02:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/25 17:49:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require "grpc"
 require_relative "singletons/ConfigHandler"
-require_relative "singletons/ConfigurableLogger"
 
 class GrpcServer
 
   def initialize
-    @logger = ConfigurableLogger.instance.logger
     @config = ConfigHandler.instance.config
+    @server = GRPC::RpcServer.new(
+      pool_size: @config.fetch(:pool_size, 10),
+      #TODO controllare tutte le possibili flag 
 
-    @logger.info("Initializing gRPC server")
-    @server = GRPC::RpcServer.new
+    )
 
     bind_address, port = @config[:bind].split(":")
     @server.add_http2_port("#{bind_address}:#{port}", :this_port_is_insecure)
@@ -33,10 +33,10 @@ class GrpcServer
   def run
     @server.run_till_terminated
   ensure
-    close
+    stop
   end
 
-  def close
+  def stop
     @server.stop if defined?(@server)
   end
 

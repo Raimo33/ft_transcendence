@@ -18,8 +18,6 @@ require "mini_magick"
 require "async"
 require "email_validator"
 require_relative "singletons/ConfigHandler"
-require_relative "singletons/ConfigurableLogger"
-require_relative "modules/ServerException"
 require_relative "modules/DBClientErrorHandler"
 require_relative "../proto/user_pb"
 require_relative "../proto/auth_user_pb"
@@ -28,9 +26,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   include EmailValidator
 
   def initialize(grpc_client)
-    @logger         = ConfigurableLogger.instance.logger
     @config         = ConfigHandler.instance.config
-  
     @grpc_client    = grpc_client
     @db_client      = DBClient.instance
 
@@ -38,8 +34,6 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   end
 
   def register_user(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.email, request.password, request.display_name]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
@@ -58,42 +52,33 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     avatar           = barrier.async { compress_avatar(request.avatar) } if request.avatar
 
     barrier.async do
-      @logger.debug("Checking if user with email '#{email}' already exists")
       db_response = @db_client.query("SELECT id FROM Users WHERE email = $1", [email])
       raise ServerException::Conflict("User with email '#{email}' already exists") if db_response.ntuples.positive?
     end
     barrier.async do
-      @logger.debug("Checking if user with display name '#{display_name}' already exists")
       db_response = @db_client.query("SELECT id FROM UserProfiles WHERE display_name = $1", [display_name])
       raise ServerException::Conflict("User with display name '#{display_name}' already exists") if db_response.ntuples.positive?
     end
 
     barrier.wait
     
-    @logger.debug("Inserting user with email '#{email}' into database")
     db_response = @db_client.query("INSERT INTO Users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id", [email, hashed_password, display_name, avatar])
     raise ServerException::InternalError("Failed to register user") if db_response.ntuples.zero?
 
     user_id = db_response.getvalue(0, 0)
-    @logger.info("User with email '#{email}' registered successfully")
     UserService::RegisterUserResponse.new(status_code: 201, user_id: user_id)
   rescue ServerException => e
-    @logger.error("Failed to register user: #{e.message}")
     UserService::RegisterUserResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to register user: #{e}")
     UserService::RegisterUserResponse.new(status_code: 500)
   ensure
     barrier.stop
   end
 
   def get_user_profile(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id, request.user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
   
-    @logger.debug("Querying database for profile of user with id '#{request.user_id}'")
     db_response = @db_client.query("SELECT id, display_name, avatar, status FROM UserProfiles WHERE id = $1", [request.user_id])
     raise ServerException::NotFound("Profile for user with id '#{request.user_id}' not found") if db_response.ntuples.zero?
 
@@ -104,43 +89,31 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       status:       db_response.getvalue(0, 3)
     )
 
-    @logger.info("User profile for user with id '#{request.user_id}' retrieved successfully")
     UserService::GetUserPublicProfileResponse.new(status_code: 200, profile: user_profile)
   rescue ServerException => e
-    @logger.error("Failed to get user profile: #{e.message}")
     UserService::GetUserPublicProfileResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to get user profile: #{e}")
     UserService::GetUserPublicProfileResponse.new(status_code: 500)
   end
 
   def delete_account(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
-    @logger.debug("Deleting user with id '#{request.requester_user_id}' from database")
     db_response = @db_client.query("DELETE FROM Users WHERE id = $1", [request.requester_user_id])
     raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.cmd_tuples.zero?
   
-    @logger.info("User with id '#{request.requester_user_id}' deleted successfully")
     UserService::DeleteAccountResponse.new(status_code: 204)
   rescue ServerException => e
-    @logger.error("Failed to delete account: #{e.message}")
     UserService::DeleteAccountResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to delete account: #{e}")
     UserService::DeleteAccountResponse.new(status_code: 500)
   end
 
   def get_private_profile(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
-    @logger.debug("Querying database for private profile of user with id '#{request.requester_user_id}'")
     db_response = @db_client.query("SELECT * FROM UserPrivateProfiles WHERE id = $1", [request.requester_user_id])
     raise ServerException::NotFound("Private profile for user with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
   
@@ -153,18 +126,14 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       status:                   db_response.getvalue(0, 5)
     )
   
-    @logger.info("Private profile for user with id '#{request.requester_user_id}' retrieved successfully")
     UserService::GetUserPrivateProfileResponse.new(status_code: 200, profile: private_profile)
   rescue ServerException => e
-    @logger.error("Failed to get private profile: #{e.message}")
     UserService::GetUserPrivateProfileResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to get private profile: #{e}")
     UserService::GetUserPrivateProfileResponse.new(status_code: 500)
   end
 
   def update_profile(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
 
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
@@ -175,7 +144,6 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     if request.display_name
       tasks << barrier.async do
         check_display_name(request.display_name)
-        @logger.debug("Updating display name for user with id '#{request.requester_user_id}'")
         @db_client.query("UPDATE Users SET display_name = $1 WHERE id = $2", [request.display_name, request.requester_user_id])
         raise ServerException::InternalError("Failed to update display name") if db_response.cmd_tuples.zero?
       end
@@ -185,7 +153,6 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       tasks << barrier.async do
         check_avatar(request.avatar)
         compressed_avatar = compress_avatar(request.avatar)
-        @logger.debug("Updating avatar for user with id '#{request.requester_user_id}'")
         @db_client.query("UPDATE Users SET avatar = $1 WHERE id = $2", [compressed_avatar, request.requester_user_id])
         raise ServerException::InternalError("Failed to update avatar") if db_response.cmd_tuples.zero?
       end
@@ -193,30 +160,23 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
 
     barrier.wait
   
-    @logger.info("Profile for user with id '#{request.requester_user_id}' updated successfully")
     return UserService::UpdateProfileResponse.new(status_code: 204)
   rescue ServerException => e
-    @logger.error("Failed to update profile: #{e.message}")
     UserService::UpdateProfileResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to update profile: #{e}")
     UserService::UpdateProfileResponse.new(status_code: 500)
   ensure
     barrier.stop
   end
 
   def enable_tfa(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
   
     db_task = Async do
-      @logger.debug("Querying database for 2FA status of user with id '#{request.requester_user_id}'")
       @db_client.query("SELECT tfa_status FROM Users WHERE id = $1", [request.requester_user_id])
     end
     grpc_task = Async do
-      @logger.debug("Generating 2FA secret for user with id '#{request.requester_user_id}'")
       @grpc_client.generate_tfa_secret(request.requester_user_id)
     end
 
@@ -228,16 +188,12 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     grpc_response = grpc_task.wait
     totp_secret   = grpc_response.totp_secret
 
-    @logger.debug("Updating database to enable 2FA for user with id '#{request.requester_user_id}'")
     @db_client.query("UPDATE Users SET tfa_status = true, totp_secret = $1 WHERE id = $2", [totp_secret, request.requester_user_id])
   
-    @logger.info("2FA enabled successfully for user with id '#{request.requester_user_id}'")
-    return UserService::EnableTFAResponse.new(status_code: 200, totp_secret: totp_secret)
+    UserService::EnableTFAResponse.new(status_code: 200, totp_secret: totp_secret)
   rescue ServerException => e
-    @logger.error("Failed to enable 2FA: #{e.message}")
     UserService::EnableTFAResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to enable 2FA: #{e}")
     UserService::EnableTFAResponse.new(status_code: 500)
   ensure
     db_task.stop
@@ -245,38 +201,28 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   end
 
   def get_tfa_status(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
-    @logger.debug("Querying database for 2FA status of user with id '#{request.requester_user_id}'")
     db_response = @db_client.query("SELECT tfa_status FROM Users WHERE id = $1", [request.requester_user_id])
     raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
   
     tfa_status = db_response.getvalue(0, 0)
   
-    @logger.info("2FA status for user with id '#{request.requester_user_id}' retrieved successfully")
-    return UserService::GetTFAStatusResponse.new(status_code: 200, tfa_status: tfa_status)
+    UserService::GetTFAStatusResponse.new(status_code: 200, tfa_status: tfa_status)
   rescue ServerException => e
-    @logger.error("Failed to get 2FA status: #{e.message}")
     UserService::GetTFAStatusResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to get 2FA status: #{e}")
     UserService::GetTFAStatusResponse.new(status_code: 500)
   end
 
-  def disable_tfa(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-  
+  def disable_tfa(request, _metadata)  
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
   
-    @logger.debug("Disabling 2FA for user with id '#{request.requester_user_id}'")
     db_response = @db_client.query("UPDATE Users SET tfa_status = false, totp_secret = NULL WHERE id = $1 AND tfa_status = true", [request.requester_user_id])
   
     if db_response.cmd_tuples.zero?
-      @logger.debug("Querying database to check if user with id '#{request.requester_user_id}' exists")
       db_response = @db_client.query("SELECT 1 FROM Users WHERE id = $1", [request.requester_user_id])
       user_exists = db_response.ntuples.positive?
       if user_exists
@@ -286,23 +232,17 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       end
     end
   
-    @logger.info("2FA disabled successfully for user with id '#{request.requester_user_id}'")
-    return UserService::DisableTFAResponse.new(status_code: 204)
+    UserService::DisableTFAResponse.new(status_code: 204)
   rescue ServerException => e
-    @logger.error("Failed to disable 2FA: #{e.message}")
     UserService::DisableTFAResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to disable 2FA: #{e}")
     UserService::DisableTFAResponse.new(status_code: 500)
   end  
 
   def check_tfa_code(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id, request.totp_code]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
   
-    @logger.debug("Querying database for 2FA secret of user with id '#{request.requester_user_id}'")
     db_response = @db_client.query("SELECT totp_secret FROM Users WHERE id = $1", [request.requester_user_id])
     raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
     
@@ -311,19 +251,14 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     grpc_response = @grpc_client.check_tfa_code(totp_secret, request.totp_code)
     code_valid    = grpc_response.success
 
-    @logger.info("2FA code for user with id '#{request.requester_user_id}' checked successfully")
     code_valid ? UserService::CheckTFACodeResponse.new(status_code: 204) : UserService::CheckTFACodeResponse.new(status_code: 401)
   rescue ServerException => e
-    @logger.error("Failed to check 2FA code: #{e.message}")
     UserService::CheckTFACodeResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to check 2FA code: #{e}")
     UserService::CheckTFACodeResponse.new(status_code: 500)
   end
 
   def login_user(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.email, request.password]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
@@ -332,7 +267,6 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     barrier.async { check_email(request.email) }
     hashed_password = barrier.async { hash_password(request.password) }
 
-    @logger.debug("Querying database for user with email '#{request.email}'")
     db_response = @db_client.query("SELECT id, tfa_status FROM Users WHERE email = $1 AND psw = $2", [request.email, hashed_password]) do |conn|
     raise ServerException::NotFound("User with email '#{request.email}' not found") if db_response.ntuples.zero?
 
@@ -344,80 +278,59 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     grpc_response = @grpc_client.generate_jwt(user_id, 1, tfa_status)
     jwt           = grpc_response.jwt
 
-    @logger.info("User with email '#{request.email}' logged in successfully")
-    return UserService::LoginUserResponse.new(status_code: 200, jwt: jwt)
+    UserService::LoginUserResponse.new(status_code: 200, jwt: jwt)
   rescue ServerException => e
-    @logger.error("Failed to login user: #{e.message}")
     UserService::LoginUserResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to login user: #{e}")
     UserService::LoginUserResponse.new(status_code: 500)
   ensure
     barrier.stop
   end
   
   def add_friend(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id, request.friend_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
-    @logger.debug("Inserting friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' into database")
     db_response = @db_client.query("INSERT INTO Friendships (user_id, friend_id) VALUES ($1, $2)", [request.requester_user_id, request.friend_user_id])
     raise ServerException::Conflict("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' already exists") if db_response.cmd_tuples.zero?
     
-    @logger.info("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' added successfully")
     return UserService::AddFriendResponse.new(status_code: 201)
   rescue ServerException => e
-    @logger.error("Failed to add friend: #{e.message}")
     UserService::AddFriendResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to login user: #{e}")
     UserService::LoginUserResponse.new(status_code: 500)
   end
 
   def get_friends(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
     limit  = request.limit  || 10
     offset = request.offset || 0
 
-    @logger.debug("Querying database for friend_ids of user with id '#{request.requester_user_id}'")
     db_response = @db_client.query("SELECT friend_id FROM Friendships WHERE user_id = $1 LIMIT $2 OFFSET $3", [request.requester_user_id, limit, offset])
     raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
 
     friend_ids = db_response.map { |row| row["friend_id"] }
 
-    @logger.info("Friends of user with id '#{request.requester_user_id}' retrieved successfully")
-    return UserService::GetFriendsResponse.new(status_code: 200, friend_ids: friend_ids)
+    UserService::GetFriendsResponse.new(status_code: 200, friend_ids: friend_ids)
   rescue ServerException => e
-    @logger.error("Failed to get friends: #{e.message}")
     UserService::GetFriendsResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to login user: #{e}")
     UserService::LoginUserResponse.new(status_code: 500)
   end
 
   def remove_friend(request, _metadata)
-    @logger.debug("Received '#{__method__}' request: #{request.inspect}")
-
     required_fields = [request.requester_user_id, request.friend_user_id]
     raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
 
-    @logger.debug("Deleting friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' from database")
     db_response = @db_client.query("DELETE FROM Friends WHERE user_id = $1 AND friend_id = $2", [request.requester_user_id, request.friend_user_id])
     raise ServerException::NotFound("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' not found") if db_response.cmd_tuples.zero?
 
-    @logger.info("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' removed successfully")
-    return UserService::RemoveFriendResponse.new(status_code: 204)
+    UserService::RemoveFriendResponse.new(status_code: 204)
   rescue ServerException => e
-    @logger.error("Failed to remove friend: #{e.message}")
     UserService::RemoveFriendResponse.new(status_code: e.status_code)
   rescue StandardError => e
-    @logger.error("Failed to login user: #{e}")
     UserService::LoginUserResponse.new(status_code: 500)
 
   private

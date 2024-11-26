@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    DBClient.rb                                        :+:      :+:    :+:    #
+#    db_client.rb                                       :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 17:02:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/25 17:43:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,6 @@ require 'pg'
 require 'pgpool'
 require 'singleton'
 require_relative 'DBClientErrorHandler'
-require_relative 'ConfigurableLogger'
 require_relative 'ConfigHandler'
 
 class DBClient
@@ -23,7 +22,6 @@ class DBClient
 
   def initialize
     @config   = ConfigHandler.instance.config
-    @logger   = ConfigurableLogger.instance.logger
 
     @pool = PGPool.connect(
       host:               @config[:database][:host],
@@ -37,8 +35,6 @@ class DBClient
   end
 
   def query(sql, params: = [])
-    @logger.debug("Executing query: #{sql}")
-
     @pool.connection do |conn|
       handle_db_call do
         result = conn.exec_params(sql, params)
@@ -48,8 +44,6 @@ class DBClient
   end
 
   def transaction
-    @logger.debug('Starting transaction')
-
     @pool.transaction do |conn|
       handle_db_call do
         yield(conn)
@@ -58,8 +52,6 @@ class DBClient
   end
 
   def prepare_and_execute(name, sql, params: = [])
-    @logger.debug("Preparing and executing statement: #{sql}")
-
     @pool.connection do |conn|
       handle_db_call do
         conn.prepare(name, sql)
@@ -69,9 +61,7 @@ class DBClient
     end
   end
 
-  def close
-    @logger.info('Closing database client')
-
+  def stop
     @pool.close
   end
 end

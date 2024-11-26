@@ -1,15 +1,17 @@
-bind: 0.0.0.0:50052
-pid_file: /var/run/user.pid
+bind: 0.0.0.0:50052 #TODO passare come argomento tramite docker
 
 logging:
   level: info
   file:  /dev/stdout
   tag:   USER
 
-addresses:
-  auth:       auth.core:50052
-  postgresql: postgresql.data:5432
+grpc:
+  addresses:
+    auth: auth.core:50052
+  server:
+  client:
 
+  
 database:
   host:      postgresql.data
   port:      5432
