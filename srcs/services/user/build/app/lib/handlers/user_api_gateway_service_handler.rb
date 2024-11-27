@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 20:05:03 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/27 20:01:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,7 @@ require_relative "../proto/auth_user_pb"
 
 #TODO replace ServerExceptions con exceptions di grpc
 #TODO ricontrollare i return delle funzioni rispetto ai protofile
-#TODO prendere requesting_user_id dal metadata
+#TODO prendere requesting_user_id dal call
 #TODO chiamare direttamente i metodi di grpc_client
 
 class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
@@ -41,9 +41,8 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     @default_avatar = load_default_avatar
   end
 
-  def register_user(request, _metadata)
-    required_fields = [request.email, request.password, request.display_name]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+  def register_user(request, call)
+    check_required_fields(request.email, request.password, request.display_name)
 
     barrier = Async::Barrier.new
 
@@ -59,287 +58,301 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     hashed_password  = barrier.async { hash_password(request.password) }
     avatar           = barrier.async { compress_avatar(request.avatar) } if request.avatar
 
-    barrier.async do
-      db_response = @db_client.query("SELECT id FROM Users WHERE email = $1", [email])
-      raise ServerException::Conflict("User with email '#{email}' already exists") if db_response.ntuples.positive?
-    end
-    barrier.async do
-      db_response = @db_client.query("SELECT id FROM UserProfiles WHERE display_name = $1", [display_name])
-      raise ServerException::Conflict("User with display name '#{display_name}' already exists") if db_response.ntuples.positive?
-    end
-
     barrier.wait
     
-    db_response = @db_client.query("INSERT INTO Users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id", [email, hashed_password, display_name, avatar])
-    raise ServerException::InternalError("Failed to register user") if db_response.ntuples.zero?
+    db_response = @db_client.query(
+      "INSERT INTO Users (email, psw, display_name, avatar) VALUES ($1, $2, $3, $4) RETURNING id",
+      [email, hashed_password, display_name, avatar]
+    )
 
-    user_id = db_response.getvalue(0, 0)
-    UserService::RegisterUserResponse.new(status_code: 201, user_id: user_id)
-  rescue ServerException => e
-    UserService::RegisterUserResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::RegisterUserResponse.new(status_code: 500)
+    UserService::RegisterUserResponse.new(
+      user_id: db_response.getvalue(0, 0)
+    )
   ensure
-    barrier.stop
+    barrier&.stop
   end
 
-  def get_user_profile(request, _metadata)
-    required_fields = [request.requester_user_id, request.user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+  def get_user_profile(request, call)
+    check_required_fields(request.user_id)
   
-    db_response = @db_client.query("SELECT id, display_name, avatar, status FROM UserProfiles WHERE id = $1", [request.user_id])
-    raise ServerException::NotFound("Profile for user with id '#{request.user_id}' not found") if db_response.ntuples.zero?
+    db_response = @db_client.query(
+      "SELECT id, display_name, avatar, status FROM UserProfiles WHERE id = $1", 
+      [user_id]
+    )
 
-    user_profile = UserService::UserProfile.new(
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+
+    UserService::UserPublicProfile.new(
       user_id:      db_response.getvalue(0, 0),
       display_name: db_response.getvalue(0, 1),
       avatar:       db_response.getvalue(0, 2) || @default_avatar,
       status:       db_response.getvalue(0, 3)
     )
-
-    UserService::GetUserPublicProfileResponse.new(status_code: 200, profile: user_profile)
-  rescue ServerException => e
-    UserService::GetUserPublicProfileResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::GetUserPublicProfileResponse.new(status_code: 500)
   end
 
-  def delete_account(request, _metadata)
-    required_fields = [request.requester_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
-
-    db_response = @db_client.query("DELETE FROM Users WHERE id = $1", [request.requester_user_id])
-    raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.cmd_tuples.zero?
+  def get_user_status(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(request.user_id)
   
-    UserService::DeleteAccountResponse.new(status_code: 204)
-  rescue ServerException => e
-    UserService::DeleteAccountResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::DeleteAccountResponse.new(status_code: 500)
-  end
-
-  def get_private_profile(request, _metadata)
-    required_fields = [request.requester_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
-
-    db_response = @db_client.query("SELECT * FROM UserPrivateProfiles WHERE id = $1", [request.requester_user_id])
-    raise ServerException::NotFound("Private profile for user with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
-  
-    private_profile = UserService::User.new(
-      id:                       db_response.getvalue(0, 0),
-      email:                    db_response.getvalue(0, 1),
-      display_name:             db_response.getvalue(0, 2),
-      avatar:                   db_response.getvalue(0, 3) || @default_avatar,
-      tfa_status:  db_response.getvalue(0, 4),
-      status:                   db_response.getvalue(0, 5)
+    db_response = @db_client.query(
+      "SELECT status FROM UserProfiles WHERE id = $1",
+      [user_id]
     )
   
-    UserService::GetUserPrivateProfileResponse.new(status_code: 200, profile: private_profile)
-  rescue ServerException => e
-    UserService::GetUserPrivateProfileResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::GetUserPrivateProfileResponse.new(status_code: 500)
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+  
+    UserService::UserStatus.new(db_response.getvalue(0, 0))
   end
 
-  def update_profile(request, _metadata)
+  def delete_account(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id)
 
-    required_fields = [request.requester_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+    db_response = @db_client.query(
+      "DELETE FROM Users WHERE id = $1",
+      [requester_user_id]
+    )
 
+    raise GRPC::NotFound.new("User not found") if db_response.cmd_tuples.zero?
+  
+    Google::Protobuf::Empty.new
+  end
+
+  def get_private_profile(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id)
+
+    db_response = @db_client.query(
+      "SELECT * FROM UserPrivateProfiles WHERE id = $1",
+      [requester_user_id]
+    )
+
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+  
+    UserService::UserPrivateProfile.new(
+      id:            db_response.getvalue(0, 0),
+      email:         db_response.getvalue(0, 1),
+      display_name:  db_response.getvalue(0, 2),
+      avatar:        db_response.getvalue(0, 3) || @default_avatar,
+      tfa_status:    db_response.getvalue(0, 4),
+      status:        db_response.getvalue(0, 5)
+    )
+  end
+
+  def update_profile(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id)
+    raise GRPC::InvalidArgument.new("No fields to update") unless provided?(request.display_name) || provided?(request.avatar)
+  
     barrier = Async::Barrier.new
-    tasks   = []
 
-    if request.display_name
-      tasks << barrier.async do
-        check_display_name(request.display_name)
-        @db_client.query("UPDATE Users SET display_name = $1 WHERE id = $2", [request.display_name, request.requester_user_id])
-        raise ServerException::InternalError("Failed to update display name") if db_response.cmd_tuples.zero?
-      end
-    end
-
-    if request.avatar
-      tasks << barrier.async do
-        check_avatar(request.avatar)
-        compressed_avatar = compress_avatar(request.avatar)
-        @db_client.query("UPDATE Users SET avatar = $1 WHERE id = $2", [compressed_avatar, request.requester_user_id])
-        raise ServerException::InternalError("Failed to update avatar") if db_response.cmd_tuples.zero?
-      end
-    end
-
+    barrier.async { check_display_name(request.display_name) } if request.display_name
+    barrier.async { check_avatar(request.avatar) }             if request.avatar
+  
+    compressed_avatar = barrier.async { compress_avatar(request.avatar) } if request.avatar
+  
     barrier.wait
   
-    return UserService::UpdateProfileResponse.new(status_code: 204)
-  rescue ServerException => e
-    UserService::UpdateProfileResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::UpdateProfileResponse.new(status_code: 500)
-  ensure
-    barrier.stop
-  end
-
-  def enable_tfa(request, _metadata)
-    required_fields = [request.requester_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+    updates = []
+    params = []
+    param_index = 1
   
-    db_task = Async do
-      @db_client.query("SELECT tfa_status FROM Users WHERE id = $1", [request.requester_user_id])
-    end
-    grpc_task = Async do
-      @grpc_client.generate_tfa_secret(request.requester_user_id)
-    end
-
-    db_response = db_task.wait
-    raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
-    tfa_status = db_response.getvalue(0, 0)
-    raise ServerException::Conflict("2FA already enabled for user with id '#{request.requester_user_id}'") if tfa_status
-
-    grpc_response = grpc_task.wait
-    totp_secret   = grpc_response.totp_secret
-
-    @db_client.query("UPDATE Users SET tfa_status = true, totp_secret = $1 WHERE id = $2", [totp_secret, request.requester_user_id])
-  
-    UserService::EnableTFAResponse.new(status_code: 200, totp_secret: totp_secret)
-  rescue ServerException => e
-    UserService::EnableTFAResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::EnableTFAResponse.new(status_code: 500)
-  ensure
-    db_task.stop
-    grpc_task.stop
-  end
-
-  def get_tfa_status(request, _metadata)
-    required_fields = [request.requester_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
-
-    db_response = @db_client.query("SELECT tfa_status FROM Users WHERE id = $1", [request.requester_user_id])
-    raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
-  
-    tfa_status = db_response.getvalue(0, 0)
-  
-    UserService::GetTFAStatusResponse.new(status_code: 200, tfa_status: tfa_status)
-  rescue ServerException => e
-    UserService::GetTFAStatusResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::GetTFAStatusResponse.new(status_code: 500)
-  end
-
-  def disable_tfa(request, _metadata)  
-    required_fields = [request.requester_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
-  
-    db_response = @db_client.query("UPDATE Users SET tfa_status = false, totp_secret = NULL WHERE id = $1 AND tfa_status = true", [request.requester_user_id])
-  
-    if db_response.cmd_tuples.zero?
-      db_response = @db_client.query("SELECT 1 FROM Users WHERE id = $1", [request.requester_user_id])
-      user_exists = db_response.ntuples.positive?
-      if user_exists
-        raise ServerException::Conflict("2FA is already disabled for user with id '#{request.requester_user_id}'")
-      else
-        raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found")
-      end
+    if request.display_name
+      updates << "display_name = $#{param_index}"
+      params << request.display_name
+      param_index += 1
     end
   
-    UserService::DisableTFAResponse.new(status_code: 204)
-  rescue ServerException => e
-    UserService::DisableTFAResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::DisableTFAResponse.new(status_code: 500)
-  end  
-
-  def check_tfa_code(request, _metadata)
-    required_fields = [request.requester_user_id, request.totp_code]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+    if request.avatar
+      updates << "avatar = $#{param_index}"
+      params << compressed_avatar
+      param_index += 1
+    end
   
-    db_response = @db_client.query("SELECT totp_secret FROM Users WHERE id = $1", [request.requester_user_id])
-    raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
+    params << requester_user_id
     
-    totp_secret = db_response.getvalue(0, 0)
+    result = @db_client.query(
+      "UPDATE Users SET #{updates.join(', ')} WHERE id = $#{param_index}",
+      params
+    )
 
-    grpc_response = @grpc_client.check_tfa_code(totp_secret, request.totp_code)
-    code_valid    = grpc_response.success
-
-    code_valid ? UserService::CheckTFACodeResponse.new(status_code: 204) : UserService::CheckTFACodeResponse.new(status_code: 401)
-  rescue ServerException => e
-    UserService::CheckTFACodeResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::CheckTFACodeResponse.new(status_code: 500)
+    raise GRPC::NotFound.new("User not found") if result.cmd_tuples.zero?
+    
+    Google::Protobuf::Empty.new
+  ensure
+    barrier&.stop
   end
 
-  def login_user(request, _metadata)
-    required_fields = [request.email, request.password]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+  def enable_tfa(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id)
+    
+    tasks = Async do |task|
+    
+      db_task = task.async do
+          @db_client.query(
+          "SELECT tfa_status FROM Users WHERE id = $1",
+          [requester_user_id]
+        )
+      end
+
+      grpc_task  = task.async do
+        @grpc_client.stubs[:auth].generate_tfa_secret(Google::Protobuf::Empty.new)
+      end
+
+      db_response = db_task.wait
+      raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+      
+      tfa_status = db_response.getvalue(0, 0)
+      raise GRPC::Conflict.new("2FA is already enabled") if tfa_status
+
+      grpc_response = grpc_task.wait
+  
+      @db_client.query(
+        "UPDATE Users SET tfa_status = true, tfa_secret = $1 WHERE id = $2",
+        [grpc_response.tfa_secret, requester_user_id]
+      )
+  
+      Google::Protobuf::Empty.new
+    end
+  ensure
+    tasks&.stop
+  end
+
+  def get_tfa_status(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id)
+
+    db_response = @db_client.query(
+      "SELECT tfa_status FROM Users WHERE id = $1",
+      [requester_user_id]
+    )
+
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+  
+    tfa_status = db_response.getvalue(0, 0)
+    UserService::TFAStatus.new(tfa_status)
+  end
+
+  def disable_tfa(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    raise GRPC::InvalidArgument.new("Missing required fields") unless provided?(requester_user_id)
+
+    result = @db_client.query(
+      "SELECT tfa_status FROM Users WHERE id = $1",
+      [requester_user_id]
+    )
+
+    raise GRPC::NotFound.new("User not found") if result.ntuples.zero?
+    raise GRPC::FailedPrecondition.new("2FA is already disabled") unless result[0]['tfa_status']
+  
+    @db_client.query(
+      "UPDATE Users SET tfa_status = false, tfa_secret = NULL WHERE id = $1",
+      [requester_user_id]
+    )
+  
+    Google::Protobuf::Empty.new
+  end
+
+  def check_tfa_code(request, call)
+    #TODO questo metodo deve fare l'effettivo login dell'utente e generare il jwt nuovo completo
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id, request.tfa_code)
+  
+    db_response = @db_client.query(
+      "SELECT tfa_secret, tfa_status FROM Users WHERE id = $1",
+      [requester_user_id]
+    )
+
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+    
+    tfa_secret = db_response.getvalue(0, 0)
+    tfa_status = db_response.getvalue(0, 1)
+    raise GRPC::FailedPrecondition.new("2FA is not enabled") if tfa_secret.nil? || !tfa_status
+
+    grpc_request  = AuthUserService::CheckTFACodeRequest.new(
+      tfa_secret: tfa_secret,
+      tfa_code:   request.tfa_code
+    )
+
+    @grpc_client.stubs[:auth].check_tfa_code(grpc_request)
+    Google::Protobuf::Empty.new
+  end
+
+  def login_user(request, call)
+    check_required_fields(request.email, request.password)
 
     barrier = Async::Barrier.new
 
     barrier.async { check_email(request.email) }
     hashed_password = barrier.async { hash_password(request.password) }
 
-    db_response = @db_client.query("SELECT id, tfa_status FROM Users WHERE email = $1 AND psw = $2", [request.email, hashed_password]) do |conn|
-    raise ServerException::NotFound("User with email '#{request.email}' not found") if db_response.ntuples.zero?
+    db_response = @db_client.query(
+      "SELECT id, tfa_status FROM Users WHERE email = $1 AND psw = $2",
+      [request.email, hashed_password]
+    )
 
-    user_id                 = db_response.getvalue(0, 0)
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+
+    user_id    = db_response.getvalue(0, 0)
     tfa_status = db_response.getvalue(0, 1)
 
-    logger.info("User with id '#{user_id}' requires 2FA") if tfa_status
+    grpc_request = AuthUserService::GenerateJWTRequest.new(
+      user_id:     user_id,
+      auth_level:  1,
+      pending_tfa: tfa_status
+    )
+    grpc_response = @grpc_client.stubs[:auth].generate_jwt(grpc_request)
 
-    grpc_response = @grpc_client.generate_jwt(user_id, 1, tfa_status)
-    jwt           = grpc_response.jwt
-
-    UserService::LoginUserResponse.new(status_code: 200, jwt: jwt)
-  rescue ServerException => e
-    UserService::LoginUserResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::LoginUserResponse.new(status_code: 500)
+    UserService::JWT.new(grpc_response.jwt)
   ensure
-    barrier.stop
+    barrier&.stop
   end
   
-  def add_friend(request, _metadata)
-    required_fields = [request.requester_user_id, request.friend_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+  def add_friend(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(request.requester_user_id, request.friend_user_id)
 
-    db_response = @db_client.query("INSERT INTO Friendships (user_id, friend_id) VALUES ($1, $2)", [request.requester_user_id, request.friend_user_id])
-    raise ServerException::Conflict("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' already exists") if db_response.cmd_tuples.zero?
+    db_response = @db_client.query(
+      "INSERT INTO Friendships (user_id, friend_id) VALUES ($1, $2)", =
+      [requester_user_id, request.friend_user_id]
+    )
     
-    return UserService::AddFriendResponse.new(status_code: 201)
-  rescue ServerException => e
-    UserService::AddFriendResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::LoginUserResponse.new(status_code: 500)
+    Google::Protobuf::Empty.new
   end
 
-  def get_friends(request, _metadata)
-    required_fields = [request.requester_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+  def get_friends(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id)
 
     limit  = request.limit  || 10
     offset = request.offset || 0
 
-    db_response = @db_client.query("SELECT friend_id FROM Friendships WHERE user_id = $1 LIMIT $2 OFFSET $3", [request.requester_user_id, limit, offset])
-    raise ServerException::NotFound("User with id '#{request.requester_user_id}' not found") if db_response.ntuples.zero?
+    db_response = @db_client.query(
+      "SELECT friend_id FROM Friendships WHERE user_id = $1 LIMIT $2 OFFSET $3",
+      [requester_user_id, limit, offset]
+    )
+
+    raise GRPC::NotFound.new("No friends found") if db_response.ntuples.zero?
 
     friend_ids = db_response.map { |row| row["friend_id"] }
 
-    UserService::GetFriendsResponse.new(status_code: 200, friend_ids: friend_ids)
-  rescue ServerException => e
-    UserService::GetFriendsResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::LoginUserResponse.new(status_code: 500)
+    UserService::Friends.new(friend_ids)
   end
 
-  def remove_friend(request, _metadata)
-    required_fields = [request.requester_user_id, request.friend_user_id]
-    raise ServerException::BadRequest("Missing required fields") unless required_fields.all?(&:present?)
+  def remove_friend(request, call)
+    requester_user_id = call.metadata["x-requester-user-id"]
+    check_required_fields(requester_user_id, request.friend_user_id)
 
-    db_response = @db_client.query("DELETE FROM Friends WHERE user_id = $1 AND friend_id = $2", [request.requester_user_id, request.friend_user_id])
-    raise ServerException::NotFound("Friend relationship between users with ids '#{request.requester_user_id}' and '#{request.friend_user_id}' not found") if db_response.cmd_tuples.zero?
+    db_response = @db_client.query(
+      "DELETE FROM Friends WHERE user_id = $1 AND friend_id = $2",
+      [requester_user_id, request.friend_user_id]
+    )
 
-    UserService::RemoveFriendResponse.new(status_code: 204)
-  rescue ServerException => e
-    UserService::RemoveFriendResponse.new(status_code: e.status_code)
-  rescue StandardError => e
-    UserService::LoginUserResponse.new(status_code: 500)
+    raise GRPC::NotFound.new("Friend not found") if db_response.cmd_tuples.zero?
+
+    Google::Protobuf::Empty.new
+  end
 
   private
 
@@ -449,6 +462,16 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     min_special    = "(?=(.*#{special_pattern}){#{policy[:min_special]},})"
 
     "^#{length_regex}#{min_uppercase}#{min_lowercase}#{min_digits}#{min_special}$"
+  end
+
+  private
+
+  def check_required_fields(*fields)
+    raise GRPC::InvalidArgument.new("Missing required fields") unless fields.all?(&method(:provided?))
+  end
+
+  def provided?(field)
+    field.respond_to?(:empty?) ? !field.empty? : !field.nil?
   end
 
 end

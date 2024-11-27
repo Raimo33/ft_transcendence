@@ -30,13 +30,13 @@ message HashedPassword
 
 message TFASecret
 {
-  string secret = 1;
+  string tfa_secret = 1;
 }
 
 message CheckTFACodeRequest
 {
-  string totp_secret  = 1;
-  string totp_code    = 2;
+  string tfa_secret  = 1;
+  string tfa_code    = 2;
 }
 
 message GenerateJWTRequest //TODO short lived 5m jwt for pending tfa, long lived jwt for normal login

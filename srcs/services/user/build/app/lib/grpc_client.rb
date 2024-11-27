@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 19:37:13 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/27 19:34:36 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ require_relative "../proto/auth_pb"
 
 class GrpcClient
   include Singleton
+  attr_reader :stubs
   
   def initialize
     @config   = ConfigHandler.instance.config

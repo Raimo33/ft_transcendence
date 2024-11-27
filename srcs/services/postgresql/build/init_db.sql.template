@@ -16,7 +16,7 @@ CREATE TABLE Users
   id                       uuid  NOT NULL DEFAULT gen_random_uuid(),
   email                    text  NOT NULL,
   psw                      text  NOT NULL,
-  totp_secret              text,
+  tfa_secret              text,
   display_name             varchar(25) NOT NULL,
   avatar                   bytea,
   tfa_status  boolean DEFAULT false NOT NULL,

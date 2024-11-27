@@ -73,7 +73,7 @@ message UpdateProfileRequest
 
 message TotpSecret
 {
-  string totp_secret = 1;
+  string tfa_secret = 1;
 }
 
 message TFAStatus
@@ -83,7 +83,7 @@ message TFAStatus
 
 message CheckTFACodeRequest
 {
-  string totp_code = 1;
+  string tfa_code = 1;
 }
 
 message LoginUserRequest
