@@ -6,18 +6,19 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 19:30:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 04:51:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'json'
 require 'grpc'
-require 'logger'
 require 'pg'
+require_relative '../custom_logger'
 
 class ExceptionHandler
   def initialize(app)
     @app = app
+    @logger = CustomLogger.instance.logger
   end
 
   def call(request, call)
@@ -58,6 +59,8 @@ class ExceptionHandler
     
     # Default
     else
+      @logger.error(exception.message)
+      @logger.debug(exception.backtrace.join("\n"))
       [GRPC::Core::StatusCodes::INTERNAL, "Internal server error"]
     end
 

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 19:29:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 04:44:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,7 @@ require 'grpc'
 class ExceptionHandler
   def initialize(app)
     @app = app
+    @logger = CustomLogger.instance.logger
   end
 
   def call(env)
@@ -54,7 +55,9 @@ class ExceptionHandler
 
     # Default
     else
-      [500, "Internal Server Error: #{exception.message}"]
+      @logger.error(exception.message)
+      @logger.debug(exception.backtrace.join("\n"))
+      [500, "Internal Server Error"]
     end
 
     [status, { 'Content-Type' => 'application/json' }, [{ error: message }.to_json]]
