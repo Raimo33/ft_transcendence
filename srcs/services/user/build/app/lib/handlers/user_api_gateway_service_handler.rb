@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 06:54:13 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 13:52:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -309,7 +309,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
     grpc_request = AuthUserService::GenerateJWTRequest.new(
       user_id:     user_id,
-      auth_level:  1,
+      auth_level:  0,
       pending_tfa: tfa_status
     )
     grpc_response = @grpc_client.stubs[:auth].generate_jwt(grpc_request)

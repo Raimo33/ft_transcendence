@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/28 06:56:53 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 07:00:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 12:57:51 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ class AuthAPIGatewayServiceHandler < AuthAPIGateway::Service
     Google::Protobuf::Empty.new
   end
 
-  def get_user_public_keys(_request, _call)
+  def get_jwt_public_keys(_request, _call)
     
   end
 

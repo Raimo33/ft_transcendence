@@ -16,7 +16,7 @@ service AuthUserService
   rpc Ping(google.protobuf.Empty)                 returns (google.protobuf.Empty) {}
   rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
   rpc HashPassword(HashPasswordRequest)           returns (HashedPassword) {}
-  rpc GenerateTFASecret(google.protobuf.Empty)    returns (TFASecret) {}
+  rpc GenerateTFASecret(GenerateTFASecretRequest) returns (GenerateTFASecretResponse) {}
   rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
   rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
 }
@@ -48,9 +48,14 @@ message HashedPassword
   string hashed_password = 1;
 }
 
-message TFASecret
+message GenerateTFASecretRequest
 {
-  string tfa_secret = 1;
+  string identifier = 1;
+}
+message GenerateTFASecretResponse
+{
+  string tfa_secret       = 1;
+  string provisioning_uri = 2;
 }
 
 message CheckTFACodeRequest

@@ -6,13 +6,12 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 07:08:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 13:12:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'json'
 require 'grpc'
-require 'pg'
 require_relative '../custom_logger'
 
 class ExceptionHandler
@@ -62,7 +61,18 @@ class ExceptionHandler
       [GRPC::Core::StatusCodes::DEADLINE_EXCEEDED, "Deadline exceeded"]
     when GRPC::Cancelled
       [GRPC::Core::StatusCodes::CANCELLED, "Request cancelled"]
-    
+
+    when Resolv::ResolvError
+      [GRPC::Core::StatusCodes::NOT_FOUND, "DNS resolution failed"] 
+    when Resolv::ResolvTimeout 
+      [GRPC::Core::StatusCodes::DEADLINE_EXCEEDED, "DNS lookup timeout"]
+    when Resolv::DNS::Config::NXDomain
+      [GRPC::Core::StatusCodes::NOT_FOUND, "Domain does not exist"]
+    when Resolv::DNS::Config::ServerError
+      [GRPC::Core::StatusCodes::UNAVAILABLE, "DNS server error"] 
+    when Resolv::DNS::Config::NoResponder
+      [GRPC::Core::StatusCodes::UNAVAILABLE, "No DNS servers available"]
+
     else
       @logger.error(exception.message)
       @logger.debug(exception.backtrace.join("\n"))
