@@ -1,11 +1,17 @@
 syntax = "proto3";
 
-package auth.user;
+package auth;
 
 import "google/protobuf/empty.proto";
 
 
-service AuthUser
+service AuthAPIGateway
+{
+  rpc Ping(google.protobuf.Empty)              returns (google.protobuf.Empty);
+  rpc GetJWTPublicKeys(google.protobuf.Empty)  returns (PublicKeys);
+}
+
+service AuthUserService
 {
   rpc Ping(google.protobuf.Empty)                 returns (google.protobuf.Empty) {}
   rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
@@ -13,6 +19,19 @@ service AuthUser
   rpc GenerateTFASecret(google.protobuf.Empty)    returns (TFASecret) {}
   rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
   rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
+}
+
+message PublicKey
+{
+  required string  id          = 1;
+  required string  key         = 2;
+  int64            expires_at  = 3;
+  bool             is_current  = 4;
+}
+
+message PublicKeys
+{
+  repeated PublicKey  keys = 1;
 }
 
 message CheckDomainRequest
@@ -50,3 +69,4 @@ message JWT
 {
   string jwt = 1;
 }
+

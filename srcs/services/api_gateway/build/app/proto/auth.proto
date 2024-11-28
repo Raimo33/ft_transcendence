@@ -3,9 +3,9 @@ syntax = "proto3";
 package auth.api_gateway;
 
 
-service AuthAPIGatewayService
+service AuthAPIGateway
 {
-  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Ping(google.protobuf.Empty)              returns (google.protobuf.Empty);
   rpc GetUserPublicKeys(google.protobuf.Empty) returns (PublicKeys);
 }
 

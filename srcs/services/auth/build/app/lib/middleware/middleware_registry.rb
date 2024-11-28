@@ -1,26 +1,26 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    config_handler.rb                                  :+:      :+:    :+:    #
+#    middleware_registry.rb                             :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/23 16:21:31 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 06:43:41 by craimond         ###   ########.fr        #
+#    Created: 2024/11/26 18:48:51 by craimond          #+#    #+#              #
+#    Updated: 2024/11/26 18:48:51 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'yaml'
 require 'singleton'
 
-class ConfigHandler
+class MiddlewareRegistry
   include Singleton
-
-  attr_reader :config
-
-  CONFIG_PATH  = '../config/config.yaml'
+  attr_reader :middlewares
 
   def initialize
-    @config = YAML.load_file(CONFIG_PATH)
+    @middlewares = []
+  end
+
+  def use(middleware_class)
+    @middlewares << middleware_class
   end
 end

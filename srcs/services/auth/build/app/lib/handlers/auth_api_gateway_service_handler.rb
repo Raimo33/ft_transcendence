@@ -1,26 +1,32 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    config_handler.rb                                  :+:      :+:    :+:    #
+#    auth_api_gateway_service_handler.rb                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/23 16:21:31 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 06:43:41 by craimond         ###   ########.fr        #
+#    Created: 2024/11/28 06:56:53 by craimond          #+#    #+#              #
+#    Updated: 2024/11/28 07:00:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'yaml'
-require 'singleton'
+require 'async'
+require_relative '../config_handler'
+require_relative '../grpc_server'
 
-class ConfigHandler
-  include Singleton
-
-  attr_reader :config
-
-  CONFIG_PATH  = '../config/config.yaml'
+class AuthAPIGatewayServiceHandler < AuthAPIGateway::Service
+  include ServiceHandlerMiddleware
 
   def initialize
-    @config = YAML.load_file(CONFIG_PATH)
+    @config = ConfigHandler.instance.config
   end
+
+  def ping(_request, _call)
+    Google::Protobuf::Empty.new
+  end
+
+  def get_user_public_keys(_request, _call)
+    
+  end
+
 end

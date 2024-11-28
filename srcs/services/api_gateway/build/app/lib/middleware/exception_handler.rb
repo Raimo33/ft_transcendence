@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 04:44:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 07:10:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,14 +29,13 @@ class ExceptionHandler
 
   def handle_exception(exception)
     status, message = case exception
-    # OpenapiFirst Errors
+
     when OpenapiFirst::RequestInvalidError
       [400, exception.message]
     when OpenapiFirst::NotFoundError
       [404, "Not Found"]
     
-    # GRPC Errors
-    when GRPC::InvalidArgument
+    when GRPC::InvalidArgument, GRPC::OutOfRange
       [400, exception.message]
     when GRPC::Unauthenticated
       [401, exception.message]
@@ -44,16 +43,23 @@ class ExceptionHandler
       [403, exception.message]
     when GRPC::NotFound
       [404, exception.message]
-    when GRPC::AlreadyExists
-      [409, exception.message]
     when GRPC::DeadlineExceeded
       [408, exception.message]
+    when GRPC::AlreadyExists, GRPC::Aborted
+      [409, exception.message]
+    when GRPC::FailedPrecondition
+      [412, exception.message]
     when GRPC::ResourceExhausted
       [429, exception.message]
+    when GRPC::Cancelled
+      [499, exception.message]
+    when GRPC::Internal, GRPC::DataLoss
+      [500, exception.message]
+    when GRPC::Unimplemented
+      [501, exception.message]
     when GRPC::Unavailable
       [503, exception.message]
 
-    # Default
     else
       @logger.error(exception.message)
       @logger.debug(exception.backtrace.join("\n"))

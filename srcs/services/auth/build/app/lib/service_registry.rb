@@ -1,26 +1,29 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    config_handler.rb                                  :+:      :+:    :+:    #
+#    service_registry.rb                                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/23 16:21:31 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 06:43:41 by craimond         ###   ########.fr        #
+#    Created: 2024/11/25 17:38:56 by craimond          #+#    #+#              #
+#    Updated: 2024/11/26 17:10:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'yaml'
 require 'singleton'
 
-class ConfigHandler
+class ServiceRegistry
   include Singleton
-
-  attr_reader :config
-
-  CONFIG_PATH  = '../config/config.yaml'
+  attr_reader :services
 
   def initialize
-    @config = YAML.load_file(CONFIG_PATH)
+    @services = {}
   end
+
+  def register(service_class, handler_class)
+    handler_instance = handler_class.new
+    wrapped_handler = ServerMiddleware.wrap(handler_instance).new
+    @services[service_class] = wrapped_handler
+  end
+
 end

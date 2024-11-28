@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 16:21:31 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 04:47:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 06:43:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ class ConfigHandler
 
   attr_reader :config
 
-  CONFIG_PATH  = '../config/server.yaml'
+  CONFIG_PATH  = '../config/config.yaml'
 
   def initialize
     @config = YAML.load_file(CONFIG_PATH)

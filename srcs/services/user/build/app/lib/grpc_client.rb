@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 05:40:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 07:13:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,10 +33,8 @@ class GrpcClient
     }
 
     @stubs = {
-      auth: AuthUserService::Stub.new(@channels[:auth])
+      auth: AuthUser::Stub.new(@channels[:auth])
     }
-  rescue StandardError => e
-    raise "Failed to initialize grpc client: #{e}"
   ensure
     stop
   end
@@ -49,8 +47,6 @@ class GrpcClient
 
   def create_channel(addr, credentials)
     GRPC::Core::Channel.new(addr, nil, credentials)
-  rescue StandardError => e
-    raise "Failed to create channel to #{addr}: #{e}"
   end
 
 end

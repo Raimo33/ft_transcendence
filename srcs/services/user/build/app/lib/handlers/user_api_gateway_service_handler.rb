@@ -6,11 +6,10 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 05:46:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 06:54:13 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'grpc'
 require 'base64'
 require 'mini_magick'
 require 'async'
@@ -20,7 +19,7 @@ require_relative '../grpc_client'
 require_relative '../db_client'
 require_relative '../grpc_server'
 
-class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
+class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   include ServiceHandlerMiddleware
   include EmailValidator
 

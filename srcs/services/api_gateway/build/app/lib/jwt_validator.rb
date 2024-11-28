@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 05:39:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 07:00:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -63,7 +63,7 @@ class JwtValidator
   end
 
   def refresh_keys
-    response = @grpc_client.stubs[:auth].get_public_keys(Auth::GetUserPublicKeysRequest.new)
+    response = @grpc_client.stubs[:auth].get_jwt_public_keys(Google::Protobuf::Empty.new)
     
     @public_keys.clear
     response.public_keys.each do |key|

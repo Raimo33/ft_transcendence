@@ -4,7 +4,7 @@ package user.api_gateway;
 
 import "google/protobuf/empty.proto";
 
-service UserAPIGatewayService
+service UserAPIGateway
 {
   rpc Ping                    (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc RegisterUser            (RegisterUserRequest)           returns (RegisterUserResponse)  {}

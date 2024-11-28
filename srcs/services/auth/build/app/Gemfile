@@ -1,26 +1,20 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    config_handler.rb                                  :+:      :+:    :+:    #
+#    Gemfile                                            :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/23 16:21:31 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 06:43:41 by craimond         ###   ########.fr        #
+#    Created: 2024/11/24 20:11:23 by craimond          #+#    #+#              #
+#    Updated: 2024/11/28 05:04:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'yaml'
-require 'singleton'
+source "https://rubygems.org"
 
-class ConfigHandler
-  include Singleton
-
-  attr_reader :config
-
-  CONFIG_PATH  = '../config/config.yaml'
-
-  def initialize
-    @config = YAML.load_file(CONFIG_PATH)
-  end
-end
+gem "grpc"
+gem "google-protobuf"
+gem "async"
+gem "json"
+gem "pg"
+gem "pgpool"

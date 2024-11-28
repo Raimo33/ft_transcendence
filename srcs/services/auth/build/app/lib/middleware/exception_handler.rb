@@ -6,14 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 07:08:47 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 07:08:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'json'
 require 'grpc'
 require 'pg'
-require 'pgpool'
 require_relative '../custom_logger'
 
 class ExceptionHandler
@@ -63,26 +62,6 @@ class ExceptionHandler
       [GRPC::Core::StatusCodes::DEADLINE_EXCEEDED, "Deadline exceeded"]
     when GRPC::Cancelled
       [GRPC::Core::StatusCodes::CANCELLED, "Request cancelled"]
-    
-    when PG::ConnectionBad
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection failed"]
-    when PG::UniqueViolation
-      [GRPC::Core::StatusCodes::ALREADY_EXISTS, "Resource already exists"]
-    when PG::ForeignKeyViolation
-      [GRPC::Core::StatusCodes::FAILED_PRECONDITION, "Invalid reference"]
-    when PG::NotNullViolation
-      [GRPC::Core::StatusCodes::INVALID_ARGUMENT, "Missing required field"]
-    when PG::CheckViolation
-      [GRPC::Core::StatusCodes::INVALID_ARGUMENT, "Validation failed"]
-    
-    when PGPool::ConnectionTimeoutError
-      [GRPC::Core::StatusCodes::DEADLINE_EXCEEDED, "Database connection pool timeout"]
-    when PGPool::PoolExhaustedError
-      [GRPC::Core::StatusCodes::RESOURCE_EXHAUSTED, "Database connection pool exhausted"]
-    when PGPool::ConnectionCheckedOutError
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection unavailable"]
-    when PGPool::ConnectionClosedError
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection closed"]
     
     else
       @logger.error(exception.message)

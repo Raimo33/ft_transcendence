@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 05:28:07 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 06:48:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,10 +39,10 @@ class GrpcClient
     }
     
     @stubs = {
-      user:       User::Stub.new(@channels[:user]),
-      match:      Match::Stub.new(@channels[:match]),
-      tournament: Tournament::Stub.new(@channels[:tournament]),
-      auth:       Auth::Stub.new(@channels[:auth])
+      user:       UserAPIGateway::Stub.new(@channels[:user]),
+      match:      MatchAPIGateway::Stub.new(@channels[:match]),
+      tournament: TournamentAPIGateway::Stub.new(@channels[:tournament]),
+      auth:       AuthAPIGateway::Stub.new(@channels[:auth])
     }
 end
 

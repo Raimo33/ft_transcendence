@@ -4,7 +4,7 @@ package tournament.api_gateway;
 
 import "google/protobuf/empty.proto";
 
-service TournamentAPIGatewayService
+service TournamentAPIGateway
 {
   rpc Ping                         (google.protobuf.Empty)               returns (google.protobuf.Empty)    {}
   rpc GetUserTournaments           (GetUserTournamentsRequest)           returns (Tournaments)              {}
