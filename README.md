@@ -404,9 +404,9 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 - Build images from the latest stable version of **alpine**
 - Avoid running containers as `root` user
 - Keep containers stateless, use external storage for persistent data
-- Use docker secrets for sensitive credentials
-- Use multi stage builds to separate between `official` and `pongfumasters`
+- Use **docker secrets** for sensitive credentials
 - Only run **initialization scripts** in the entrypoints
+- Never use `*` **wildcards**
 - Prioritize minimalism
 
 ### 4.2 Docker Compose

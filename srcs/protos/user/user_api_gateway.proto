@@ -4,7 +4,7 @@ package user;
 
 import "google/protobuf/empty.proto";
 
-service User
+service UserAPIGateway
 {
   rpc Ping                    (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc RegisterUser            (RegisterUserRequest)           returns (RegisterUserResponse)  {}
@@ -16,7 +16,7 @@ service User
   rpc EnableTFA               (google.protobuf.Empty)         returns (EnableTFAResponse)     {}
   rpc GetTFAStatus            (google.protobuf.Empty)         returns (TFAStatus)             {} 
   rpc DisableTFA              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
-  rpc CheckTFACode            (CheckTFACodeRequest)           returns (JWT)                   {}
+  rpc SubmitTFACode           (SubmitTFACodeRequest)          returns (JWT)                   {}
   rpc LoginUser               (LoginUserRequest)              returns (JWT)                   {}                 
   rpc LogoutUser              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc AddFriend               (AddFriendRequest)              returns (google.protobuf.Empty) {}
@@ -83,7 +83,7 @@ message TFAStatus
   bool tfa_status = 1;
 }
 
-message CheckTFACodeRequest
+message SubmitTFACodeRequest
 {
   string tfa_code = 1;
 }

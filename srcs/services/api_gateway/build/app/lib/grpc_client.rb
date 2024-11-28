@@ -6,17 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 06:48:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 20:45:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'yaml'
 require 'singleton'
-require_relative '../proto/user_services_pb'
-require_relative '../proto/match_services_pb'
-require_relative '../proto/tournament_services_pb'
-require_relative '../proto/auth_services_pb' 
+require_relative '../proto/user_api_gateway_services_pb'
+require_relative '../proto/match_api_gateway_services_pb'
+require_relative '../proto/tournament_api_gateway_services_pb'
 
 class GrpcClient
   include Singleton
@@ -35,14 +34,12 @@ class GrpcClient
       user:         GRPC::Core::Channel.new(@config.dig('grpc', 'addresses', 'user'), nil),
       match:        GRPC::Core::Channel.new(@config.dig('grpc', 'addresses', 'match'), nil),
       tournament:   GRPC::Core::Channel.new(@config.dig('grpc', 'addresses', 'tournament'), nil),
-      auth:         GRPC::Core::Channel.new(@config.dig('grpc', 'addresses', 'auth'), nil)
     }
     
     @stubs = {
       user:       UserAPIGateway::Stub.new(@channels[:user]),
       match:      MatchAPIGateway::Stub.new(@channels[:match]),
       tournament: TournamentAPIGateway::Stub.new(@channels[:tournament]),
-      auth:       AuthAPIGateway::Stub.new(@channels[:auth])
     }
 end
 

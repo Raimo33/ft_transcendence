@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tournament.api_gateway;
+package tournament;
 
 import "google/protobuf/empty.proto";
 

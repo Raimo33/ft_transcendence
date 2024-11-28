@@ -5,7 +5,7 @@ require_relative 'proto/user_services_pb'
 
 if $PROGRAM_NAME == __FILE__
   stubs = {
-    user: UserAPIGatewayService::Stub.new(
+    user: UserAPIGateway::Stub.new(
       'localhost:50052',
       :this_channel_is_insecure
     )

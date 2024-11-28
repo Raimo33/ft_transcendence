@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/24 20:29:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 20:37:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,20 +16,27 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache ruby protobuf
 
-COPY ./build/app/   /app
+COPY ./build/Gemfile ./build/Gemfile.lock /app/
+
+WORKDIR /app
+RUN gem install bundler
+RUN bundle install
+
+COPY ./build/app/   /app/
+COPY --from=protos ./match/match_api_gateway.proto \
+                   ./tournament/tournament_api_gateway.proto \
+                   ./user/user_api_gateway.proto \
+                    /app/protos/
 
 RUN adduser -DHS api_gateway
 RUN chown -R api_gateway:api_gateway /app
 RUN chmod -R +x /usr/local/bin/
 
-WORKDIR /app
-RUN gem install bundler
-RUN bundle install
-WORKDIR /app/proto
-RUN protoc --ruby_out=./ user.proto match.proto tournament.proto
+RUN protoc --ruby_out=./ /app/protos/match_api_gateway.proto \
+                        /app/protos/tournament_api_gateway.proto \
+                        /app/protos/user_api_gateway.proto
 
 USER api_gateway
-WORKDIR /app
 EXPOSE 3000
 
 ENTRYPOINT ["falcon", "serve", \

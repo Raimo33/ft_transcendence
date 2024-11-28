@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 07:12:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 20:46:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative 'config_handler'
 require_relative '../middleware/service_handler_middleware'
-require_relative '../proto/auth_services_pb'
+require_relative '../proto/auth_user_services_pb'
 
 class GrpcServer
 

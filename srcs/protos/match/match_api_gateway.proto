@@ -1,9 +1,8 @@
 syntax = "proto3";
 
-package match.api_gateway;
+package match;
 
 import "google/protobuf/empty.proto";
-
 
 service MatchAPIGateway
 {
