@@ -1,13 +1,12 @@
 syntax = "proto3";
 
-//TODO DOCUMENTARE CONVENTION: mesaggi che ritornano singoli valori hanno stesso nome del nome del valore
-
 package user;
 
 import "google/protobuf/empty.proto";
 
 service UserAPIGatewayService
 {
+  rpc Ping                    (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc RegisterUser            (RegisterUserRequest)           returns (RegisterUserResponse)  {}
   rpc GetUserPublicProfile    (GetUserPublicProfileRequest)   returns (UserPublicProfile)     {}
   rpc GetUserStatus           (GetUserStatusRequest)          returns (UserStatus)            {}

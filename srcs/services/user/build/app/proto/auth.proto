@@ -7,6 +7,7 @@ import "google/protobuf/empty.proto";
 
 service AuthUserService
 {
+  rpc Ping(google.protobuf.Empty)                 returns (google.protobuf.Empty) {}
   rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
   rpc HashPassword(HashPasswordRequest)           returns (HashedPassword) {}
   rpc GenerateTFASecret(google.protobuf.Empty)    returns (TFASecret) {}

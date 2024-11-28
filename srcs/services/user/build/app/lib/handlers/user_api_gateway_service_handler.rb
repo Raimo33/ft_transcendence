@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 05:40:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 05:46:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,10 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     @db_client    = DBClient.instance
 
     @default_avatar = load_default_avatar
+  end
+
+  def ping(_request, _call)
+    Google::Protobuf::Empty.new
   end
 
   def register_user(request, call)

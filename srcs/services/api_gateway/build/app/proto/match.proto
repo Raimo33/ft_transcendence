@@ -7,6 +7,7 @@ import "google/protobuf/empty.proto";
 
 service MatchAPIGatewayService
 {
+  rpc Ping(google.protobuf.Empty)                           returns (google.protobuf.Empty);
   rpc GetUserMatches(GetUserMatchesRequest)                 returns (Matches);
   rpc CreateMatch(CreateMatchRequest)                       returns (CreateMatchResponse);
   rpc GetMatch(GetMatchRequest)                             returns (Match);

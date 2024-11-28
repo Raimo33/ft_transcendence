@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 05:10:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 05:54:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,4 +34,4 @@ EXPOSE 50052
 
 ENTRYPOINT ["main.rb"]
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["healthcheck.rb"]

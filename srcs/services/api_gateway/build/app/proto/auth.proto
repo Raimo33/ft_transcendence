@@ -5,6 +5,7 @@ package auth.api_gateway;
 
 service AuthAPIGatewayService
 {
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc GetUserPublicKeys(google.protobuf.Empty) returns (PublicKeys);
 }
 
