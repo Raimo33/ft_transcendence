@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 03:59:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 04:12:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -210,6 +210,8 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   
       Google::Protobuf::Empty.new
     end
+
+    tasks.wait
   ensure
     tasks&.stop
   end
@@ -249,29 +251,43 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
     Google::Protobuf::Empty.new
   end
 
-  def check_tfa_code(request, call)
-    #TODO questo metodo deve fare l'effettivo login dell'utente e generare il jwt nuovo completo
+  def submit_tfa_code(request, call)
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(requester_user_id, request.tfa_code)
   
-    db_response = @db_client.query(
-      "SELECT tfa_secret, tfa_status FROM Users WHERE id = $1",
-      [requester_user_id]
-    )
+    tasks = Async do |task|
+      grpc_request = AuthUserService::GenerateJWTRequest.new(
+        user_id:     requester_user_id,
+        auth_level:  1,
+        pending_tfa: false
+      )
+      jwt_task = task.async { @grpc_client.stubs[:auth].generate_jwt(grpc_request) }
 
-    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
-    
-    tfa_secret = db_response.getvalue(0, 0)
-    tfa_status = db_response.getvalue(0, 1)
-    raise GRPC::FailedPrecondition.new("2FA is not enabled") if tfa_secret.nil? || !tfa_status
+      db_response = @db_client.query(
+        "SELECT tfa_secret, tfa_status FROM Users WHERE id = $1",
+        [requester_user_id]
+      )
 
-    grpc_request  = AuthUserService::CheckTFACodeRequest.new(
-      tfa_secret: tfa_secret,
-      tfa_code:   request.tfa_code
-    )
+      raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
+      
+      tfa_secret = db_response.getvalue(0, 0)
+      tfa_status = db_response.getvalue(0, 1)
+      raise GRPC::FailedPrecondition.new("2FA is not enabled") if tfa_secret.nil? || !tfa_status
 
-    @grpc_client.stubs[:auth].check_tfa_code(grpc_request)
-    Google::Protobuf::Empty.new
+      grpc_request  = AuthUserService::CheckTFACodeRequest.new(
+        tfa_secret: tfa_secret,
+        tfa_code:   request.tfa_code
+      )
+
+      @grpc_client.stubs[:auth].check_tfa_code(grpc_request)
+
+      jwt_response = jwt_task.wait
+      UserService::JWT.new(jwt_response.jwt)
+    end
+
+    tasks.wait
+  ensure
+    tasks&.stop
   end
 
   def login_user(request, call)

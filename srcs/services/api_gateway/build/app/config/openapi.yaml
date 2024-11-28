@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/27 19:42:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 04:14:36 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -358,17 +358,30 @@ paths:
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/tfa/verify:
     post:
-      operationId: checkTFACode
-      summary: Check tfa code
-      description: Check the validity of the two-factor authentication code provided by the user.
+      operationId: submitTFACode
+      summary: Submit tfa code
+      description: Submit the two-factor authentication code for verification.
       parameters:
         - $ref: "#/components/parameters/tfa_code"
       security:
         - jwtAuth: []
       x-auth-level: 1
       responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
+        "200":
+          description: Two-factor authentication code successfully verified.
+          headers:
+            Content-Length:
+              $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jwt:
+                    $ref: "#/components/schemas/jwt"
+                required: [jwt]
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":

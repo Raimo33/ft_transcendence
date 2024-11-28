@@ -15,7 +15,7 @@ service UserAPIGatewayService
   rpc EnableTFA               (google.protobuf.Empty)         returns (TotpSecret)            {} 
   rpc GetTFAStatus            (google.protobuf.Empty)         returns (TFAStatus)             {} 
   rpc DisableTFA              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
-  rpc CheckTFACode            (CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
+  rpc SubmitTFACode           (SubmitTFACodeRequest)          returns (JWT)                   {}
   rpc LoginUser               (LoginUserRequest)              returns (JWT)                   {}                 
   rpc LogoutUser              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc AddFriend               (AddFriendRequest)              returns (google.protobuf.Empty) {}
@@ -81,7 +81,7 @@ message TFAStatus
   bool tfa_status = 1;
 }
 
-message CheckTFACodeRequest
+message SubmitTFACodeRequest
 {
   string tfa_code = 1;
 }
