@@ -6,7 +6,7 @@ if $PROGRAM_NAME == __FILE__
 
   registry = ServiceRegistry.instance
   registry.register(UserAPIGatewayService, UserAPIGatewayServiceHandler)
-  #TODO add more services here
+  #add more services here
 
   server = GrpcServer.new
 

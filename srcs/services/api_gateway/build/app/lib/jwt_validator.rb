@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/01 19:14:39 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 16:15:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 05:39:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require "jwt"
-require "singleton"
-require_relative "ConfigHandler"
-require_relative "GrpcClient"
+require 'jwt'
+require 'singleton'
+require_relative 'ConfigHandler'
+require_relative 'GrpcClient'
 
 class JwtValidator
   include Singleton

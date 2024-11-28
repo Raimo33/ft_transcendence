@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 04:14:36 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 04:53:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -692,7 +692,7 @@ paths:
       responses:
         "200":
           description: Returns match information.
-          headers: #TODO rimuovere content length ovunque
+          headers:
             Content-Length:
               $ref: "#/components/headers/Content-Length"
             Content-Type:

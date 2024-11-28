@@ -6,7 +6,7 @@ package user;
 
 import "google/protobuf/empty.proto";
 
-service UserService
+service UserAPIGatewayService
 {
   rpc RegisterUser            (RegisterUserRequest)           returns (RegisterUserResponse)  {}
   rpc GetUserPublicProfile    (GetUserPublicProfileRequest)   returns (UserPublicProfile)     {}

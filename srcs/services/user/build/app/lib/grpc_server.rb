@@ -6,12 +6,15 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 19:36:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 05:40:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require "grpc"
-require_relative "singletons/ConfigHandler"
+require 'grpc'
+require_relative 'config_handler'
+require_relative '../middleware/service_handler_middleware'
+require_relative '../proto/user_services_pb'
+require_relative '../proto/auth_services_pb'
 
 class GrpcServer
 

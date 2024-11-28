@@ -39,7 +39,7 @@ message CheckTFACodeRequest
   string tfa_code    = 2;
 }
 
-message GenerateJWTRequest //TODO short lived 5m jwt for pending tfa, long lived jwt for normal login
+message GenerateJWTReques
 {
   string user_id     = 1;
   uint16 auth_level  = 2;

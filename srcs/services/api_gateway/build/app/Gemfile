@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:11:23 by craimond          #+#    #+#              #
-#    Updated: 2024/11/24 20:11:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 04:57:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,5 +15,10 @@ source "https://rubygems.org"
 gem "grpc"
 gem "google-protobuf"
 gem "async"
-
-#TODO add more gems as needed
+gem "openapi_first"
+gem "jwt"
+gem "falcon"
+gem "rack"
+gem "json"
+gem "minimagick"
+gem "email_validator"

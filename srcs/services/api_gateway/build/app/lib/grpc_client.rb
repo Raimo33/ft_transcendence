@@ -6,13 +6,17 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/11/23 16:19:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 05:28:07 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'yaml'
 require 'singleton'
+require_relative '../proto/user_services_pb'
+require_relative '../proto/match_services_pb'
+require_relative '../proto/tournament_services_pb'
+require_relative '../proto/auth_services_pb' 
 
 class GrpcClient
   include Singleton
@@ -40,8 +44,5 @@ class GrpcClient
       tournament: Tournament::Stub.new(@channels[:tournament]),
       auth:       Auth::Stub.new(@channels[:auth])
     }
-  rescue GRPC::BadStatus => e
-    raise ServerException::ServiceUnavailable.new("Failed to connect to gRPC services: #{e.message}")
-  end
 end
 

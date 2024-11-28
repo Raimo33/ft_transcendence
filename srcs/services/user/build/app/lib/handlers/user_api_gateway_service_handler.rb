@@ -6,23 +6,19 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 04:12:03 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 05:40:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require "grpc"
-require "pg"
-require "pg_pool"
-require "base64"
-require "mini_magick"
-require "async"
-require "email_validator"
-require_relative "../config_handler"
-require_relative "../grpc_client"
-require_relative "../db_client"
-require_relative "../middleware/service_handler_middleware"
-require_relative "../proto/user_pb"
-require_relative "../proto/auth_user_pb"
+require 'grpc'
+require 'base64'
+require 'mini_magick'
+require 'async'
+require 'email_validator'
+require_relative '../config_handler'
+require_relative '../grpc_client'
+require_relative '../db_client'
+require_relative '../grpc_server'
 
 class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   include ServiceHandlerMiddleware
