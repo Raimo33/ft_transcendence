@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/27 20:01:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 03:59:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,11 +23,6 @@ require_relative "../db_client"
 require_relative "../middleware/service_handler_middleware"
 require_relative "../proto/user_pb"
 require_relative "../proto/auth_user_pb"
-
-#TODO replace ServerExceptions con exceptions di grpc
-#TODO ricontrollare i return delle funzioni rispetto ai protofile
-#TODO prendere requesting_user_id dal call
-#TODO chiamare direttamente i metodi di grpc_client
 
 class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   include ServiceHandlerMiddleware
@@ -370,17 +365,15 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
   end
 
   def check_email_format(email)
-    unless EmailValidator.valid?(email, mx: false)
-      raise ServerExceptions::BadRequest.new("Invalid email format or blacklisted domain")
-    end
+    raise GRPC::InvalidArgument.new("Invalid email format") unless EmailValidator.valid?(email, mx: false)
   end
 
   def check_email_domain(email)
     domain   = email.split('@').last
-    response = @grpc_client.check_domain(domain)
-    unless response&.is_allowed
-      raise ServerExceptions::BadRequest.new("Invalid email domain")
-    end
+    request  = AuthUserService::CheckDomainRequest.new(domain)
+    response = @grpc_client.stubs[:auth].check_domain(request)
+    
+    raise GRPC::InvalidArgument.new("Invalid email domain") unless response&.is_allowed
   end
 
   def check_password(password)
@@ -392,9 +385,7 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       psw_config[:policy]
     )
 
-    unless @psw_format =~ password
-      raise ServerExceptions::BadRequest.new("Invalid password format")
-    end
+    raise GRPC::InvalidArgument.new("Invalid password format") unless @psw_format =~ password
   end
 
   def check_display_name(display_name)
@@ -406,28 +397,21 @@ class UserAPIGatewayServiceHandler < UserAPIGatewayService::Service
       dn_config[:policy]
     )
 
-    unless @dn_format =~ display_name
-      raise ServerExceptions::BadRequest.new("Invalid display name format")
-    end
+    raise GRPC::InvalidArgument.new("Invalid display name format") unless @dn_format =~ display_name
   end
 
   def check_avatar(avatar)
     avatar_decoded = Base64.decode64(avatar)
     avatar_image   = MiniMagick::Image.read(avatar_decoded)
 
-    unless @config.dig(:avatar, :allowed_types).include?(avatar_image.mime_type)
-      raise ServerExceptions::BadRequest.new("Invalid avatar type")
-    end
-
-    if avatar_image.size > @config.dig(:avatar, :max_size)
-      raise ServerExceptions::BadRequest.new("Avatar size exceeds maximum limit")
-    end
+    raise GRPC::InvalidArgument.new("Invalid avatar type") unless @config.dig(:avatar, :allowed_types).include?(avatar_image.mime_type)
+    raise GRPC::InvalidArgument.new("Avatar size exceeds maximum limit") if avatar_image.size > @config.dig(:avatar, :max_size)
   end
 
   def hash_password(password)
     response = @grpc_client.hash_password(password)
-    raise ServerExceptions::ServiceUnavailable.new("Password service unavailable") if response.nil?
-    raise ServerExceptions::InternalError.new("Failed to hash password") if response.hashed_password.nil?
+    raise GRPC::Internal.new("Failed to hash password") unless response&.hashed_password
+
     response.hashed_password
   end
 
