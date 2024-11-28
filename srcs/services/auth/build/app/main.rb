@@ -5,7 +5,6 @@ require_relative 'lib/grpc_server'
 if $PROGRAM_NAME == __FILE__
 
   registry = ServiceRegistry.instance
-  registry.register(AuthAPIGateway, AuthAPIGatewayServiceHandler)
   registry.register(AuthUser, AuthUserServiceHandler)
   #add more services here
 

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 13:52:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 16:20:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,7 +59,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       [email, hashed_password, display_name, avatar]
     )
 
-    UserService::RegisterUserResponse.new(
+    User::RegisterUserResponse.new(
       user_id: db_response.getvalue(0, 0)
     )
   ensure
@@ -76,7 +76,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
     raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
 
-    UserService::UserPublicProfile.new(
+    User::UserPublicProfile.new(
       user_id:      db_response.getvalue(0, 0),
       display_name: db_response.getvalue(0, 1),
       avatar:       db_response.getvalue(0, 2) || @default_avatar,
@@ -95,7 +95,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   
     raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
   
-    UserService::UserStatus.new(db_response.getvalue(0, 0))
+    User::UserStatus.new(db_response.getvalue(0, 0))
   end
 
   def delete_account(request, call)
@@ -123,7 +123,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
     raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
   
-    UserService::UserPrivateProfile.new(
+    User::UserPrivateProfile.new(
       id:            db_response.getvalue(0, 0),
       email:         db_response.getvalue(0, 1),
       display_name:  db_response.getvalue(0, 2),
@@ -191,7 +191,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       end
 
       grpc_task  = task.async do
-        @grpc_client.stubs[:auth].generate_tfa_secret(Google::Protobuf::Empty.new)
+        grpc_request = AuthUser::GenerateTFASecretRequest.new(requester_user_id)
+        @grpc_client.stubs[:auth].generate_tfa_secret(grpc_request)
       end
 
       db_response = db_task.wait
@@ -207,7 +208,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
         [grpc_response.tfa_secret, requester_user_id]
       )
   
-      Google::Protobuf::Empty.new
+      grpc_response
     end
 
     tasks.wait
@@ -227,7 +228,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
   
     tfa_status = db_response.getvalue(0, 0)
-    UserService::TFAStatus.new(tfa_status)
+    User::TFAStatus.new(tfa_status)
   end
 
   def disable_tfa(request, call)
@@ -255,9 +256,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     check_required_fields(requester_user_id, request.tfa_code)
   
     tasks = Async do |task|
-      grpc_request = AuthUserService::GenerateJWTRequest.new(
+      grpc_request = AuthUser::GenerateJWTRequest.new(
         user_id:     requester_user_id,
-        auth_level:  1,
+        auth_level:  2,
         pending_tfa: false
       )
       jwt_task = task.async { @grpc_client.stubs[:auth].generate_jwt(grpc_request) }
@@ -273,7 +274,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       tfa_status = db_response.getvalue(0, 1)
       raise GRPC::FailedPrecondition.new("2FA is not enabled") if tfa_secret.nil? || !tfa_status
 
-      grpc_request  = AuthUserService::CheckTFACodeRequest.new(
+      grpc_request  = AuthUser::Check2FACodeRequest.new(
         tfa_secret: tfa_secret,
         tfa_code:   request.tfa_code
       )
@@ -281,7 +282,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       @grpc_client.stubs[:auth].check_tfa_code(grpc_request)
 
       jwt_response = jwt_task.wait
-      UserService::JWT.new(jwt_response.jwt)
+      User::JWT.new(jwt_response.jwt)
     end
 
     tasks.wait
@@ -307,14 +308,14 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     user_id    = db_response.getvalue(0, 0)
     tfa_status = db_response.getvalue(0, 1)
 
-    grpc_request = AuthUserService::GenerateJWTRequest.new(
+    grpc_request = AuthUser::GenerateJWTRequest.new(
       user_id:     user_id,
-      auth_level:  0,
+      auth_level:  1,
       pending_tfa: tfa_status
     )
     grpc_response = @grpc_client.stubs[:auth].generate_jwt(grpc_request)
 
-    UserService::JWT.new(grpc_response.jwt)
+    User::JWT.new(grpc_response.jwt)
   ensure
     barrier&.stop
   end
@@ -347,7 +348,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
     friend_ids = db_response.map { |row| row["friend_id"] }
 
-    UserService::Friends.new(friend_ids)
+    User::Friends.new(friend_ids)
   end
 
   def remove_friend(request, call)
@@ -385,7 +386,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
   def check_email_domain(email)
     domain   = email.split('@').last
-    request  = AuthUserService::CheckDomainRequest.new(domain)
+    request  = AuthUser::CheckDomainRequest.new(domain)
     response = @grpc_client.stubs[:auth].check_domain(request)
     
     raise GRPC::InvalidArgument.new("Invalid email domain") unless response&.is_allowed

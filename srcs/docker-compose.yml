@@ -109,6 +109,10 @@ services:
     environment:
     volumes:
     secrets:
+      - source: jwt_key
+        target: services/auth/build/app/config/jwt.key #TODO (It has sufficient entropy (at least 32 bytes for HS256))
+        uid: #TODO uid
+        mode: 0400
     ports:
       -
     networks:

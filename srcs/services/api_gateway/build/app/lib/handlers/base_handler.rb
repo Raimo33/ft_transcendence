@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:38 by craimond          #+#    #+#              #
-#    Updated: 2024/11/27 18:21:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 15:10:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,7 @@ class BaseHandler
   def build_request_metadata(requesting_user_id)
     {
       'x-request-id'          => SecureRandom.uuid,
-      'x-requester-user-id'  => requesting_user_id
+      'x-requester-user-id'   => requesting_user_id
     }.compact
   end
 

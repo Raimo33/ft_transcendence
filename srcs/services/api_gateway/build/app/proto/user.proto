@@ -13,7 +13,7 @@ service UserAPIGateway
   rpc DeleteAccount           (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc GetUserPrivateProfile   (google.protobuf.Empty)         returns (UserPrivateProfile)    {}
   rpc UpdateProfile           (UpdateProfileRequest)          returns (google.protobuf.Empty) {}
-  rpc EnableTFA               (google.protobuf.Empty)         returns (TotpSecret)            {} 
+  rpc EnableTFA               (google.protobuf.Empty)         returns (EnableTFAResponse)     {}
   rpc GetTFAStatus            (google.protobuf.Empty)         returns (TFAStatus)             {} 
   rpc DisableTFA              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc SubmitTFACode           (SubmitTFACodeRequest)          returns (JWT)                   {}
@@ -72,9 +72,10 @@ message UpdateProfileRequest
   string avatar        = 2;
 }
 
-message TotpSecret
+message EnableTFAResponse
 {
-  string tfa_secret = 1;
+  string tfa_secret           = 1;
+  string tfa_provisioning_uri = 2;
 }
 
 message TFAStatus

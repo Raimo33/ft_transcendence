@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:14:03 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 04:33:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 15:27:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,9 +30,9 @@ class Authorization
     auth_header = request.env['HTTP_AUTHORIZATION']
     return unauthorized unless auth_header
 
-    user_id = @jwt_validator.validate_token(auth_header, auth_level)
-    if user_id
-      env['requesting_user_id'] = user_id
+    jwt = @jwt_validator.extract_token(auth_header)
+    if user_id = @jwt_validator.validate_token(jwt, operation['operationId'], auth_level)
+      env['x-requester-user-id'] = user_id
       @app.call(env)
     else
       unauthorized

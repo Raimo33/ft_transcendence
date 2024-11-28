@@ -4,15 +4,14 @@ package auth.user;
 
 import "google/protobuf/empty.proto";
 
-
 service AuthUser
 {
-  rpc Ping(google.protobuf.Empty)                 returns (google.protobuf.Empty) {}
-  rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
-  rpc HashPassword(HashPasswordRequest)           returns (HashedPassword) {}
-  rpc GenerateTFASecret(google.protobuf.Empty)    returns (TFASecret) {}
-  rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
-  rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
+  rpc Ping(google.protobuf.Empty)                  returns (google.protobuf.Empty) {}
+  rpc CheckDomain(CheckDomainRequest)              returns (google.protobuf.Empty) {}
+  rpc HashPassword(HashPasswordRequest)            returns (HashedPassword) {}
+  rpc GenerateTFASecret(GenerateTFASecretRequest)  returns (GenerateTFASecretResponse) {}
+  rpc SubmitTFACode(SubmitTFACodeRequest)            returns (google.protobuf.Empty) {}
+  rpc GenerateJWT(GenerateJWTRequest)              returns (JWT) {}
 }
 
 message CheckDomainRequest
@@ -29,18 +28,23 @@ message HashedPassword
   string hashed_password = 1;
 }
 
-message TFASecret
+message GenerateTFASecretRequest
 {
-  string tfa_secret = 1;
+  string identifier = 1;
+}
+message GenerateTFASecretResponse
+{
+  string tfa_secret            = 1;
+  string tfa_provistioning_uri = 2;
 }
 
-message CheckTFACodeRequest
+message SubmitTFACodeRequest
 {
   string tfa_secret  = 1;
   string tfa_code    = 2;
 }
 
-message GenerateJWTReques
+message GenerateJWTRequest
 {
   string user_id     = 1;
   uint16 auth_level  = 2;

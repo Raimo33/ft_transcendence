@@ -4,14 +4,7 @@ package auth;
 
 import "google/protobuf/empty.proto";
 
-
-service AuthAPIGateway
-{
-  rpc Ping(google.protobuf.Empty)              returns (google.protobuf.Empty);
-  rpc GetJWTPublicKeys(google.protobuf.Empty)  returns (PublicKeys);
-}
-
-service AuthUserService
+service AuthUser
 {
   rpc Ping(google.protobuf.Empty)                 returns (google.protobuf.Empty) {}
   rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
@@ -19,19 +12,6 @@ service AuthUserService
   rpc GenerateTFASecret(GenerateTFASecretRequest) returns (GenerateTFASecretResponse) {}
   rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
   rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
-}
-
-message PublicKey
-{
-  required string  id          = 1;
-  required string  key         = 2;
-  int64            expires_at  = 3;
-  bool             is_current  = 4;
-}
-
-message PublicKeys
-{
-  repeated PublicKey  keys = 1;
 }
 
 message CheckDomainRequest
@@ -54,8 +34,8 @@ message GenerateTFASecretRequest
 }
 message GenerateTFASecretResponse
 {
-  string tfa_secret       = 1;
-  string provisioning_uri = 2;
+  string tfa_secret            = 1;
+  string tfa_provistioning_uri = 2;
 }
 
 message CheckTFACodeRequest

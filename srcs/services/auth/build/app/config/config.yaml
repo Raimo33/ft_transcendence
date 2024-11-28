@@ -13,7 +13,6 @@ grpc:
     pool_size: 10
 
 password:
-  salt: 
   bcrypt:
     cost: 10
 
@@ -25,9 +24,9 @@ tfa:
   drift_ahead: 1
   drift_behind: 1
   verify_issuer: true
-  image_url: "https://yourapp.com/logo.png"
+  image_url: https://yourapp.com/logo.png
 
 jwt:
-  issuer: pongfumasters
-  expiration: 3600
-  without_tfa_expiration: 
+  ttl: 3600
+  tfa_ttl: 300
+  key: jwt.key

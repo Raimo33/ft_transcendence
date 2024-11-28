@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 13:58:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/28 16:37:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,6 +22,7 @@ class AuthUserServiceHandler < AuthUser::Service
 
   def initialize
     @config = ConfigHandler.instance.config
+    @private_key = OpenSSL::PKey::RSA.new(@config[:jwt][:private_key])
   end
 
   def ping(_request, _call)
@@ -75,8 +76,8 @@ class AuthUserServiceHandler < AuthUser::Service
     )
 
     AuthUser::Generate2FASecretResponse.new(
-      secret:           secret,
-      provisioning_uri: provisioning_uri
+      tfa_secret:           secret,
+      tfa_provisioning_uri: provisioning_uri
     )
   end
 
@@ -115,24 +116,23 @@ class AuthUserServiceHandler < AuthUser::Service
     settings = @config[:jwt]
 
     auth_level  = request.auth_level || 0
-    pending_tfa = request.pending_tfa || false
+    expiry      = pending_tfa ? settings.fetch(:tfa_ttl, 300) : settings.fetch(:ttl, 3600)
     now         = Time.now.to_i
 
     payload = {
-      iss:  settings.fetch(:issuer, 'AuthService'),
+      iss:  'AuthService',
       sub:  request.user_id,
       iat:  now,
-      exp:  #TODO dinamico in base a pending_tfa
+      exp:  now + expiry,
       jti:  SecureRandom.uuid,
 
-      user_id:     request.user_id,
       auth_level:  auth_level,
-      pending_tfa: pending_tfa
     }
+
     jwt = JWT.encode(
-      settings.fetch(:secret) #TODO capire cosa e'
-      settings.fetch(:algorithm, 'HS256'),
-      settings.fetch(:headers, {})
+      payload,
+      @private_key,
+      settings.fetch(:algorithm, 'RS256')
     )
 
     AuthUser::JWT.new(jwt)
