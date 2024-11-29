@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 16:20:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/29 13:23:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -425,7 +425,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def hash_password(password)
-    response = @grpc_client.hash_password(password)
+    grpc_request = AuthUser::HashPasswordRequest.new(password)
+    response = @grpc_client.stubs[:auth].hash_password(grpc_request)
     raise GRPC::Internal.new("Failed to hash password") unless response&.hashed_password
 
     response.hashed_password

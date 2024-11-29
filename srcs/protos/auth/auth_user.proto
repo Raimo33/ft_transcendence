@@ -9,6 +9,7 @@ service AuthUser
   rpc Ping(google.protobuf.Empty)                 returns (google.protobuf.Empty) {}
   rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
   rpc HashPassword(HashPasswordRequest)           returns (HashedPassword) {}
+  rpc ValidatePassword(ValidatePasswordRequest)   returns (google.protobuf.Empty) {}
   rpc GenerateTFASecret(GenerateTFASecretRequest) returns (GenerateTFASecretResponse) {}
   rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
   rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
@@ -26,6 +27,12 @@ message HashPasswordRequest
 message HashedPassword
 {
   string hashed_password = 1;
+}
+
+message ValidatePasswordRequest //TODO implement
+{
+  string password         = 1;
+  string hashed_password  = 2;
 }
 
 message GenerateTFASecretRequest
