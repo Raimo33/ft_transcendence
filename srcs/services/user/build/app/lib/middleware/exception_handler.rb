@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 07:08:47 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 11:24:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,6 +33,7 @@ class ExceptionHandler
   def handle_exception(exception)
     status_code, message = case exception
 
+     #TODO ritornare il messaggio di exception.message altrimenti default
     when GRPC::InvalidArgument
       [GRPC::Core::StatusCodes::INVALID_ARGUMENT, exception.message]
     when GRPC::Unauthenticated

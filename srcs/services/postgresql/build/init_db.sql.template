@@ -11,6 +11,8 @@ CONNECTION LIMIT = -1;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TYPE user_status AS ENUM ('O', 'F'); -- O: online, F: offline
 
+
+-- TODO capire se posso non dover ripetere il nome della table nelle contraints
 CREATE TABLE Users
 (
   id                       uuid  NOT NULL DEFAULT gen_random_uuid(),
