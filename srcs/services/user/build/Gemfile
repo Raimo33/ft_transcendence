@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:11:23 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 05:04:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 18:10:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,4 +17,3 @@ gem "google-protobuf"
 gem "async"
 gem "json"
 gem "pg"
-gem "pgpool"

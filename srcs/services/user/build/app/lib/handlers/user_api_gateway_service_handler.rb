@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 18:00:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 19:12:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,6 +29,75 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     @db_client    = DBClient.instance
 
     @default_avatar = load_default_avatar
+    @prepared_statements = {
+      insert_user: <<~SQL
+        INSERT INTO Users (email, psw, display_name, avatar)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id
+      SQL
+      get_public_profile: <<~SQL
+        SELECT id, display_name, avatar, current_status
+        FROM UserProfiles
+        WHERE id = $1
+      SQL
+      get_status: <<~SQL
+        SELECT current_status
+        FROM UserProfiles
+        WHERE id = $1
+      SQL
+      delete_user: <<~SQL
+        DELETE FROM Users 
+        WHERE id = $1
+      SQL
+      get_private_profile: <<~SQL
+        SELECT * FROM UserPrivateProfiles
+        WHERE id = $1
+      SQL
+      update_profile: <<~SQL
+        UPDATE Users
+        SET 
+          display_name = COALESCE($1, display_name),
+          avatar = COALESCE($2, avatar)
+        WHERE id = $3
+      SQL
+      enable_tfa: <<~SQL
+        UPDATE Users 
+        SET tfa_status = true, 
+            tfa_secret = $2 
+        WHERE id = $1 AND tfa_status = false
+      SQL
+      disable_tfa: <<~SQL
+        UPDATE Users
+        SET tfa_status = false, tfa_secret = NULL
+        WHERE id = $1 AND tfa_status = true
+      SQL
+      get_tfa: <<~SQL
+        SELECT tfa_secret, tfa_status
+        FROM Users
+        WHERE id = $1
+      SQL
+      get_login_data: <<~SQL
+        SELECT id, psw, tfa_status
+        FROM Users
+        WHERE email = $1
+      SQL
+      insert_friendship: <<~SQL
+        INSERT INTO Friendships (user_id_1, user_id_2)
+        VALUES ($1, $2)
+      SQL
+      get_friends: <<~SQL
+        SELECT friend_id
+        FROM Friendships
+        WHERE user_id = $1
+        LIMIT $2 OFFSET $3
+      SQL
+      delete_friendship: <<~SQL
+        DELETE FROM Friendships
+        WHERE user_id_1 = $1 AND user_id_2 = $2
+      SQL
+    }
+
+    prepare_statements
   end
 
   def ping(_request, _call)
@@ -58,16 +127,10 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       hashed_password = password_task.wait
       avatar = avatar_task&.wait
     
-      insert_query = <<~SQL
-        INSERT INTO Users (email, psw, display_name, avatar)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id
-      SQL
-
-      insert_result = @db_client.query(insert_query, [email, hashed_password, display_name, avatar])
+      insert_result = @db_client.exec_prepared(:insert_user, [email, hashed_password, display_name, avatar || @default_avatar])
 
       UserAPIGateway::RegisterUserResponse.new(insert_result[0]['id'])
-    end
+    end.wait
   ensure
     checks&.stop
     async_context&.stop
@@ -76,13 +139,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   def get_user_profile(request, call)
     check_required_fields(request.user_id)
   
-    query = <<~SQL
-      SELECT id, display_name, avatar, current_status
-      FROM UserProfiles
-      WHERE id = $1
-    SQL
-
-    query_result = @db_client.query(query, [request.user_id])
+    query_result = @db_client.exec_prepared(:get_public_profile, [request.user_id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
 
     row = query_result.first
@@ -97,14 +154,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   def get_user_status(request, call)
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(request.user_id)
-  
-    query = <<~SQL
-      SELECT current_status
-      FROM UserProfiles
-      WHERE id = $1
-    SQL
 
-    query_result = @db_client.query(query, [request.user_id])
+    query_result = @db_client.exec_prepared(:get_status, [request.user_id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
   
     UserAPIGateway::UserStatus.new(query_result[0]['current_status'])
@@ -114,12 +165,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(requester_user_id)
 
-    query = <<~SQL
-      DELETE FROM Users 
-      WHERE id = $1
-    SQL
-
-    query_result = @db_client.query(query, [requester_user_id])
+    query_result = @db_client.exec_prepared(:delete_user, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
   
     Google::Protobuf::Empty.new
@@ -129,12 +175,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(requester_user_id)
 
-    query = <<~SQL
-      SELECT * FROM UserPrivateProfiles
-      WHERE id = $1
-    SQL
-
-    query_result = @db_client.query(query, [requester_user_id])
+    query_result = @db_client.exec_prepared(:get_private_profile, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
   
     row = query_result.first
@@ -154,33 +195,23 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::InvalidArgument.new("No fields to update") unless provided?(request.display_name) || provided?(request.avatar)
   
     checks = Async::Barrier.new
-    async_context = Async do |task|
 
-      checks.async { check_display_name(request.display_name) } if request.display_name
-      if request.avatar
-        checks.async { check_avatar(request.avatar) }
-        avatar_task = task.async { compress_avatar(request.avatar) }
-      end
+    checks.async { check_display_name(request.display_name) } if request.display_name
+    if request.avatar
+      checks.async { check_avatar(request.avatar) }
+      avatar_task = Async { compress_avatar(request.avatar) }
+    end
+
+    checks.wait
+    compressed_avatar = avatar_task&.wait
   
-      checks.wait
-      compressed_avatar = avatar_task&.wait
-
-      update_query = <<~SQL
-        UPDATE Users
-        SET 
-          display_name = COALESCE($1, display_name),
-          avatar = COALESCE($2, avatar)
-        WHERE id = $3
-      SQL
-    
-      query_result = @db_client.query(update_query, [request.display_name, compressed_avatar, requester_user_id])
-      raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
-    end.wait
+    query_result = @db_client.exec_prepared(:update_profile, [request.display_name, compressed_avatar, requester_user_id])
+    raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
 
     Google::Protobuf::Empty.new
   ensure
     checks&.stop
-    async_context&.stop
+    avatar_task&.stop
   end
 
   def enable_tfa(request, call)
@@ -190,56 +221,25 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     tfa_request  = AuthUser::GenerateTFASecretRequest.new(requester_user_id)
     tfa_response = @grpc_client.stubs[:auth].generate_tfa(tfa_request)
     
-    async_context = Async do |task|
-      qr_code_task = task.async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
+    qr_code_task = Async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
+    db_task = Async { @db_client.query(@prepared_statements[:enable_tfa], [requester_user_id, tfa_response.tfa_secret]) }
 
-      update_query = <<~SQL
-        UPDATE Users 
-        SET tfa_status = true, 
-            tfa_secret = $2 
-        WHERE id = $1 AND tfa_status = false
-      SQL
-
-      db_task = task.async { @db_client.query(update_query, [requester_user_id, tfa_response.tfa_secret]) }
-
-      qr_code = qr_code_task.wait
-      db_task.wait
-      UserAPIGateway::Enable2FAResponse.new(
-        tfa_secret: tfa_response.tfa_secret,
-        qr_code:    qr_code
-      )
-    end.wait
+    qr_code = qr_code_task.wait
+    db_task.wait
+    UserAPIGateway::Enable2FAResponse.new(
+      tfa_secret: tfa_response.tfa_secret,
+      qr_code:    qr_code
+    )
   ensure
-    async_context&.stop
-  end
-
-  def get_tfa_status(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
-    check_required_fields(requester_user_id)
-
-    query = <<~SQL
-      SELECT tfa_status
-      FROM Users
-      WHERE id = $1
-    SQL
-
-    query_result = @db_client.query(query, [requester_user_id])
-    raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
-  
-    UserAPIGateway::TFAStatus.new(query_result[0]['tfa_status'])
+    qr_code_task&.stop
+    db_task&.stop
   end
 
   def disable_tfa(request, call)
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(requester_user_id)
-  
-    query = <<~SQL
-      UPDATE Users
-      SET tfa_status = false, tfa_secret = NULL
-      WHERE id = $1 AND tfa_status = true
-    SQL
 
-    query_result = @db_client.query(query, [requester_user_id])
+    query_result = @db_client.exec_prepared(:disable_tfa, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
   
     Google::Protobuf::Empty.new
@@ -249,55 +249,39 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(requester_user_id, request.tfa_code)
   
-    async_context = Async do |task|
-      jwt_task = task.async { generate_jwt(requester_user_id, auth_level: 2, pending_tfa: false) }
+    jwt_task = Async { generate_jwt(requester_user_id, auth_level: 2, pending_tfa: false) }
+    
+    query_result = @db_client.exec_prepared(:get_tfa, [requester_user_id])
+    raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
+    
+    tfa_secret = query_result[0]['tfa_secret']
+    tfa_status = query_result[0]['tfa_status']
+    raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
 
-      query = <<~SQL
-        SELECT tfa_secret, tfa_status
-        FROM Users
-        WHERE id = $1
-      SQL
-      
-      query_result = @db_client.query(query, [requester_user_id])
-      raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
-      
-      tfa_secret = query_result[0]['tfa_secret']
-      tfa_status = query_result[0]['tfa_status']
-      raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
+    check_tfa_code(request.tfa_code, tfa_secret)
 
-      check_tfa_code(request.tfa_code, tfa_secret)
-
-      jwt = jwt_task.wait
-      UserAPIGateway::JWT.new(jwt)
-    end.wait
+    jwt = jwt_task.wait
+    UserAPIGateway::JWT.new(jwt)
   ensure
-    async_context&.stop
+    jwt_task&.stop
   end
 
   def login_user(request, call)
     check_required_fields(request.email, request.password)
 
-    barrier = Async::Barrier.new
     async_context = Async do |task|
-      barrier.async { check_email(request.email) }
-
-      query = <<~SQL
-        SELECT id, psw, tfa_status
-        FROM Users
-        WHERE email = $1
-      SQL
+      task.async { check_email(request.email) }
     
-      query_result = @db_client.query(query, [request.email])
+      query_result = @db_client.exec_prepared(:get_login_data, [request.email])
       raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
 
       user_id    = query_result[0]["id"]
       tfa_status = query_result[0]["tfa_status"]
       hashed_psw = query_result[0]["psw"]
 
-      barrier.async { validate_password(request.password, hashed_psw) }
+      task.async { validate_password(request.password, hashed_psw) }
       jwt_task = task.async { generate_jwt(user_id, auth_level: 1, pending_tfa: tfa_status) }
       
-      barrier.wait
       UserAPIGateway::JWT.new(jwt_task.wait)
     end.wait
   ensure
@@ -306,14 +290,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   
   def add_friend(request, call)
     requester_user_id = call.metadata["x-requester-user-id"]
-    check_required_fields(request.requester_user_id, request.friend_user_id)
+    check_required_fields(requester_user_id, request.friend_user_id)
 
-    query = <<~SQL
-      INSERT INTO Friendships (user_id_1, user_id_2)
-      VALUES ($1, $2)
-    SQL
-
-    query_result = @db_client.query(query, [request.requester_user_id, request.friend_user_id])
+    query_result = @db_client.exec_prepared(:insert_friendship, [requester_user_id, request.friend_user_id])
 
     Google::Protobuf::Empty.new
   end
@@ -324,15 +303,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
     limit  = request.limit  || 10
     offset = request.offset || 0
-
-    query = <<~SQL
-      SELECT friend_id
-      FROM Friendships
-      WHERE user_id = $1
-      LIMIT $2 OFFSET $3
-    SQL
     
-    query_result = @db_client.query(query, [requester_user_id, limit, offset])
+    query_result = @db_client.exec_prepared(:get_friends, [requester_user_id, limit, offset])
     raise GRPC::NotFound.new("No friends found") if query_result.ntuples.zero?
 
     friend_ids = query_result.map { |row| row["friend_id"] }
@@ -342,19 +314,31 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   def remove_friend(request, call)
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(requester_user_id, request.friend_user_id)
-
-    query = <<~SQL
-      DELETE FROM Friendships
-      WHERE user_id_1 = $1 AND user_id_2 = $2
-    SQL
     
-    query_result = @db_client.query(query, [requester_user_id, request.friend_user_id])
+    query_result = @db_client.exec_prepared(:delete_friendship, [requester_user_id, request.friend_user_id])
     raise GRPC::NotFound.new("Friend not found") if query_result.cmd_tuples.zero?
 
     Google::Protobuf::Empty.new
   end
 
   private
+
+  def prepare_statements
+    barrier   = Async::Barrier.new
+    semaphore = Async::Semaphore.new(@db_client.pool_size)
+
+    @prepared_statements.each do |name, sql|
+      barrier.async do
+        semaphore.acquire do
+          @db_client.prepare(name, sql)
+        end
+      end
+    end
+
+    barrier.wait
+  ensure
+    barrier.stop
+  end
 
   def load_default_avatar
     default_avatar_path = File.join(File.dirname(__FILE__), @config.dig(:avatar, :default_avatar))

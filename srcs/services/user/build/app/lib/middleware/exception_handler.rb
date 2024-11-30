@@ -6,24 +6,26 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 17:41:56 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 18:43:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'json'
 require 'grpc'
-require 'sequel'
+require 'pg'
 require_relative '../custom_logger'
 
 class ExceptionHandler
-  SEQUEL_MAPPINGS = {
-    Sequel::UniqueConstraintViolation       => GRPC::Core::StatusCodes::ALREADY_EXISTS,
-    Sequel::ForeignKeyConstraintViolation   => GRPC::Core::StatusCodes::FAILED_PRECONDITION,
-    Sequel::NotNullConstraintViolation      => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
-    Sequel::CheckConstraintViolation        => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
-    Sequel::SerializationFailure            => GRPC::Core::StatusCodes::ABORTED,
-    Sequel::DatabaseConnectionError         => GRPC::Core::StatusCodes::UNAVAILABLE,
-    Sequel::DatabaseError                   => GRPC::Core::StatusCodes::INTERNAL
+
+  PG_MAPPINGS = {
+    PG::UniqueViolation            => GRPC::Core::StatusCodes::ALREADY_EXISTS,
+    PG::ForeignKeyViolation        => GRPC::Core::StatusCodes::FAILED_PRECONDITION,
+    PG::NotNullViolation           => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
+    PG::CheckViolation             => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
+    PG::SerializationFailure       => GRPC::Core::StatusCodes::ABORTED,
+    PG::ConnectionBad              => GRPC::Core::StatusCodes::UNAVAILABLE,
+    PG::Error                      => GRPC::Core::StatusCodes::INTERNAL,
+    PG::Pool::Error                => GRPC::Core::StatusCodes::RESOURCE_EXHAUSTED
   }.freeze
 
   GRPC_MAPPINGS = {
@@ -35,14 +37,15 @@ class ExceptionHandler
   }.freeze
 
   CONSTRAINT_MESSAGES = {
-    'pk_users'                => 'User already exists',
-    'pk_friendships'          => 'Friendship already exists', 
-    'unq_users_email'         => 'Email already in use',
-    'unq_users_display_name'  => 'Display name already in use',
-    'fk_friendships_user1'    => 'User not found',
-    'fk_friendships_user2'    => 'User not found',
-    'chk_email'               => 'Invalid email format',
-    'chk_display_name'        => 'Invalid display name format'
+    'pk_users'                        => 'User already exists',
+    'pk_friendships'                  => 'Friendship already exists', 
+    'unq_users_email'                 => 'Email already in use',
+    'unq_users_display_name'          => 'Display name already in use',
+    'fk_friendships_user1'            => 'User not found',
+    'fk_friendships_user2'            => 'User not found',
+    'chk_friendships_different_users' => 'Cannot be friends with yourself',
+    'chk_users_email'                 => 'Invalid email format',
+    'chk_users_display_name'          => 'Invalid display name format'
   }.freeze
 
   def initialize(app)
@@ -65,8 +68,8 @@ class ExceptionHandler
 
   def map_exception(exception)
     case exception
-    when *SEQUEL_MAPPINGS.keys
-      [SEQUEL_MAPPINGS[exception.class], map_constraint_message(exception)]
+    when *PG_MAPPINGS.keys
+      [PG_MAPPINGS[exception.class], map_pg_message(exception)]
     when *GRPC_MAPPINGS.keys
       GRPC_MAPPINGS[exception.class]
     else
@@ -74,9 +77,18 @@ class ExceptionHandler
     end
   end
 
-  def map_constraint_message(exception)
-    return exception.message unless exception.respond_to?(:constraint_name)
-    CONSTRAINT_MESSAGES[exception.constraint_name] || "Validation error"
+  def map_pg_message(exception)
+    return exception.message unless exception.respond_to?(:result)
+    
+    case exception
+    when PG::UniqueViolation, PG::ForeignKeyViolation, PG::NotNullViolation, PG::CheckViolation
+      constraint_name = exception.result.error_field(PG::Result::PG_DIAG_CONSTRAINT_NAME)
+      CONSTRAINT_MESSAGES[constraint_name] || "Validation error"
+    when PG::Pool::Error
+      "Connection pool exhausted"
+    else
+      exception.message
+    end
   end
 
 end

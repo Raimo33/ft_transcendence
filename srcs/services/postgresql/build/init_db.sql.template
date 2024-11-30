@@ -28,9 +28,9 @@ CREATE TABLE Users
   CONSTRAINT unq_users_email        UNIQUE (email),
   CONSTRAINT unq_users_display_name UNIQUE (display_name),
 
-  CONSTRAINT chk_email        CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$'),
-  CONSTRAINT chk_display_name CHECK (LENGTH(display_name) <= 25 AND LENGTH(display_name) > 3 AND display_name ~ '^[a-zA-Z0-9_]+$'),
-  CONSTRAINT chk_avatar       CHECK (LENGTH(avatar) <= 5242880),
+  CONSTRAINT chk_users_email        CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$'),
+  CONSTRAINT chk_users_display_name CHECK (LENGTH(display_name) <= 25 AND LENGTH(display_name) > 3 AND display_name ~ '^[a-zA-Z0-9_]+$'),
+  CONSTRAINT chk_users_avatar       CHECK (LENGTH(avatar) <= 5242880),
 );
 
 CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
@@ -49,8 +49,8 @@ CREATE TABLE Matches
   CONSTRAINT           unq_matches_tournament_id UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT           fk_matches_tournament     FOREIGN KEY (tournament_id) REFERENCES GameTournament(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
 
-  CONSTRAINT           chk_started_timestamp  CHECK (started_timestamp <= NOW()),
-  CONSTRAINT           chk_finished_timestamp CHECK (finished_timestamp <= NOW()),
+  CONSTRAINT           chk_matches_started_timestamp  CHECK (started_timestamp <= NOW()),
+  CONSTRAINT           chk_matches_finished_timestamp CHECK (finished_timestamp <= NOW()),
 );
 
 CREATE INDEX idx_match_started_timestamp  ON GameMatch(started_timestamp);
@@ -69,8 +69,9 @@ CREATE TABLE Tournaments
 
   CONSTRAINT  pk_tournaments          PRIMARY KEY (id),
   CONSTRAINT  fk_tournaments_creator  FOREIGN KEY (creator_id) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
-  CONSTRAINT  chk_started_timestamp   CHECK (started_timestamp  <= NOW()),
-  CONSTRAINT  chk_finished_timestamp  CHECK (finished_timestamp <= NOW())
+  
+  CONSTRAINT  chk_tournaments_started_timestamp   CHECK (started_timestamp  <= NOW()),
+  CONSTRAINT  chk_tournaments_finished_timestamp  CHECK (finished_timestamp <= NOW())
 );
 
 CREATE INDEX idx_tournament_started_timestamp   ON GameTournament(started_timestamp);

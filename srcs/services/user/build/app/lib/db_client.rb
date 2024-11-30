@@ -6,11 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 17:11:10 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 19:06:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'sequel'
+require 'pg'
 require 'singleton'
 require_relative 'ConfigHandler'
 
@@ -21,50 +21,57 @@ class DBClient
     @config = ConfigHandler.instance.config
     db_config = @config[:database]
 
-    @db = Sequel.connect(
-      adapter:          'postgres',
-      host:             db_config[:host],
-      port:             db_config[:port],
-      database:         db_config[:dbname],
-      user:             db_config[:user],
-      password:         db_config[:password],
-      max_connections:  db_config.dig(:pool, :size),
-      pool_timeout:     db_config.dig(:pool, :timeout)
+    @pool = PG::Pool.new(
+      host:       db_config[:host],
+      port:       db_config[:port],
+      dbname:     db_config[:dbname],
+      user:       db_config[:user],
+      password:   db_config[:password],
+      pool_size:  db_config.dig(:pool, :size),
+      timeout:    db_config.dig(:pool, :timeout)
     )
   end
 
-  def query(sql, params = {})
-    handle_db_call("Error executing query") do
-      result = @db[sql, params].all
-      block_given? ? yield(result) : result
+  def query(sql, params = [])
+    @pool.with do |conn|
+      result = conn.exec_params(sql, params)
+      begin
+        rows = result.to_a
+        block_given? ? yield(rows) : rows
+      ensure
+        result.clear
+      end
     end
   end
 
-  def transaction(&block)
-    handle_db_call("Error during transaction") do
-      @db.transaction(&block)
+  def transaction
+    @pool.with do |conn|
+      conn.transaction do
+        yield(conn)
+      end
     end
   end
 
-  def prepare_and_execute(name, sql, params = {})
-    handle_db_call("Error executing prepared statement") do
-      statement = @db[sql, params]
-      result = statement.all
-      block_given? ? yield(result) : result
+  def prepare(name, sql)
+    @pool.with do |conn|
+      conn.prepare(name, sql)
+    end
+  end
+
+  def exec_prepared(name, params = [])
+    @pool.with do |conn|
+      result = conn.exec_prepared(name, params)
+      begin
+        rows = result.to_a
+        block_given? ? yield(rows) : rows
+      ensure
+        result.clear
+      end
     end
   end
 
   def stop
-    @db.disconnect
-  end
-
-  private
-
-  def handle_db_call(default_message = "Database error")
-    yield
-  rescue Sequel::Error => e
-    message = e.respond_to?(:message) && !e.message.empty? ? e.message : default_message
-    raise "#{default_message}: #{message}"
+    @pool.close
   end
 
 end

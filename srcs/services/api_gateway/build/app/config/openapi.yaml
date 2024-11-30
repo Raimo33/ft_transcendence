@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 14:58:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 18:33:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -309,35 +309,6 @@ paths:
           $ref: "#/components/responses/LengthRequired"
         "413":
           $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-    get:
-      operationId: getTFAStatus
-      summary: Get tfa status
-      description: Retrieve the two-factor authentication status of a user account.
-      parameters:
-        - $ref: "#/components/parameters/user_id"
-      security:
-        - jwtAuth: []
-      x-auth-level: 2
-      responses:
-        "200":
-          description: Returns the tfa status of the current user.
-          headers:
-            Content-Length:
-              $ref: "#/components/headers/Content-Length"
-            Content-Type:
-              $ref: "#/components/headers/Content-Type"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tfa_status:
-                    $ref: "#/components/schemas/tfa_status"
-                required: [tfa_status]
-        "401":
-          $ref: "#/components/responses/Unauthorized"
         "431":
           $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
