@@ -74,8 +74,8 @@ message UpdateProfileRequest
 
 message EnableTFAResponse
 {
-  string tfa_secret           = 1;
-  string tfa_provisioning_uri = 2;
+  string tfa_secret  = 1;
+  string tfa_qr_code = 2;
 }
 
 message TFAStatus

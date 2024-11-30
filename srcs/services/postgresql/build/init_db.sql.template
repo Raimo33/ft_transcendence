@@ -18,10 +18,10 @@ CREATE TABLE Users
   id                       uuid  NOT NULL DEFAULT gen_random_uuid(),
   email                    text  NOT NULL,
   psw                      text  NOT NULL,
-  tfa_secret              text,
+  tfa_secret               text,
   display_name             varchar(25) NOT NULL,
   avatar                   bytea,
-  tfa_status  boolean DEFAULT false NOT NULL,
+  tfa_status               boolean DEFAULT false NOT NULL,
   current_status           user_status DEFAULT 'F' NOT NULL,
 
   CONSTRAINT pk_users               PRIMARY KEY (id),
@@ -47,7 +47,6 @@ CREATE TABLE Matches
   CONSTRAINT           pk_matches                PRIMARY KEY (id),
   CONSTRAINT           fk_matches_creator_id     FOREIGN KEY (creator_id) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT           unq_matches_tournament_id UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
-  CONSTRAINT           unq_matches_websocket_url UNIQUE (websocket_url) DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT           fk_matches_tournament     FOREIGN KEY (tournament_id) REFERENCES GameTournament(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
 
   CONSTRAINT           chk_started_timestamp  CHECK (started_timestamp <= NOW()),
@@ -82,9 +81,9 @@ CREATE TYPE friendship_status AS ENUM ("pending", "accepted", "blocked", "reject
 
 CREATE TABLE Friendships
 (
-  user_id_1  uuid NOT NULL,
-  user_id_2  uuid NOT NULL,
-  status     friendship_status DEFAULT 'pending' NOT NULL,
+  user_id_1       uuid NOT NULL,
+  user_id_2       uuid NOT NULL,
+  current_status  friendship_status DEFAULT 'pending' NOT NULL,
 
   CONSTRAINT pk_friendships       PRIMARY KEY (user_id_1, user_id_2),
   CONSTRAINT fk_friendships_user1 FOREIGN KEY (user_id_1) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -93,8 +92,8 @@ CREATE TABLE Friendships
   CONSTRAINT chk_friendships_different_users CHECK (user_id_1 < user_id_2)
 );
 
-CREATE INDEX idx_friendships_user1_status ON Friendships(user_id_1, status);
-CREATE INDEX idx_friendships_user2_status ON Friendships(user_id_2, status);
+CREATE INDEX idx_friendships_user1_status ON Friendships(user_id_1, current_status);
+CREATE INDEX idx_friendships_user2_status ON Friendships(user_id_2, current_status);
 
 
 CREATE TABLE UserMatches

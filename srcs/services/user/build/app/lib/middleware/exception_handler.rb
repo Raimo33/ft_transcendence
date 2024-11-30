@@ -6,17 +6,45 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 11:24:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 17:41:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'json'
 require 'grpc'
-require 'pg'
-require 'pgpool'
+require 'sequel'
 require_relative '../custom_logger'
 
 class ExceptionHandler
+  SEQUEL_MAPPINGS = {
+    Sequel::UniqueConstraintViolation       => GRPC::Core::StatusCodes::ALREADY_EXISTS,
+    Sequel::ForeignKeyConstraintViolation   => GRPC::Core::StatusCodes::FAILED_PRECONDITION,
+    Sequel::NotNullConstraintViolation      => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
+    Sequel::CheckConstraintViolation        => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
+    Sequel::SerializationFailure            => GRPC::Core::StatusCodes::ABORTED,
+    Sequel::DatabaseConnectionError         => GRPC::Core::StatusCodes::UNAVAILABLE,
+    Sequel::DatabaseError                   => GRPC::Core::StatusCodes::INTERNAL
+  }.freeze
+
+  GRPC_MAPPINGS = {
+    GRPC::InvalidArgument   => [GRPC::Core::StatusCodes::INVALID_ARGUMENT,  "Invalid argument"],
+    GRPC::Unauthenticated   => [GRPC::Core::StatusCodes::UNAUTHENTICATED,   "Authentication required"],
+    GRPC::PermissionDenied  => [GRPC::Core::StatusCodes::PERMISSION_DENIED, "Permission denied"],
+    GRPC::NotFound          => [GRPC::Core::StatusCodes::NOT_FOUND,         "Resource not found"],
+    GRPC::AlreadyExists     => [GRPC::Core::StatusCodes::ALREADY_EXISTS,    "Resource already exists"]
+  }.freeze
+
+  CONSTRAINT_MESSAGES = {
+    'pk_users'                => 'User already exists',
+    'pk_friendships'          => 'Friendship already exists', 
+    'unq_users_email'         => 'Email already in use',
+    'unq_users_display_name'  => 'Display name already in use',
+    'fk_friendships_user1'    => 'User not found',
+    'fk_friendships_user2'    => 'User not found',
+    'chk_email'               => 'Invalid email format',
+    'chk_display_name'        => 'Invalid display name format'
+  }.freeze
+
   def initialize(app)
     @app = app
     @logger = CustomLogger.instance.logger
@@ -31,67 +59,25 @@ class ExceptionHandler
   private
 
   def handle_exception(exception)
-    status_code, message = case exception
-
-     #TODO ritornare il messaggio di exception.message altrimenti default
-    when GRPC::InvalidArgument
-      [GRPC::Core::StatusCodes::INVALID_ARGUMENT, exception.message]
-    when GRPC::Unauthenticated
-      [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Authentication required"]
-    when GRPC::PermissionDenied
-      [GRPC::Core::StatusCodes::PERMISSION_DENIED, "Permission denied"]
-    when GRPC::NotFound
-      [GRPC::Core::StatusCodes::NOT_FOUND, "Resource not found"]
-    when GRPC::AlreadyExists
-      [GRPC::Core::StatusCodes::ALREADY_EXISTS, "Resource already exists"]
-    when GRPC::ResourceExhausted
-      [GRPC::Core::StatusCodes::RESOURCE_EXHAUSTED, "Resource exhausted"]
-    when GRPC::FailedPrecondition
-      [GRPC::Core::StatusCodes::FAILED_PRECONDITION, "Failed precondition"]
-    when GRPC::Aborted
-      [GRPC::Core::StatusCodes::ABORTED, "Operation aborted"]
-    when GRPC::OutOfRange
-      [GRPC::Core::StatusCodes::OUT_OF_RANGE, "Out of range"]
-    when GRPC::Unimplemented
-      [GRPC::Core::StatusCodes::UNIMPLEMENTED, "Method not implemented"]
-    when GRPC::Internal
-      [GRPC::Core::StatusCodes::INTERNAL, "Internal error"]
-    when GRPC::Unavailable
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Service unavailable"]
-    when GRPC::DataLoss
-      [GRPC::Core::StatusCodes::DATA_LOSS, "Data loss"]
-    when GRPC::DeadlineExceeded
-      [GRPC::Core::StatusCodes::DEADLINE_EXCEEDED, "Deadline exceeded"]
-    when GRPC::Cancelled
-      [GRPC::Core::StatusCodes::CANCELLED, "Request cancelled"]
-    
-    when PG::ConnectionBad
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection failed"]
-    when PG::UniqueViolation
-      [GRPC::Core::StatusCodes::ALREADY_EXISTS, "Resource already exists"]
-    when PG::ForeignKeyViolation
-      [GRPC::Core::StatusCodes::FAILED_PRECONDITION, "Invalid reference"]
-    when PG::NotNullViolation
-      [GRPC::Core::StatusCodes::INVALID_ARGUMENT, "Missing required field"]
-    when PG::CheckViolation
-      [GRPC::Core::StatusCodes::INVALID_ARGUMENT, "Validation failed"]
-    
-    when PGPool::ConnectionTimeoutError
-      [GRPC::Core::StatusCodes::DEADLINE_EXCEEDED, "Database connection pool timeout"]
-    when PGPool::PoolExhaustedError
-      [GRPC::Core::StatusCodes::RESOURCE_EXHAUSTED, "Database connection pool exhausted"]
-    when PGPool::ConnectionCheckedOutError
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection unavailable"]
-    when PGPool::ConnectionClosedError
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection closed"]
-    
-    else
-      @logger.error(exception.message)
-      @logger.debug(exception.backtrace.join("\n"))
-      [GRPC::Core::StatusCodes::INTERNAL, "Internal server error"]
-    end
-
+    status_code, message = map_exception(exception)
     raise GRPC::BadStatus.new(status_code, message)
   end
+
+  def map_exception(exception)
+    case exception
+    when *SEQUEL_MAPPINGS.keys
+      [SEQUEL_MAPPINGS[exception.class], map_constraint_message(exception)]
+    when *GRPC_MAPPINGS.keys
+      GRPC_MAPPINGS[exception.class]
+    else
+      [GRPC::Core::StatusCodes::INTERNAL, "Internal server error"]
+    end
+  end
+
+  def map_constraint_message(exception)
+    return exception.message unless exception.respond_to?(:constraint_name)
+    CONSTRAINT_MESSAGES[exception.constraint_name] || "Validation error"
+  end
+
 end
 

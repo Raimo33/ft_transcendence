@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 16:37:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/11/30 17:58:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,7 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def check_domain(request, _call)
-    raise GRPC::InvalidArgument.new("Domain is required") if request.domain.empty?
+    check_required_fields(request.domain)
 
     resolver   = Resolv::DNS.new
     mx_records = resolver.getresources(request.domain, Resolv::DNS::Resource::IN::MX)
@@ -44,7 +44,7 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def hash_password(request, _call)
-    raise GRPC::InvalidArgument.new("Password is required") if request.password.empty?
+    check_required_fields(request.password)
 
     hashed_password = BCrypt::Password.create(
       request.password,
@@ -52,6 +52,15 @@ class AuthUserServiceHandler < AuthUser::Service
     ).to_s
 
     AuthUser::HashedPassword.new(hashed_password)
+  end
+
+  def validate_password(request, _call)
+    check_required_fields(request.password, request.hashed_password)
+
+    password = BCrypt::Password.new(request.hashed_password)
+    raise GRPC::InvalidArgument.new("Invalid password") unless password == request.password
+
+    Google::Protobuf::Empty.new
   end
 
   def generate_tfa_secret(_request, _call)
@@ -82,8 +91,7 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def check_tfa_code(request, call)
-    raise GRPC::InvalidArgument.new("Secret is required") if request.secret.empty?
-    raise GRPC::InvalidArgument.new("Code is required") if request.code.empty?
+    check_required_fields(request.secret, request.code)
     raise GRPC::InvalidArgument.new("Invalid secret format") unless ROTP::Base32.valid?(request.secret)
 
     settings = @config[:tfa]
@@ -111,7 +119,7 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def generate_jwt(request, _call)
-    raise GRPC::InvalidArgument.new("User ID is required") if request.user_id.empty?
+    check_required_fields(request.user_id)
 
     settings = @config[:jwt]
 
@@ -136,6 +144,16 @@ class AuthUserServiceHandler < AuthUser::Service
     )
 
     AuthUser::JWT.new(jwt)
+  end
+
+  private
+
+  def check_required_fields(*fields)
+    raise GRPC::InvalidArgument.new("Missing required fields") unless fields.all?(&method(:provided?))
+  end
+
+  def provided?(field)
+    field.respond_to?(:empty?) ? !field.empty? : !field.nil?
   end
 
 end

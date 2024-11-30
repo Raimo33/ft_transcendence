@@ -29,7 +29,7 @@ message HashedPassword
   string hashed_password = 1;
 }
 
-message ValidatePasswordRequest //TODO implement
+message ValidatePasswordRequest
 {
   string password         = 1;
   string hashed_password  = 2;
