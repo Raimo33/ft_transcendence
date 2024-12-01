@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 18:33:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 14:45:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -82,10 +82,6 @@ paths:
                 required: [user_id]
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
   /users/{user_id}/profile:
     get:
       operationId: getUserPublicProfile 
@@ -110,8 +106,6 @@ paths:
                 $ref: "#/components/schemas/UserPublicProfile"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /users/{user_id}/status:
     get:
       operationId: getUserStatus
@@ -140,8 +134,6 @@ paths:
                 required: [status]
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /users/{user_id}/matches:
     get:
       operationId: getUserMatches
@@ -170,8 +162,6 @@ paths:
                   $ref: "#/components/schemas/Match"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /users/{user_id}/tournaments:
     get:
       operationId: getUserTournaments
@@ -200,8 +190,6 @@ paths:
                   $ref: "#/components/schemas/Tournament"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
 
   /user:
     delete:
@@ -216,8 +204,6 @@ paths:
           $ref: "#/components/responses/NoContent"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/profile:
     get:
       operationId: getUserPrivateProfile
@@ -240,10 +226,6 @@ paths:
                 $ref: "#/components/schemas/UserPrivateProfile"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
     patch:
       operationId: updateProfile
       summary: Update user profile
@@ -269,12 +251,6 @@ paths:
           $ref: "#/components/responses/NoContent"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/tfa:
     post:
       operationId: enableTFA
@@ -305,12 +281,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
       operationId: disableTFA
       summary: Disable tfa
@@ -327,8 +297,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/tfa/verify:
     post:
       operationId: submitTFACode
@@ -359,12 +327,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /user/login:
     post:
       operationId: loginUser
@@ -404,12 +366,19 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  /user/logout:
+    post:
+      operationId: logoutUser
+      summary: User logout
+      description: Invalidate the current user"s JWT to log out safely.
+      x-auth-level: 1
+      security:
+        - jwtAuth: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /user/friends:
     post:
       operationId: addFriend
@@ -421,9 +390,9 @@ paths:
             schema:
               type: object
               properties:
-                friend_id:
+                user_id:
                   $ref: "#/components/schemas/user_id"
-              required: [friend_id]
+              required: [user_id]
               additionalProperties: false
         required: true
       security:
@@ -436,12 +405,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     get:
       operationId: getFriends
       summary: Get list of friends
@@ -468,15 +431,13 @@ paths:
                   $ref: "#/components/schemas/user_id"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
-  /user/friends/{friend_id}:
+  /user/friends/{user_id}:
     delete:
       operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
-        - $ref: "#/components/parameters/friend_id"
+        - $ref: "#/components/parameters/user_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -487,8 +448,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
 
   /matches:
     post:
@@ -529,12 +488,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /matches/{match_id}:
     get:
       operationId: getMatch
@@ -559,8 +512,6 @@ paths:
                 $ref: "#/components/schemas/Match"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
       operationId: leaveMatch
       summary: Leave the current match
@@ -579,8 +530,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /matches/{match_id}/accept:
     post:
       operationId: acceptMatchInvitation
@@ -600,8 +549,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /matches/{match_id}/decline:
     post:
       operationId: declineMatchInvitation
@@ -621,8 +568,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
 
   /tournaments:
     post:
@@ -648,12 +593,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /tournaments/{tournament_id}:
     get:
       operationId: getTournament
@@ -676,8 +615,6 @@ paths:
                 $ref: "#/components/schemas/Tournament"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
       operationId: cancelTournament
       summary: Cancel a tournament
@@ -696,8 +633,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
   /tournaments/{tournament_id}/partecipants:
     post:
       operationId: joinTournament
@@ -715,12 +650,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-        "411":
-          $ref: "#/components/responses/LengthRequired"
-        "413":
-          $ref: "#/components/responses/ContentTooLarge"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
     delete:
       operationId: leaveTournament
       summary: Leave a tournament
@@ -739,8 +668,27 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-        "431":
-          $ref: "#/components/responses/RequestHeaderFieldsTooLarge"
+  
+  #TODO: Implement admin routes
+  # /admin/users/{user_id}/ban: 
+  #   post:
+  #     operationId: banUser
+  #     summary: Ban a user
+  #     description: Ban a user account from the system.
+  #     parameters:
+  #       - $ref: "#/components/parameters/user_id"
+  #     security:
+  #       - jwtAuth: []
+  #     x-auth-level: 3
+  #     responses:
+  #       "204":
+  #         $ref: "#/components/responses/NoContent"
+  #       "401":
+  #         $ref: "#/components/responses/Unauthorized"
+  #       "403":
+  #         $ref: "#/components/responses/Forbidden"
+  #       "409":
+  #         $ref: "#/components/responses/Conflict"
 
 components:
   schemas:
@@ -799,7 +747,7 @@ components:
     tournament_status:
       description: Current status of the tournament.
       type: string
-      enum: [ongoing, completed]
+      enum: [pending, ongoing, completed, cancelled]
       example: "ongoing"
     timestamp:
       description: Timestamp in unix timestamp format.
@@ -924,13 +872,6 @@ components:
       schema:
         $ref: "#/components/schemas/tournament_id"
       required: true
-    friend_id:
-      description: Unique identifier of the friend.
-      name: friend_id
-      in: path
-      schema:
-        $ref: "#/components/schemas/user_id"
-      required: true
 
     token:
       description: verification token for credentials recovery/validation
@@ -1000,18 +941,9 @@ components:
 
     Conflict: #HTTP 409
       description: Conflict. The request could not be completed due to a conflict with the current state of the resource.
-
-    LengthRequired: #HTTP 411
-      description: Length required. The request did not specify the length of its content, which is required by the requested resource.
   
     PreconditionFailed: #HTTP 412
       description: Precondition failed. The server does not meet one of the preconditions that the requester put on the request.
-
-    ContentTooLarge: #HTTP 413
-      description: Content too large. The request is larger than the server is willing or able to process.
-
-    RequestHeaderFieldsTooLarge: #HTTP 431
-      description: Header fields too large. The server is unwilling to process the request because its header fields are too large.
 
     BadRequest: #HTTP 400
       description: Bad request. The request was invalid or cannot be served.

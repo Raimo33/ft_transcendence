@@ -9,10 +9,8 @@ CONNECTION LIMIT = -1;
 \c pongfumasters
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE TYPE user_status AS ENUM ('O', 'F'); -- O: online, F: offline
+CREATE TYPE user_status AS ENUM ('online', 'offline', 'banned');
 
-
--- TODO capire se posso non dover ripetere il nome della table nelle contraints
 CREATE TABLE Users
 (
   id                       uuid  NOT NULL DEFAULT gen_random_uuid(),
@@ -33,7 +31,7 @@ CREATE TABLE Users
   CONSTRAINT chk_users_avatar       CHECK (LENGTH(avatar) <= 5242880),
 );
 
-CREATE TYPE match_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
+CREATE TYPE match_status AS ENUM ('ongoing', 'completed');
 
 CREATE TABLE Matches
 (
@@ -57,7 +55,7 @@ CREATE INDEX idx_match_started_timestamp  ON GameMatch(started_timestamp);
 CREATE INDEX idx_match_finished_timestamp ON GameMatch(finished_timestamp);
 
 
-CREATE TYPE tournament_status AS ENUM ('O', 'C', 'I'); -- O: ongoing, C: completed, I: interrupted
+CREATE TYPE tournament_status AS ENUM ('pending', 'ongoing', 'completed', 'cancelled');
 
 CREATE TABLE Tournaments
 (

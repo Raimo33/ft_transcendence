@@ -17,7 +17,7 @@ service UserAPIGateway
   rpc DisableTFA              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc SubmitTFACode           (SubmitTFACodeRequest)          returns (JWT)                   {}
   rpc LoginUser               (LoginUserRequest)              returns (JWT)                   {}                 
-  rpc LogoutUser              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
+  rpc LogouUser               (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
   rpc AddFriend               (AddFriendRequest)              returns (google.protobuf.Empty) {}
   rpc GetFriends              (google.protobuf.Empty)         returns (Friends)               {}
   rpc RemoveFriend            (RemoveFriendRequest)           returns (google.protobuf.Empty) {}

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 19:12:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 14:26:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -77,9 +77,14 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
         WHERE id = $1
       SQL
       get_login_data: <<~SQL
-        SELECT id, psw, tfa_status
+        SELECT id, psw, tfa_status, current_status
         FROM Users
         WHERE email = $1
+      SQL
+      update_user_status: <<~SQL
+        UPDATE UserProfiles
+        SET current_status = $2
+        WHERE id = $1
       SQL
       insert_friendship: <<~SQL
         INSERT INTO Friendships (user_id_1, user_id_2)
@@ -259,6 +264,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
 
     check_tfa_code(request.tfa_code, tfa_secret)
+    @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
 
     jwt = jwt_task.wait
     UserAPIGateway::JWT.new(jwt)
@@ -278,15 +284,29 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       user_id    = query_result[0]["id"]
       tfa_status = query_result[0]["tfa_status"]
       hashed_psw = query_result[0]["psw"]
+      status     = query_result[0]["current_status"]
+
+      raise GRPC::FailedPrecondition.new("User is banned") if status == 'banned'
 
       task.async { validate_password(request.password, hashed_psw) }
       jwt_task = task.async { generate_jwt(user_id, auth_level: 1, pending_tfa: tfa_status) }
+
+      @db_client.exec_prepared(:update_user_status, [user_id, 'online']) unless tfa_status
       
       UserAPIGateway::JWT.new(jwt_task.wait)
     end.wait
   ensure
     async_context&.stop
   end
+
+  def logout_user(_request, call)
+    #TODO revoke JWT
+    #TODO update user status
+  
+  def ban_user(request, call)
+    #TODO revoke JWT
+    #TODO set user status to 'banned'
+    #TODO only for auth-level 3
   
   def add_friend(request, call)
     requester_user_id = call.metadata["x-requester-user-id"]

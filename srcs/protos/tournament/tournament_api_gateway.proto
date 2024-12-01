@@ -6,13 +6,13 @@ import "google/protobuf/empty.proto";
 
 service TournamentAPIGateway
 {
-  rpc Ping                         (google.protobuf.Empty)               returns (google.protobuf.Empty)    {}
-  rpc GetUserTournaments           (GetUserTournamentsRequest)           returns (Tournaments)              {}
-  rpc CreateTournament             (google.protobuf.Empty)               returns (CreateTournamentResponse) {}
-  rpc GetTournament                (GetTournamentRequest)                returns (Tournament)               {}
-  rpc CancelTournament             (CancelTournamentRequest)             returns (google.protobuf.Empty)    {}
-  rpc JoinTournament               (JoinTournamentRequest)               returns (google.protobuf.Empty)    {}
-  rpc LeaveTournament              (LeaveTournamentRequest)              returns (google.protobuf.Empty)    {}
+  rpc Ping                 (google.protobuf.Empty)       returns (google.protobuf.Empty)    {}
+  rpc GetUserTournaments   (GetUserTournamentsRequest)   returns (Tournaments)              {}
+  rpc CreateTournament     (google.protobuf.Empty)       returns (CreateTournamentResponse) {}
+  rpc GetTournament        (GetTournamentRequest)        returns (Tournament)               {}
+  rpc CancelTournament     (CancelTournamentRequest)     returns (google.protobuf.Empty)    {}
+  rpc JoinTournament       (JoinTournamentRequest)       returns (google.protobuf.Empty)    {}
+  rpc LeaveTournament      (LeaveTournamentRequest)      returns (google.protobuf.Empty)    {}
 }
 
 message GetUserTournamentsRequest

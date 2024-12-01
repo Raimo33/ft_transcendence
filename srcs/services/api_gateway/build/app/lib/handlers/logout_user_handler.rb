@@ -1,22 +1,21 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    add_friend_handler.rb                              :+:      :+:    :+:    #
+#    logout_user_handler.rb                             :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/24 18:34:30 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 14:51:34 by craimond         ###   ########.fr        #
+#    Created: 2024/12/01 14:46:51 by craimond          #+#    #+#              #
+#    Updated: 2024/12/01 14:53:43 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
-class AddFriendHandler < BaseHandler
+class LogoutUserHandler < BaseHandler
   def call(params, requester_user_id)
-    grpc_request = User::AddFriendRequest.new(params)
     metadata = build_request_metadata(requester_user_id)
-    response = @grpc_client.stubs[:user].add_friend(grpc_request, metadata)
+    response = @grpc_client.stubs[:user].logout_user(metadata)
     build_response_json(response)
   end
 end

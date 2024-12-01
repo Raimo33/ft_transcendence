@@ -6,15 +6,14 @@ import "google/protobuf/empty.proto";
 
 service MatchAPIGateway
 {
-  rpc Ping(google.protobuf.Empty)                           returns (google.protobuf.Empty);
-  rpc GetUserMatches(GetUserMatchesRequest)                 returns (Matches);
-  rpc CreateMatch(CreateMatchRequest)                       returns (CreateMatchResponse);
-  rpc GetMatch(GetMatchRequest)                             returns (Match);
-  rpc LeaveMatch(LeaveMatchRequest)                         returns (google.protobuf.Empty);
-  rpc AcceptMatchInvitation(AcceptMatchInvitationRequest)   returns (google.protobuf.Empty);
-  rpc DeclineMatchInvitation(DeclineMatchInvitationRequest) returns (google.protobuf.Empty);
+  rpc Ping                      (google.protobuf.Empty)          returns (google.protobuf.Empty);
+  rpc GetUserMatches            (GetUserMatchesRequest)          returns (Matches);
+  rpc CreateMatch               (CreateMatchRequest)             returns (CreateMatchResponse);
+  rpc GetMatch                  (GetMatchRequest)                returns (Match);
+  rpc LeaveMatch                (LeaveMatchRequest)              returns (google.protobuf.Empty);
+  rpc AcceptMatchInvitation     (AcceptMatchInvitationRequest)   returns (google.protobuf.Empty);
+  rpc DeclineMatchInvitation    (DeclineMatchInvitationRequest)  returns (google.protobuf.Empty);
 }
-
 
 message GetUserMatchesRequest
 {
