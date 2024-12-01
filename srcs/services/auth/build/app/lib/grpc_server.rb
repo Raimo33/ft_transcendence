@@ -6,7 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 20:46:09 by craimond         ###   ########.fr        #
+<<<<<<< Updated upstream
+#    Updated: 2024/12/01 14:56:49 by craimond         ###   ########.fr        #
+=======
+#    Updated: 2024/11/28 16:49:06 by craimond         ###   ########.fr        #
+>>>>>>> Stashed changes
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,9 +25,9 @@ class GrpcServer
     @config   = ConfigHandler.instance.config
     @services = ServiceRegistry.instance.services
     @server   = GRPC::RpcServer.new(
-      server_host:          @config.dig(:grpc, :server, :host),
-      server_port:          @config.dig(:grpc, :server, :port),
-      pool_size:            @config.dig(:grpc, :server, :pool_size),
+      server_host:  @config.dig(:grpc, :server, :host),
+      server_port:  @config.dig(:grpc, :server, :port),
+      pool_size:    @config.dig(:grpc, :server, :pool_size),
     )
     middleware_registry = MiddlewareRegistry.instance
     middleware_registry.use RequestLogger
