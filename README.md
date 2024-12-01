@@ -78,6 +78,7 @@ The Auth Service is responsible for handling user authentication and authorizati
 - **JWT Issuer**: Generates JSON Web Tokens (JWTs) upon successful authentication. These tokens are used for secure, stateless authentication in subsequent API requests, ensuring users are authorized to access protected resources.
 - **2FA Keys Issuer**: Issues unique keys for users enabling two-factor authentication (2FA). This key is used in combination with the user’s password to provide an extra layer of security during login attempts.
 - **TOTP Generation**: Generates Time-based One-Time Passwords (TOTP) as part of the 2FA process. These passwords are generated using a shared secret and are valid for a short period, typically 30 seconds, ensuring dynamic, time-sensitive security.
+- **JWT Blacklist Management**: Manages a blacklist of revoked JWTs to prevent unauthorized access to the system. When a user logs out or their token is compromised, the JWT is added to the blacklist, preventing further use.
 - **Password Hashing**: Securely hashes user passwords before storing them in the database. The hashing is performed using industry-standard algorithms (e.g., bcrypt or Argon2) with a salt, ensuring that sensitive user data is not stored in plaintext and is resistant to brute-force attacks.
 - ***Email Verification**: Sends verification emails to users upon registration. This process ensures the validity of user-provided email addresses and prevents fraudulent account creation. The user must click the verification link in the email to confirm their account.
 

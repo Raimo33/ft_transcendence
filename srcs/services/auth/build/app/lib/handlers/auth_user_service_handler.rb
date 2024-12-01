@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 17:58:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 19:31:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -119,23 +119,21 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def generate_jwt(request, _call)
-    check_required_fields(request.user_id)
+    check_required_fields(request.identifier, request.expire_after)
 
     settings = @config[:jwt]
 
-    auth_level  = request.auth_level || 0
-    expiry      = pending_tfa ? settings.fetch(:tfa_ttl, 300) : settings.fetch(:ttl, 3600)
-    now         = Time.now.to_i
-
+    now = Time.now.to_i
     payload = {
-      iss:  'AuthService',
-      sub:  request.user_id,
+      iss:  settings.fetch(:issuer, 'AuthService'),
+      sub:  request.identifier,
       iat:  now,
-      exp:  now + expiry,
+      exp:  now + request.expire_after,
       jti:  SecureRandom.uuid,
-
-      auth_level:  auth_level,
     }
+
+    if request.custom_claims
+      payload.merge!(request.custom_claims.to_h)
 
     jwt = JWT.encode(
       payload,

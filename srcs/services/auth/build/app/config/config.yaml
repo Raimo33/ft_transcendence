@@ -26,6 +26,6 @@ tfa:
   image_url: https://yourapp.com/logo.png
 
 jwt:
-  ttl: 3600
-  tfa_ttl: 300
-  key: jwt.key
+  issuer: pongfumasters
+  algorithm: RS256
+  private_key: /etc/ssl/private/jwtRS256.key

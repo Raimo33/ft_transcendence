@@ -57,3 +57,11 @@ avatar:
   compression_quality: 80
   format: jpeg
   default: /etc/default_avatar.jpg
+
+tokens:
+  session:
+    ttl: 3600
+    ttl_pending_tfa: 300
+  refresh:
+    ttl: 604800
+    ttl_remember_me: 31536000

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 14:26:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 20:32:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -254,7 +254,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata["x-requester-user-id"]
     check_required_fields(requester_user_id, request.tfa_code)
   
-    jwt_task = Async { generate_jwt(requester_user_id, auth_level: 2, pending_tfa: false) }
+    session_jwt_task = Async { generate_session_jwt(requester_user_id, false) }
+    refresh_jwt_task = Async { #TODO deve generare un nuovo refresh_jwt a partire dal vecchio. mantenendo lo stesso remember_me, e fare il revoke del vecchio (AKA ROTATE)
     
     query_result = @db_client.exec_prepared(:get_tfa, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
@@ -266,8 +267,10 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     check_tfa_code(request.tfa_code, tfa_secret)
     @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
 
-    jwt = jwt_task.wait
-    UserAPIGateway::JWT.new(jwt)
+    UserAPIGateway::Tokens.new(
+      session_jwt: session_jwt_task.wait,
+      refresh_jwt: refresh_jwt_task.wait
+    )
   ensure
     jwt_task&.stop
   end
@@ -281,32 +284,44 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       query_result = @db_client.exec_prepared(:get_login_data, [request.email])
       raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
 
-      user_id    = query_result[0]["id"]
-      tfa_status = query_result[0]["tfa_status"]
-      hashed_psw = query_result[0]["psw"]
-      status     = query_result[0]["current_status"]
+      user_id     = query_result[0]["id"]
+      tfa_status  = query_result[0]["tfa_status"]
+      hashed_psw  = query_result[0]["psw"]
+      user_status = query_result[0]["current_status"]
 
-      raise GRPC::FailedPrecondition.new("User is banned") if status == 'banned'
+      raise GRPC::FailedPrecondition.new("User is banned") if user_status == 'banned'
 
       task.async { validate_password(request.password, hashed_psw) }
-      jwt_task = task.async { generate_jwt(user_id, auth_level: 1, pending_tfa: tfa_status) }
+      session_jwt_task = task.async { generate_session_jwt(user_id, tfa_status) }
+      refresh_jwt_task = task.async { generate_refresh_jwt(user_id, request.remember_me) }
 
       @db_client.exec_prepared(:update_user_status, [user_id, 'online']) unless tfa_status
-      
-      UserAPIGateway::JWT.new(jwt_task.wait)
+  
+      UserAPIGateway::LoginResponse.new(
+        tokens: UserAPIGateway::Tokens.new(
+          session_token: session_jwt_task.wait,
+          refresh_token: refresh_jwt_task.wait
+        pending_tfa: tfa_status
+        )
+      )
     end.wait
   ensure
     async_context&.stop
   end
 
+  def refresh_user_token(request, call)
+    #TODO deve generare un nuovo session_jwt a partire dal vecchio, mantenendo lo stesso auth_level, fregandosene se e' scaduto il vecchio e fare il revoke del vecchio (AKA ROTATE)
+    #TODO deve generare un nuovo refresh_jwt a partire dal vecchio, mantenendo lo stesso remember_me e fare il revoke del vecchio (AKA ROTATE)
+  end
+
   def logout_user(_request, call)
-    #TODO revoke JWT
+    #TODO revoke session JWT (chiamare auth service che avra' connessione a redis)
     #TODO update user status
   
-  def ban_user(request, call)
-    #TODO revoke JWT
-    #TODO set user status to 'banned'
-    #TODO only for auth-level 3
+  # def ban_user(request, call)
+  #   #TODO revoke session e refresh JWT
+  #   #TODO set user status to 'banned'
+  #   #TODO only for auth-level 3
   
   def add_friend(request, call)
     requester_user_id = call.metadata["x-requester-user-id"]
@@ -459,14 +474,30 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     "data:image/png;base64,#{Base64.strict_encode64(png.to_s)}"
   end
   
-  def generate_jwt(user_id, auth_level:, pending_tfa:)
-    request = AuthUser::GenerateJWTRequest.new(
-      user_id:      user_id,
-      auth_level:   auth_level,
-      pending_tfa:  pending_tfa
-    )
+  def generate_session_jwt(user_id, pending_tfa)
+    settings = @config[:tokens][:session]
 
+    if pending_tfa
+      expire_after = settings[:ttl_pending_tfa]
+      auth_level = 1
+    else
+      expire_after = settings[:ttl]
+      auth_level = 2
+    end
+
+    generate_jwt(user_id, expire_after, { auth_level: auth_level })
+  end
+
+  def generate_refresh_jwt(user_id, remember_me)
+    settings = @config[:tokens][:refresh]
+    expire_after = remember_me ? settings[:ttl_remember_me] : settings[:ttl]
+    generate_jwt(user_id, expire_after, { remember_me: remember_me })
+  end
+
+  def generate_jwt(identifier, expire_after, custom_claims = {})
+    request = AuthUser::GenerateJWTRequest.new(identifier, expire_after, custom_claims)
     response = @grpc_client.stubs[:auth].generate_jwt(request)
+
     response.jwt
   end
 

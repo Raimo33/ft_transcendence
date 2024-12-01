@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:14:03 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 15:27:57 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 16:33:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,13 +25,13 @@ class Authorization
 
     operation = openapi_request.operation
     auth_level = operation['x-auth-level']
-    return @app.call(env) unless auth_level
+    return @app.call(env) if auth_level&.zero?
 
     auth_header = request.env['HTTP_AUTHORIZATION']
     return unauthorized unless auth_header
 
     jwt = @jwt_validator.extract_token(auth_header)
-    if user_id = @jwt_validator.validate_token(jwt, operation['operationId'], auth_level)
+    if user_id = @jwt_validator.validate_token(jwt, auth_level)
       env['x-requester-user-id'] = user_id
       @app.call(env)
     else

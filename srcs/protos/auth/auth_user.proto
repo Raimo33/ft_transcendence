@@ -51,11 +51,11 @@ message CheckTFACodeRequest
   string tfa_code    = 2;
 }
 
-message GenerateJWTReques
+message GenerateJWTRequest
 {
-  string user_id     = 1;
-  uint16 auth_level  = 2;
-  bool   pending_tfa = 3;
+  string identifier    = 1;
+  uint16 expire_after  = 2;
+  string custom_claims = 3;
 }
 message JWT
 {

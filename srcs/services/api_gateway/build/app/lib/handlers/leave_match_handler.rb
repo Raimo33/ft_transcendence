@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 19:17:33 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 14:51:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 17:04:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ class LeaveMatchHandler < BaseHandler
     grpc_request = Match::LeaveMatchRequest.new(params)
     metadata = build_request_metadata(requester_user_id)
     response = @grpc_client.stubs[:match].leave_match(grpc_request, metadata)
-    build_response_json(response)
+    
+    [204, {}, []]
   end
 end

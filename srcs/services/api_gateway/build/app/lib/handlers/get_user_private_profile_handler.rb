@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 14:51:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 16:56:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ class GetUserPrivateProfileHandler < BaseHandler
     grpc_request = User::GetUserPrivateProfileRequest.new(params)
     metadata = build_request_metadata(requester_user_id)
     response = @grpc_client.stubs[:user].get_user_private_profile(grpc_request, metadata)
-    build_response_json(response)
+    
+    [200, {}, [response.to_json]]
   end
 end

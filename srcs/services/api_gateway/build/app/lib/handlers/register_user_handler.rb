@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 14:51:37 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 17:47:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ class RegisterUserHandler < BaseHandler
     grpc_request = User::RegisterUserRequest.new(params)
     metadata = build_request_metadata(requester_user_id)
     response = @grpc_client.stubs[:user].register_user(grpc_request, metadata)
-    build_response_json(response)
+    
+    [201, {}, [response.to_json]]
   end
 end

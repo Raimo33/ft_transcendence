@@ -14,4 +14,4 @@ grpc:
 
 jwt:
   leeway: 60
-  public_key: jwt.key.pub
+  public_key: /etc/ssl/certs/jwtRS256.key.pub

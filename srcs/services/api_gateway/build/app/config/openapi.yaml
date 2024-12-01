@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 14:45:49 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 20:27:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -302,6 +302,8 @@ paths:
       operationId: submitTFACode
       summary: Submit tfa code
       description: Submit the two-factor authentication code for verification.
+      headers:
+        $ref: "#/components/headers/Cookie"
       parameters:
         - $ref: "#/components/parameters/tfa_code"
       security:
@@ -315,14 +317,16 @@ paths:
               $ref: "#/components/headers/Content-Length"
             Content-Type:
               $ref: "#/components/headers/Content-Type"
+            Set-Cookie:
+              $ref: "#/components/headers/Set-Cookie"
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  jwt:
+                  session_token:
                     $ref: "#/components/schemas/jwt"
-                required: [jwt]
+                required: [session_token]
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
@@ -343,6 +347,8 @@ paths:
                   $ref: "#/components/schemas/user_email"
                 password:
                   $ref: "#/components/schemas/user_psw"
+                remember_me:
+                  type: boolean
               required: [email, password]
               additionalProperties: false
         required: true
@@ -354,14 +360,52 @@ paths:
               $ref: "#/components/headers/Content-Length"
             Content-Type:
               $ref: "#/components/headers/Content-Type"
+            Set-Cookie:
+              $ref: "#/components/headers/Set-Cookie"
+              description: Set the refresh token as a cookie.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  jwt:
+                  session_token:
                     $ref: "#/components/schemas/jwt"
-                required: [jwt]
+                  pending_tfa:
+                    type: boolean
+                required: [session_token]
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /user/refresh:
+    post:
+      operationId: refreshUserToken
+      summary: Refresh JWT token
+      description: Generate a new JWT using the refresh token, to extend the user session.
+      x-auth-level: 0
+      security:
+        - jwtAuth: []
+      headers:
+        $ref: "#/components/headers/Cookie"
+      responses:
+        "200":
+          description: User token successfully refreshed.
+          headers:
+            Content-Length:
+              $ref: "#/components/headers/Content-Length"
+            Content-Type:
+              $ref: "#/components/headers/Content-Type"
+            Set-Cookie:
+              $ref: "#/components/headers/Set-Cookie"
+              description: Set the refresh token as a cookie.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_token:
+                    $ref: "#/components/schemas/jwt"
+                required: [session_token]
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
@@ -370,7 +414,7 @@ paths:
     post:
       operationId: logoutUser
       summary: User logout
-      description: Invalidate the current user"s JWT to log out safely.
+      description: Invalidate the current user"s JWT and refresh token.
       x-auth-level: 1
       security:
         - jwtAuth: []
@@ -781,7 +825,6 @@ components:
       type: string
       example: "<Header>.<Payload>.<Signature>"
 
-
     UserPublicProfile:
       description: Represents a public user profile with limited information.
       type: object
@@ -924,6 +967,18 @@ components:
         format: int32
         minimum: 0
       example: 12345
+
+    Cookie:
+      description: All cookies
+      schema:
+        type: string
+      example: "cookie1=value1; cookie2=value2"
+
+    Set-Cookie:
+      description: Set a cookie
+      schema:
+        type: string
+      example: "cookie1=value1; Path=/; Expires=Wed, 09 Jun 2021 10:18:14 GMT"
 
   responses:
 

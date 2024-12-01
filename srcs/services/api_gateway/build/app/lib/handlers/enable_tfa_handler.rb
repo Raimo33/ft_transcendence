@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 14:51:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/01 19:07:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ class EnableTFAHandler < BaseHandler
     grpc_request = Google::Protobuf::Empty.new
     metadata = build_request_metadata(requester_user_id)
     response = @grpc_client.stubs[:user].enable_tfa(grpc_request, metadata)
-    build_response_json(response)
+    
+    [200, {}, [response.to_json]]
   end
 end
