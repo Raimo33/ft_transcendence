@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 19:31:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 19:02:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,7 +49,7 @@ class AuthUserServiceHandler < AuthUser::Service
     hashed_password = BCrypt::Password.create(
       request.password,
       cost: @config.dig(:bcrypt, :cost)
-    ).to_s
+    )
 
     AuthUser::HashedPassword.new(hashed_password)
   end

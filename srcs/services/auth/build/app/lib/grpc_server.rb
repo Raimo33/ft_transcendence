@@ -6,19 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-<<<<<<< Updated upstream
-#    Updated: 2024/12/01 14:56:49 by craimond         ###   ########.fr        #
-=======
-#    Updated: 2024/11/28 16:49:06 by craimond         ###   ########.fr        #
->>>>>>> Stashed changes
+#    Updated: 2024/12/02 20:46:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative 'config_handler'
 require_relative '../middleware/service_handler_middleware'
-require_relative '../proto/auth_user_services_pb'
+require_relative '../protos/auth_user_services_pb'
 
+#TODO refactor middlewares (come USER)
 class GrpcServer
 
   def initialize

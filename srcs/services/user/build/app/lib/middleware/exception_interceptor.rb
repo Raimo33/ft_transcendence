@@ -1,31 +1,31 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    exception_handler.rb                               :+:      :+:    :+:    #
+#    exception_interceptor.rb                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 18:43:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 20:16:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'json'
 require 'grpc'
+require 'json'
 require 'pg'
-require_relative '../custom_logger'
+require 'jwt'
 
-class ExceptionHandler
+class ExceptionInterceptor < GRPC::ServerInterceptor
 
   PG_MAPPINGS = {
-    PG::UniqueViolation            => GRPC::Core::StatusCodes::ALREADY_EXISTS,
-    PG::ForeignKeyViolation        => GRPC::Core::StatusCodes::FAILED_PRECONDITION,
-    PG::NotNullViolation           => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
-    PG::CheckViolation             => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
-    PG::SerializationFailure       => GRPC::Core::StatusCodes::ABORTED,
-    PG::ConnectionBad              => GRPC::Core::StatusCodes::UNAVAILABLE,
-    PG::Error                      => GRPC::Core::StatusCodes::INTERNAL,
-    PG::Pool::Error                => GRPC::Core::StatusCodes::RESOURCE_EXHAUSTED
+    PG::UniqueViolation        => GRPC::Core::StatusCodes::ALREADY_EXISTS,
+    PG::ForeignKeyViolation    => GRPC::Core::StatusCodes::FAILED_PRECONDITION,
+    PG::NotNullViolation       => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
+    PG::CheckViolation         => GRPC::Core::StatusCodes::INVALID_ARGUMENT,
+    PG::SerializationFailure   => GRPC::Core::StatusCodes::ABORTED,
+    PG::ConnectionBad          => GRPC::Core::StatusCodes::UNAVAILABLE,
+    PG::Error                  => GRPC::Core::StatusCodes::INTERNAL,
+    PG::Pool::Error            => GRPC::Core::StatusCodes::RESOURCE_EXHAUSTED
   }.freeze
 
   GRPC_MAPPINGS = {
@@ -50,11 +50,10 @@ class ExceptionHandler
 
   def initialize(app)
     @app = app
-    @logger = CustomLogger.instance.logger
   end
 
-  def call(request, call)
-    @app.call(request, call)
+  def request_response(request: nil, call: nil, method: nil)
+    yield
   rescue StandardError => e
     handle_exception(e)
   end
@@ -71,7 +70,7 @@ class ExceptionHandler
     when *PG_MAPPINGS.keys
       [PG_MAPPINGS[exception.class], map_pg_message(exception)]
     when *GRPC_MAPPINGS.keys
-      GRPC_MAPPINGS[exception.class]
+      GRPC_MAPPINGS[exception.class]      
     else
       [GRPC::Core::StatusCodes::INTERNAL, "Internal server error"]
     end

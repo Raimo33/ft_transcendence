@@ -97,8 +97,8 @@ message Tokens
 
 message LoginUserResponse
 {
-  Tokens tokens = 1;
-  bool   pending_tfa   = 3;
+  Tokens tokens       = 1;
+  bool   pending_tfa  = 3;
 }
 
 message AddFriendRequest

@@ -6,14 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 20:47:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 19:25:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'singleton'
 require_relative 'ConfigHandler'
-require_relative '../proto/auth_user_services_pb'
+require_relative '../protos/auth_user_services_pb'
 
 class GrpcClient
   include Singleton

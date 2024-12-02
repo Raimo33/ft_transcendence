@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 20:32:49 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 20:45:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,6 @@ require 'email_validator'
 require_relative '../config_handler'
 require_relative '../grpc_client'
 require_relative '../db_client'
-require_relative '../grpc_server'
 
 class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   include ServiceHandlerMiddleware
@@ -109,7 +108,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     Google::Protobuf::Empty.new
   end
 
-  def register_user(request, call)
+  def register_user(request, _call)
     check_required_fields(request.email, request.password, request.display_name)
 
     checks = Async::Barrier.new
@@ -141,7 +140,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     async_context&.stop
   end
 
-  def get_user_profile(request, call)
+  def get_user_profile(request, _call)
     check_required_fields(request.user_id)
   
     query_result = @db_client.exec_prepared(:get_public_profile, [request.user_id])
@@ -157,7 +156,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def get_user_status(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(request.user_id)
 
     query_result = @db_client.exec_prepared(:get_status, [request.user_id])
@@ -167,7 +166,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def delete_account(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
 
     query_result = @db_client.exec_prepared(:delete_user, [requester_user_id])
@@ -177,7 +176,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def get_private_profile(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
 
     query_result = @db_client.exec_prepared(:get_private_profile, [requester_user_id])
@@ -190,12 +189,12 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       display_name:  row["display_name"],
       avatar:        row["avatar"] || @default_avatar,
       tfa_status:    row["tfa_status"]
-      status:        row["current_status"] == 'O' ? 'online' : 'offline'
+      status:        row["current_status"]
     )
   end
 
   def update_profile(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
     raise GRPC::InvalidArgument.new("No fields to update") unless provided?(request.display_name) || provided?(request.avatar)
   
@@ -220,7 +219,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def enable_tfa(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
     
     tfa_request  = AuthUser::GenerateTFASecretRequest.new(requester_user_id)
@@ -241,7 +240,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def disable_tfa(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
 
     query_result = @db_client.exec_prepared(:disable_tfa, [requester_user_id])
@@ -251,11 +250,11 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def submit_tfa_code(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id, request.tfa_code)
   
     session_jwt_task = Async { generate_session_jwt(requester_user_id, false) }
-    refresh_jwt_task = Async { #TODO deve generare un nuovo refresh_jwt a partire dal vecchio. mantenendo lo stesso remember_me, e fare il revoke del vecchio (AKA ROTATE)
+    refresh_jwt_task = Async { rotate_jwt(call.metadata["refresh_token"]) }
     
     query_result = @db_client.exec_prepared(:get_tfa, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
@@ -266,13 +265,15 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
     check_tfa_code(request.tfa_code, tfa_secret)
     @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
+    revoke_jwt(call.metadata["session_token"])
 
     UserAPIGateway::Tokens.new(
-      session_jwt: session_jwt_task.wait,
-      refresh_jwt: refresh_jwt_task.wait
+      session_token: session_jwt_task.wait,
+      refresh_token: refresh_jwt_task.wait
     )
   ensure
-    jwt_task&.stop
+    session_jwt_task&.stop
+    refresh_jwt_task&.stop
   end
 
   def login_user(request, call)
@@ -310,13 +311,14 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def refresh_user_token(request, call)
-    #TODO deve generare un nuovo session_jwt a partire dal vecchio, mantenendo lo stesso auth_level, fregandosene se e' scaduto il vecchio e fare il revoke del vecchio (AKA ROTATE)
-    #TODO deve generare un nuovo refresh_jwt a partire dal vecchio, mantenendo lo stesso remember_me e fare il revoke del vecchio (AKA ROTATE)
+    #rotate session JWT
+    #rotate refresh JWT
   end
 
   def logout_user(_request, call)
-    #TODO revoke session JWT (chiamare auth service che avra' connessione a redis)
-    #TODO update user status
+    #revoke session JWT
+    #revoke refresh JWT
+    #update user status
   
   # def ban_user(request, call)
   #   #TODO revoke session e refresh JWT
@@ -324,7 +326,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   #   #TODO only for auth-level 3
   
   def add_friend(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id, request.friend_user_id)
 
     query_result = @db_client.exec_prepared(:insert_friendship, [requester_user_id, request.friend_user_id])
@@ -333,7 +335,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def get_friends(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
 
     limit  = request.limit  || 10
@@ -347,7 +349,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def remove_friend(request, call)
-    requester_user_id = call.metadata["x-requester-user-id"]
+    requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id, request.friend_user_id)
     
     query_result = @db_client.exec_prepared(:delete_friendship, [requester_user_id, request.friend_user_id])
@@ -357,7 +359,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   private
-
+    
   def prepare_statements
     barrier   = Async::Barrier.new
     semaphore = Async::Semaphore.new(@db_client.pool_size)
@@ -499,6 +501,17 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     response = @grpc_client.stubs[:auth].generate_jwt(request)
 
     response.jwt
+  end
+
+  def rotate_jwt(token)
+    #TODO chiama la corrispondente di Auth
+    #revoca il vecchio
+    #genera il nuovo fregandosene della validita' del vecchio e mantenendo user_id, (auth_level o remember_me)
+  end
+
+  def revoke_jwt(token)
+    #TODO chiama la corrispondente di Auth
+    #revoca il token
   end
 
   def validate_password(password, hashed_password)

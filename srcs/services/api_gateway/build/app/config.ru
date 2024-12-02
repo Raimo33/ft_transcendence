@@ -6,22 +6,22 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:11:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 04:37:07 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 20:01:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'lib/server'
-require_relative 'lib/middleware/authorization'
-require_relative 'lib/middleware/request_logger'
-require_relative 'lib/middleware/exception_handler'
+require_relative 'lib/middleware/auth_middleware'
+require_relative 'lib/middleware/logger_middleware'
+require_relative 'lib/middleware/exception_middleware'
 require 'openapi_first'
 
 openapi_spec = OpenapiFirst.load('config/openapi.yaml')
 
-use RequestLogger, CustomLogger.instance.logger
 use OpenapiFirst::Middlewares::RequestValidation, spec: openapi_spec, raise_error: true
-use Authorization
-use ExceptionHandler
+use Middleware::LoggerMiddleware
+use Middleware::AuthMiddleware
+use Middleware::ExceptionMiddleware
 use Rack::ContentType, 'application/json'
 use Rack::ContentLength
 use Rack::Deflater

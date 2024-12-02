@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 13:12:58 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 19:38:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ require 'grpc'
 require_relative '../custom_logger'
 
 class ExceptionHandler
+
   def initialize(app)
     @app = app
     @logger = CustomLogger.instance.logger

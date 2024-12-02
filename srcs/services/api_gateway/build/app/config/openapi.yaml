@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 20:27:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 18:41:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,7 +46,6 @@ paths:
       operationId: registerUser
       summary: User registration
       description: Register a new user in the system by providing email, password, display name, and other  fields.
-      x-auth-level: 0
       requestBody:
         content:
           application/json:
@@ -64,6 +63,7 @@ paths:
               required: [email, password, display_name]
               additionalProperties: false
         required: true
+      x-auth-level: 0
       responses:
         "201":
           description: User registration successful.
@@ -143,9 +143,9 @@ paths:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
-      x-auth-level: 2
       security:
         - jwtAuth: []
+      x-auth-level: 2
       responses:
         "200":
           description: Matches list successfully retrieved.
@@ -171,9 +171,9 @@ paths:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
-      x-auth-level: 2
       security:
         - jwtAuth: []
+      x-auth-level: 2
       responses:
         "200":
           description: Tournaments list successfully retrieved.
@@ -196,9 +196,9 @@ paths:
       operationId: deleteAccount
       summary: Delete a user account
       description: Permanently delete the account of the current user.
-      x-auth-level: 2
       security:
         - jwtAuth: []
+      x-auth-level: 2
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
@@ -209,9 +209,9 @@ paths:
       operationId: getUserPrivateProfile
       summary: Get current user"s profile
       description: Retrieve detailed information about the current user.
-      x-auth-level: 2
       security:
         - jwtAuth: []
+      x-auth-level: 2
       responses:
         "200":
           description: Returns the Private User object of the specified user.
@@ -243,9 +243,9 @@ paths:
               required: []
               additionalProperties: false
         required: true
-      x-auth-level: 2
       security:
         - jwtAuth: []
+      x-auth-level: 2
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
@@ -302,10 +302,9 @@ paths:
       operationId: submitTFACode
       summary: Submit tfa code
       description: Submit the two-factor authentication code for verification.
-      headers:
-        $ref: "#/components/headers/Cookie"
       parameters:
         - $ref: "#/components/parameters/tfa_code"
+        - $ref: "#/components/parameters/refresh_token"
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -336,7 +335,6 @@ paths:
       operationId: loginUser
       summary: User login
       description: Authenticate the user and return a JWT for session management.
-      x-auth-level: 0
       requestBody:
         content:
           application/json:
@@ -352,6 +350,7 @@ paths:
               required: [email, password]
               additionalProperties: false
         required: true
+      x-auth-level: 0
       responses:
         "200":
           description: User successfully logged in.
@@ -382,11 +381,11 @@ paths:
       operationId: refreshUserToken
       summary: Refresh JWT token
       description: Generate a new JWT using the refresh token, to extend the user session.
-      x-auth-level: 0
       security:
         - jwtAuth: []
-      headers:
-        $ref: "#/components/headers/Cookie"
+      x-auth-level: 0
+      parameters:
+        - $ref: "#/components/parameters/refresh_token"
       responses:
         "200":
           description: User token successfully refreshed.
@@ -415,9 +414,11 @@ paths:
       operationId: logoutUser
       summary: User logout
       description: Invalidate the current user"s JWT and refresh token.
-      x-auth-level: 1
+      parameters:
+        - $ref: "#/components/parameters/refresh_token"
       security:
         - jwtAuth: []
+      x-auth-level: 1
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
@@ -951,6 +952,14 @@ components:
         format: int32
         minimum: 0
       required: false
+    
+    refresh_token:
+      description: Refresh token used to generate a new JWT.
+      name: refresh_token
+      in: header
+      schema:
+        type: string
+      required: true
 
   headers:
 
@@ -967,12 +976,6 @@ components:
         format: int32
         minimum: 0
       example: 12345
-
-    Cookie:
-      description: All cookies
-      schema:
-        type: string
-      example: "cookie1=value1; cookie2=value2"
 
     Set-Cookie:
       description: Set a cookie

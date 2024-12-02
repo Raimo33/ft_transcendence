@@ -6,16 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 20:45:31 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/02 19:25:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'yaml'
 require 'singleton'
-require_relative '../proto/user_api_gateway_services_pb'
-require_relative '../proto/match_api_gateway_services_pb'
-require_relative '../proto/tournament_api_gateway_services_pb'
+require_relative '../protos/user_api_gateway_services_pb'
+require_relative '../protos/match_api_gateway_services_pb'
+require_relative '../protos/tournament_api_gateway_services_pb'
 
 class GrpcClient
   include Singleton
