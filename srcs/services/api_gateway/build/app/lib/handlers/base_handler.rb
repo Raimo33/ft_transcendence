@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:38 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:34:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:06:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,19 +18,20 @@ require 'openapi_first'
 class BaseHandler
 
   def initialize
-    @grpc_client = GrpcClient.instance
-    @jwt_validator = JwtValidator.instance
+    @grpc_client    = GrpcClient.instance
+    @jwt_validator  = JwtValidator.instance
   end
 
   protected
 
-  def build_request_metadata(request, requester_user_id)
-    session_token = @jwt_validator.extract_token(request.headers['Authorization'])
-    refresh_token = request.cookies['refresh_token']
+  def build_request_metadata(env)
+    parsed_request = env[OpenapiFirst::REQUEST]
+    session_token = @jwt_validator.extract_token(parsed_request.parsed_headers['Authorization'])
+    refresh_token = parsed_request.parsed_cookies['refresh_token']
 
     {
-      'request_id'        => SecureRandom.uuid,
-      'requester_user_id' => requester_user_id,
+      'request_id'        => env['HTTP_X_REQUEST_ID'],
+      'requester_user_id' => env['REQUESTER_USER_ID'],
       'session_token'     => session_token,
       'refresh_token'     => refresh_token,
     }.compact

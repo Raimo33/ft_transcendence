@@ -1,40 +1,36 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    logger_middleware.rb                               :+:      :+:    :+:    #
+#    logger_interceptor.rb                              :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:02:35 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:01:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative '../custom_logger'
-require 'openapi_first'
+require 'grpc'
 
-module Middleware
+class LoggerInterceptor < GRPC::ServerInterceptor
 
-  class LoggerMiddleware
+  def initialize
+    @logger = CustomLogger.instance.logger
+  end
 
-    def initialize(app, logger = Logger.new($stdout))
-      @app = app
-      @logger = CustomLogger.instance.logger
-    end
+  def request_response(request: nil, call: nil, method: nil, &block)
+    start_time = Time.now
+    request_id = call.metadata['request_id']
+    
+    @logger.info("Started request #{request_id} for #{method.service_name}/#{method.name}")
 
-    def call(env)
-      request = env[OpenapiFirst::REQUEST]
-      start_time = Time.now
+    response = yield
+    
+    duration = Time.time - start_time
+    @logger.info("Completed request #{request_id} in #{duration} seconds")
 
-      @logger.info("Started #{request.operation['operationId']}")
-
-      status, headers, response = @app.call(env)
-
-      end_time = Time.now
-      duration = end_time - start_time
-      @logger.info("Completed #{request.operation['operationId']} in #{duration} seconds")
-      
-      [status, headers, response]
-    end
+    response
+  end
 
 end

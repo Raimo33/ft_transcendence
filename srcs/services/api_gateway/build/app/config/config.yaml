@@ -1,7 +1,6 @@
 logging:
   level: DEBUG
   file: /dev/stdout
-  tag: api_gateway
 
 grpc:
   addresses:

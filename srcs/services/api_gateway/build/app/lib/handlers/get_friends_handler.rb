@@ -6,18 +6,20 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 18:35:36 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:35:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:19:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class GetFriendsHandler < BaseHandler
-  def call(request, requester_user_id)
-    grpc_request = Google::Protobuf::Empty.new
-    metadata = build_request_metadata(request, requester_user_id)
-    response = @grpc_client.stubs[:user].get_friends(grpc_request, metadata)
+  def call(env)
+    response = @grpc_client.get_friends(build_request_metadata(env))
     
-    [200, {}, [JSON.generate(response)]]
+    body = {
+      friend_ids: response.ids
+    }
+
+    [200, {}, [JSON.generate(body)]]
   end
 end

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 19:02:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:40:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,7 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def ping(_request, _call)
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
   def check_domain(request, _call)
@@ -36,9 +36,9 @@ class AuthUserServiceHandler < AuthUser::Service
     mx_records = resolver.getresources(request.domain, Resolv::DNS::Resource::IN::MX)
     a_records  = resolver.getresources(request.domain, Resolv::DNS::Resource::IN::A)
 
-    raise GRPC::BadRequest.new("Domain not found") if mx_records.empty? && a_records.empty?
+    raise GRPC::InvalidArgument.new("Invalid domain") if mx_records.empty? && a_records.empty?
 
-    Google::Protobuf::Empty.new
+    Empty.new
   ensure
     resolver.close
   end
@@ -60,10 +60,12 @@ class AuthUserServiceHandler < AuthUser::Service
     password = BCrypt::Password.new(request.hashed_password)
     raise GRPC::InvalidArgument.new("Invalid password") unless password == request.password
 
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
-  def generate_tfa_secret(_request, _call)
+  def generate_tfa_secret(request, _call)
+    check_required_fields(request.id)
+
     settings = @config[:tfa]
 
     secret = ROTP::Base32.random(32)
@@ -79,7 +81,7 @@ class AuthUserServiceHandler < AuthUser::Service
     )
   
     provisioning_uri = totp.provisioning_uri(
-      request.identifier,
+      request.id,
       issuer: settings.fetch(:issuer, 'AuthService'),
       image:  settings.fetch(:image_url, nil)
     )
@@ -91,13 +93,13 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def check_tfa_code(request, call)
-    check_required_fields(request.secret, request.code)
-    raise GRPC::InvalidArgument.new("Invalid secret format") unless ROTP::Base32.valid?(request.secret)
+    check_required_fields(request.tfa_secret, request.tfa_code)
+    raise GRPC::InvalidArgument.new("Invalid secret format") unless ROTP::Base32.valid?(request.tfa_secret)
 
     settings = @config[:tfa]
 
     totp = ROTP::TOTP.new(
-      request.secret,
+      request.tfa_secret,
       digits:        settings.fetch(:digits, 6),
       interval:      settings.fetch(:interval, 30),
       algorithm:     settings.fetch(:algorithm, 'SHA1'),
@@ -108,14 +110,14 @@ class AuthUserServiceHandler < AuthUser::Service
     )
 
     timestamp = totp.verify(
-      request.code,
+      request.tfa_code,
       drift_ahead:  settings.fetch(:drift_ahead, 1),
       drift_behind: settings.fetch(:drift_behind, 1)
       at:           Time.now.to_i
     )
     raise GRPC::InvalidArgument.new("Invalid code") if timestamp.nil?
 
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
   def generate_jwt(request, _call)
@@ -144,7 +146,50 @@ class AuthUserServiceHandler < AuthUser::Service
     AuthUser::JWT.new(jwt)
   end
 
+  def rotate_jwt(request, _call)
+    check_required_fields(request.jwt)
+
+    settings = @config[:jwt]
+
+    decoded_token = JWT.decode(
+      request.jwt,
+      @private_key.public_key,
+      false,
+    ).first
+
+    now = Time.now.to_i
+    original_ttl = decoded_token['exp'] - decoded_token['iat']
+    payload = decoded_token.transform_keys(&:to_sym).except(:exp, :iat, :jti).merge(
+      iat: now,
+      exp: now + original_ttl,
+      jti: SecureRandom.uuid
+    )
+
+    new_jwt = JWT.encode(
+      payload,
+      @private_key,
+      settings.fetch(:algorithm, 'RS256')
+    )
+
+    add_to_blacklist(request.jwt)
+
+    AuthUser::JWT.new(new_jwt)
+  end
+
+  def revoke_jwt(request, _call)
+    check_required_fields(request.jwt)
+
+    add_to_blacklist(request.jwt)
+    
+    Empty.new
+  end
+
   private
+
+  def add_to_blacklist(jwt)
+    #TODO connect to a redis cache.
+    #(cache diverse a seconda del ttl del token)
+  end
 
   def check_required_fields(*fields)
     raise GRPC::InvalidArgument.new("Missing required fields") unless fields.all?(&method(:provided?))

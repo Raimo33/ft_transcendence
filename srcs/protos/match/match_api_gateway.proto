@@ -6,13 +6,13 @@ import "google/protobuf/empty.proto";
 
 service MatchAPIGateway
 {
-  rpc Ping                      (google.protobuf.Empty)          returns (google.protobuf.Empty);
-  rpc GetUserMatches            (GetUserMatchesRequest)          returns (Matches);
-  rpc CreateMatch               (CreateMatchRequest)             returns (CreateMatchResponse);
-  rpc GetMatch                  (GetMatchRequest)                returns (Match);
-  rpc LeaveMatch                (LeaveMatchRequest)              returns (google.protobuf.Empty);
-  rpc AcceptMatchInvitation     (AcceptMatchInvitationRequest)   returns (google.protobuf.Empty);
-  rpc DeclineMatchInvitation    (DeclineMatchInvitationRequest)  returns (google.protobuf.Empty);
+  rpc Ping                      (google.protobuf.Empty)   returns (google.protobuf.Empty);
+  rpc GetUserMatches            (GetUserMatchesRequest)   returns (MatchIds);
+  rpc CreateMatch               (UserId)                  returns (MatchId);
+  rpc GetMatch                  (MatchId)                 returns (Match);
+  rpc LeaveMatch                (MatchId)                 returns (google.protobuf.Empty);
+  rpc AcceptMatchInvitation     (MatchId)                 returns (google.protobuf.Empty);
+  rpc DeclineMatchInvitation    (MatchId)                 returns (google.protobuf.Empty);
 }
 
 message GetUserMatchesRequest
@@ -21,45 +21,33 @@ message GetUserMatchesRequest
   uint32  limit    = 2;
   uint32  offset   = 3;
 }
-message Matches
-{
-  repeated Match matches = 1;
-}
 
-message CreateMatchRequest 
-{
-  string  invited_user_id = 1;
-}
-message CreateMatchResponse
-{
-  string  match_id = 1;
-}
-
-message GetMatchRequest
-{
-  string match_id = 1;
-}
 message Match
 {
   string           id                  = 1;
   string           creator_id          = 2;
   repeated string  player_ids          = 3;
   string           status              = 4;
-  uint64           started_timestamp   = 5;
-  uint64           finished_timestamp  = 6;
+  uint64           started_at   = 5;
+  uint64           finished_at  = 6;
 }
 
-message LeaveMatchRequest
+message Matches
 {
-  string  match_id  = 1;
+  repeated Match matches = 1;
 }
 
-message AcceptMatchInvitationRequest
+message UserId
 {
-  string  match_id = 1;
+  string id = 1;
 }
 
-message DeclineMatchInvitationRequest
+message MatchId
 {
-  string  match_id = 1;
+  string id = 1;
+}
+
+message MatchIds
+{
+  repeated string ids = 1;
 }

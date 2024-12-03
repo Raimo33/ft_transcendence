@@ -6,18 +6,25 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 18:38:31 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:35:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:19:07 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class CreateMatchHandler < BaseHandler
-  def call(request, requester_user_id)
-    grpc_request = Match::CreateMatchRequest.new(request.params)
-    metadata = build_request_metadata(request, requester_user_id)
-    response = @grpc_client.stubs[:match].create_match(grpc_request, metadata)
+  def call(env)
+    parsed_request = env[OpenapiFirst::REQUEST]
+
+    response = @grpc_client.create_match(
+      opponent_id: parsed_request.parsed_params[:opponent_id]
+      build_request_metadata(env)
+    )
     
-    [201, {}, [JSON.generate(response)]]
+    body = {
+      match_id: response.id,
+    }
+
+    [201, {}, [JSON.generate(body)]]
   end
 end

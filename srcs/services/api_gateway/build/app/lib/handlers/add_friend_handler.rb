@@ -6,17 +6,20 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 18:34:30 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:35:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:18:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class AddFriendHandler < BaseHandler
-  def call(request, requester_user_id)
-    grpc_request = User::AddFriendRequest.new(request.params)
-    metadata = build_request_metadata(request, requester_user_id)
-    @grpc_client.stubs[:user].add_friend(grpc_request, metadata)
+  def call(env)
+    parsed_request = env[OpenapiFirst::REQUEST]
+
+    @grpc_client.add_friend(
+      friend_id: parsed_request.parsed_params[:friend_id]
+      build_request_metadata(env)
+    )
     
     [204, {}, []]
   end

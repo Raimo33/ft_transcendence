@@ -6,13 +6,13 @@ import "google/protobuf/empty.proto";
 
 service TournamentAPIGateway
 {
-  rpc Ping                 (google.protobuf.Empty)       returns (google.protobuf.Empty)    {}
-  rpc GetUserTournaments   (GetUserTournamentsRequest)   returns (Tournaments)              {}
-  rpc CreateTournament     (google.protobuf.Empty)       returns (CreateTournamentResponse) {}
-  rpc GetTournament        (GetTournamentRequest)        returns (Tournament)               {}
-  rpc CancelTournament     (CancelTournamentRequest)     returns (google.protobuf.Empty)    {}
-  rpc JoinTournament       (JoinTournamentRequest)       returns (google.protobuf.Empty)    {}
-  rpc LeaveTournament      (LeaveTournamentRequest)      returns (google.protobuf.Empty)    {}
+  rpc Ping                 (google.protobuf.Empty)      returns (google.protobuf.Empty)    {}
+  rpc GetUserTournaments   (GetUserTournamentsRequest)  returns (TournamentIds)            {}
+  rpc CreateTournament     (google.protobuf.Empty)      returns (TournamentId)             {}
+  rpc GetTournament        (TournamentId)               returns (Tournament)               {}
+  rpc CancelTournament     (TournamentId)               returns (google.protobuf.Empty)    {}
+  rpc JoinTournament       (TournamentId)               returns (google.protobuf.Empty)    {}
+  rpc LeaveTournament      (TournamentId)               returns (google.protobuf.Empty)    {}
 }
 
 message GetUserTournamentsRequest
@@ -21,36 +21,28 @@ message GetUserTournamentsRequest
   uint32  limit     = 2;
   uint32  offset    = 3;
 }
-message Tournaments
-{
-  repeated Tournament  tournaments = 1;
-}
 
-message GetTournamentRequest
-{
-  string tournament_id  = 1;
-}
 message Tournament
 {
-  string           id                  = 1;
-  string           creator_id          = 2;
-  repeated string  match_ids           = 3;
-  string           status              = 4;
-  uint64           started_timestamp   = 5;
-  uint64           finished_timestamp  = 6;
+  string           id           = 1;
+  string           creator_id   = 2;
+  repeated string  match_ids    = 3;
+  string           status       = 4;
+  uint64           started_at   = 5;
+  uint64           finished_at  = 6;
 }
 
-message CancelTournamentRequest
+message Tournaments
 {
-  string tournament_id  = 1;
+  repeated Tournament tournaments = 1;
 }
 
-message JoinTournamentRequest
+message TournamentId
 {
-  string tournament_id  = 1;
+  string id = 1;
 }
 
-message LeaveTournamentRequest
+message TournamentIds
 {
-  string tournament_id  = 1;
+  repeated string ids = 1;
 }

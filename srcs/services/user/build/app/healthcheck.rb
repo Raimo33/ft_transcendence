@@ -12,7 +12,7 @@ if $PROGRAM_NAME == __FILE__
   }
 
   stubs.each do |service, stub|
-    stub.ping(Google::Protobuf::Empty.new)
+    stub.ping(Empty.new)
     puts "#{service} service is healthy"
   rescue GRPC::Unavailable
     puts "#{service} service is unhealthy"

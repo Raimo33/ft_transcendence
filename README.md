@@ -384,7 +384,7 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
 - Use **CamelCase** plural names for Tables.
   - Table example: `Matches`.
 - Use **snake_case** for column names.
-  - Column example: `last_login_timestamp`.
+  - Column example: `last_login_at`.
 - Prioritize changing names over enclosing it in quotes when not available.
   - Example: `password` in postgres is restricted and becomes `psw` instead of `'password'`
 - Use short but descriptive names for indexes and constraints:

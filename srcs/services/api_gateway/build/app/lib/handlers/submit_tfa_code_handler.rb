@@ -6,17 +6,20 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:35:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:23:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class SubmitTFACodeHandler < BaseHandler
-  def call(request, requester_user_id)
-    grpc_request = User::SubmitTFACodeRequest.new(request.params)
-    metadata = build_request_metadata(request, requester_user_id)
-    response = @grpc_client.stubs[:user].check_tfa_code(grpc_request, metadata)
+  def call(env)
+    parsed_request = env[OpenapiFirst::REQUEST]
+
+    response = @grpc_client.submit_tfa_code(
+      code: parsed_request.parsed_params[:code],
+      build_request_metadata(env)
+    )
     
     headers = {
       'Set-Cookie' => build_refresh_token_cookie_header(response.refresh_token),

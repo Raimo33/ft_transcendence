@@ -1,35 +1,40 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    logger_interceptor.rb                              :+:      :+:    :+:    #
+#    logger_middleware.rb                               :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:11:54 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:43:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative '../custom_logger'
-require 'grpc'
+require_relative '../../custom_logger'
+require 'openapi_first'
 
-class LoggerInterceptor < GRPC::ServerInterceptor
-  def initialize
+class LoggerMiddleware
+
+  def initialize(app, logger = Logger.new($stdout))
+    @app = app
     @logger = CustomLogger.instance.logger
   end
 
-  def request_response(request: nil, call: nil, method: nil)
+  def call(env)
+    parsed_request = env[OpenapiFirst::REQUEST]
     start_time = Time.now
-    request_id = call.metadata['request_id']
+
+    request_id = env['HTTP_X_REQUEST_ID']
+    operation_id = request.operation['operationId']
+    @logger.info("Received request #{request_id} on #{operation_id}")
+
+    status, headers, response = @app.call(env)
+
+    end_time = Time.now
+    duration = end_time - start_time
+    @logger.info("Completed request #{request_id} in #{duration} seconds")
     
-    @logger.info("Started request #{request_id} for #{method.service_name}/#{method.name}")
-
-    begin
-      response = yield
-      
-      duration = Time.time - start_time
-      @logger.info("Completed request #{request_id} in #{duration} seconds")
-
-      response
+    [status, headers, response]
   end
+
 end

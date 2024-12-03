@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:45:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 19:26:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -105,7 +105,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def ping(_request, _call)
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
   def register_user(request, _call)
@@ -140,10 +140,10 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     async_context&.stop
   end
 
-  def get_user_profile(request, _call)
-    check_required_fields(request.user_id)
+  def get_user_public_profile(request, _call)
+    check_required_fields(request.id)
   
-    query_result = @db_client.exec_prepared(:get_public_profile, [request.user_id])
+    query_result = @db_client.exec_prepared(:get_public_profile, [request.id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
 
     row = query_result.first
@@ -157,9 +157,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
   def get_user_status(request, call)
     requester_user_id = call.metadata['requester_user_id']
-    check_required_fields(request.user_id)
+    check_required_fields(request.id)
 
-    query_result = @db_client.exec_prepared(:get_status, [request.user_id])
+    query_result = @db_client.exec_prepared(:get_status, [request.id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
   
     UserAPIGateway::UserStatus.new(query_result[0]['current_status'])
@@ -172,7 +172,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     query_result = @db_client.exec_prepared(:delete_user, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
   
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
   def get_private_profile(request, call)
@@ -212,7 +212,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     query_result = @db_client.exec_prepared(:update_profile, [request.display_name, compressed_avatar, requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
 
-    Google::Protobuf::Empty.new
+    Empty.new
   ensure
     checks&.stop
     avatar_task&.stop
@@ -222,8 +222,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
     
-    tfa_request  = AuthUser::GenerateTFASecretRequest.new(requester_user_id)
-    tfa_response = @grpc_client.stubs[:auth].generate_tfa(tfa_request)
+    tfa_response = @grpc_client.generate_tfa_secret(user_id: requester_user_id)
     
     qr_code_task = Async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
     db_task = Async { @db_client.query(@prepared_statements[:enable_tfa], [requester_user_id, tfa_response.tfa_secret]) }
@@ -246,15 +245,15 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     query_result = @db_client.exec_prepared(:disable_tfa, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
   
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
   def submit_tfa_code(request, call)
     requester_user_id = call.metadata['requester_user_id']
-    check_required_fields(requester_user_id, request.tfa_code)
+    check_required_fields(requester_user_id, request.code)
   
     session_jwt_task = Async { generate_session_jwt(requester_user_id, false) }
-    refresh_jwt_task = Async { rotate_jwt(call.metadata["refresh_token"]) }
+    refresh_jwt_task = Async { @grpc_client.rotate_jwt(jwt: call.metadata["refresh_token"]) }
     
     query_result = @db_client.exec_prepared(:get_tfa, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
@@ -263,9 +262,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     tfa_status = query_result[0]['tfa_status']
     raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
 
-    check_tfa_code(request.tfa_code, tfa_secret)
+    check_tfa_code(request.code, tfa_secret)
     @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
-    revoke_jwt(call.metadata["session_token"])
+    @grpc_client.revoke_jwt(jwt: call.metadata["session_token"])
 
     UserAPIGateway::Tokens.new(
       session_token: session_jwt_task.wait,
@@ -293,8 +292,15 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       raise GRPC::FailedPrecondition.new("User is banned") if user_status == 'banned'
 
       task.async { validate_password(request.password, hashed_psw) }
+
       session_jwt_task = task.async { generate_session_jwt(user_id, tfa_status) }
-      refresh_jwt_task = task.async { generate_refresh_jwt(user_id, request.remember_me) }
+      refresh_jwt_task = task.async do
+        @grpc_client.generate_jwt(
+          identifier: user_id,
+          expire_after: @config[:tokens][:refresh][:ttl]
+          custom_claims: { remember_me: request.remember_me }
+        )
+      end
 
       @db_client.exec_prepared(:update_user_status, [user_id, 'online']) unless tfa_status
   
@@ -310,28 +316,31 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     async_context&.stop
   end
 
+  #TODO: implement
   def refresh_user_token(request, call)
-    #rotate session JWT
-    #rotate refresh JWT
+    #chiama il corrispondente metodo in auth
   end
 
+  #TODO: implement
   def logout_user(_request, call)
     #revoke session JWT
     #revoke refresh JWT
     #update user status
+  end
   
   # def ban_user(request, call)
-  #   #TODO revoke session e refresh JWT
-  #   #TODO set user status to 'banned'
-  #   #TODO only for auth-level 3
+  #   revoke session e refresh JWT
+  #   set user status to 'banned'
+  #   only for auth-level 3
+  # end
   
   def add_friend(request, call)
     requester_user_id = call.metadata['requester_user_id']
-    check_required_fields(requester_user_id, request.friend_user_id)
+    check_required_fields(requester_user_id, request.id)
 
-    query_result = @db_client.exec_prepared(:insert_friendship, [requester_user_id, request.friend_user_id])
+    query_result = @db_client.exec_prepared(:insert_friendship, [requester_user_id, request.id])
 
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
   def get_friends(request, call)
@@ -345,17 +354,17 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::NotFound.new("No friends found") if query_result.ntuples.zero?
 
     friend_ids = query_result.map { |row| row["friend_id"] }
-    UserAPIGateway::Friends.new(friend_ids)
+    UserAPIGateway::UserIds(friend_ids)
   end
 
   def remove_friend(request, call)
     requester_user_id = call.metadata['requester_user_id']
-    check_required_fields(requester_user_id, request.friend_user_id)
+    check_required_fields(requester_user_id, request.id)
     
-    query_result = @db_client.exec_prepared(:delete_friendship, [requester_user_id, request.friend_user_id])
+    query_result = @db_client.exec_prepared(:delete_friendship, [requester_user_id, request.id])
     raise GRPC::NotFound.new("Friend not found") if query_result.cmd_tuples.zero?
 
-    Google::Protobuf::Empty.new
+    Empty.new
   end
 
   private
@@ -396,8 +405,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
   def check_email_domain(email)
     domain   = email.split('@').last
-    request  = AuthUser::CheckDomainRequest.new(domain)
-    response = @grpc_client.stubs[:auth].check_domain(request)
+    response = @grpc_client.check_domain(domain: domain)
     
     raise GRPC::InvalidArgument.new("Invalid email domain") unless response&.is_allowed
   end
@@ -435,8 +443,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def hash_password(password)
-    grpc_request = AuthUser::HashPasswordRequest.new(password)
-    response = @grpc_client.stubs[:auth].hash_password(grpc_request)
+    response = @grpc_client.hash_password(password: password)
 
     response.hashed_password
   end
@@ -487,42 +494,11 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       auth_level = 2
     end
 
-    generate_jwt(user_id, expire_after, { auth_level: auth_level })
-  end
-
-  def generate_refresh_jwt(user_id, remember_me)
-    settings = @config[:tokens][:refresh]
-    expire_after = remember_me ? settings[:ttl_remember_me] : settings[:ttl]
-    generate_jwt(user_id, expire_after, { remember_me: remember_me })
-  end
-
-  def generate_jwt(identifier, expire_after, custom_claims = {})
-    request = AuthUser::GenerateJWTRequest.new(identifier, expire_after, custom_claims)
-    response = @grpc_client.stubs[:auth].generate_jwt(request)
-
-    response.jwt
-  end
-
-  def rotate_jwt(token)
-    #TODO chiama la corrispondente di Auth
-    #revoca il vecchio
-    #genera il nuovo fregandosene della validita' del vecchio e mantenendo user_id, (auth_level o remember_me)
-  end
-
-  def revoke_jwt(token)
-    #TODO chiama la corrispondente di Auth
-    #revoca il token
-  end
-
-  def validate_password(password, hashed_password)
-    grpc_request = AuthUser::ValidatePasswordRequest.new(password, hashed_password)
-    @grpc_client.stubs[:auth].validate_password(grpc_request)
-  end
-
-  def check_tfa_code(tfa_code, tfa_secret)
-    request = AuthUser::CheckTFACodeRequest.new(tfa_code, tfa_secret)
-
-    @grpc_client.stubs[:auth].check_tfa_code(request)
+    @grpc_client.generate_jwt(
+      identifier:   user_id,
+      expire_after: expire_after,
+      custom_claims: { auth_level: auth_level }
+    )
   end
 
   def create_regex_format(min_length, max_length, charset, policy)

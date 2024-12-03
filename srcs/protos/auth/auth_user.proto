@@ -7,23 +7,26 @@ import "google/protobuf/empty.proto";
 service AuthUser
 {
   rpc Ping(google.protobuf.Empty)                 returns (google.protobuf.Empty) {}
-  rpc CheckDomain(CheckDomainRequest)             returns (google.protobuf.Empty) {}
-  rpc HashPassword(HashPasswordRequest)           returns (HashedPassword) {}
+  rpc CheckDomain(Domain)                         returns (google.protobuf.Empty) {}
+  rpc HashPassword(Password)                      returns (HashedPassword) {}
   rpc ValidatePassword(ValidatePasswordRequest)   returns (google.protobuf.Empty) {}
-  rpc GenerateTFASecret(GenerateTFASecretRequest) returns (GenerateTFASecretResponse) {}
+  rpc GenerateTFASecret(UserId)                   returns (GenerateTFASecretResponse) {}
   rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
   rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
+  rpc RotateJWT(JWT)                              returns (JWT) {}
+  rpc RevokeJWT(JWT)                              returns (google.protobuf.Empty) {}
 }
 
-message CheckDomainRequest
+message Domain
 {
   string domain = 1;
 }
 
-message HashPasswordRequest
+message Password
 {
   string password = 1;
 }
+
 message HashedPassword
 {
   string hashed_password = 1;
@@ -35,10 +38,11 @@ message ValidatePasswordRequest
   string hashed_password  = 2;
 }
 
-message GenerateTFASecretRequest
+message UserId
 {
-  string identifier = 1;
+  string id = 1;
 }
+
 message GenerateTFASecretResponse
 {
   string tfa_secret            = 1;
@@ -57,8 +61,8 @@ message GenerateJWTRequest
   uint16 expire_after  = 2;
   string custom_claims = 3;
 }
+
 message JWT
 {
   string jwt = 1;
 }
-

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:32:49 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 17:57:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,18 +17,22 @@ require_relative 'ConfigHandler'
 
 class Server
 
-  def call(env)
-    request  = env[OpenapiFirst::REQUEST]
-    handler  = find_handler(request.operation['operationId'])
+  def initialize
+    @handlers = {}
+  end
 
-    handler.call(request, env['requester_user_id'])
+  def call(env)
+    parsed_parsed_request = env[OpenapiFirst::REQUEST]
+    handler = find_handler(parsed_request.operation['operationId'], env)
+
+    handler.call(env)
   end
 
   private
 
   def find_handler(operation_id)
     handler_class = "#{operation_id.capitalize}Handler"
-    Object.const_get(handler_class).new
+    @handlers[handler_class] ||= Object.const_get(handler_class).new
   end
 
 end

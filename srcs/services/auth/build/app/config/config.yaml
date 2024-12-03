@@ -1,7 +1,6 @@
 logging:
   level: INFO
   file: /dev/stdout
-  tag: AUTH
 
 grpc:
   addresses:

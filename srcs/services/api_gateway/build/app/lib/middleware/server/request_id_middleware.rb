@@ -1,26 +1,22 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    middleware_registry.rb                             :+:      :+:    :+:    #
+#    request_id_middleware.rb                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/26 18:48:51 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 18:48:51 by craimond         ###   ########.fr        #
+#    Created: 2024/12/03 16:43:11 by craimond          #+#    #+#              #
+#    Updated: 2024/12/03 16:43:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'singleton'
-
-class MiddlewareRegistry
-  include Singleton
-  attr_reader :middlewares
-
-  def initialize
-    @middlewares = []
+class RequestIdMiddleware
+  def initialize(app)
+    @app = app
   end
 
-  def use(middleware_class)
-    @middlewares << middleware_class
+  def call(env)
+    env['HTTP_X_REQUEST_ID'] = SecureRandom.uuid
+    @app.call(env)
   end
 end

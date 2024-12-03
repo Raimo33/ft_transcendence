@@ -6,18 +6,21 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:35:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:19:43 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class EnableTFAHandler < BaseHandler
-  def call(request, requester_user_id)
-    grpc_request = Google::Protobuf::Empty.new
-    metadata = build_request_metadata(request, requester_user_id)
-    response = @grpc_client.stubs[:user].enable_tfa(grpc_request, metadata)
+  def call(env)
+    response = @grpc_client.enable_tfa(build_request_metadata(env))
     
-    [200, {}, [JSON.generate(response)]]
+    body = {
+      tfa_secret:   response.tfa_secret,
+      tfa_qr_code:  response.tfa_qr_code
+    }
+
+    [200, {}, [JSON.generate(body)]]
   end
 end

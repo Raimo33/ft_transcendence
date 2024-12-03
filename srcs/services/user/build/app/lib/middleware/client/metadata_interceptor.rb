@@ -1,29 +1,20 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    service_registry.rb                                :+:      :+:    :+:    #
+#    metadata_interceptor.rb                            :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/25 17:38:56 by craimond          #+#    #+#              #
-#    Updated: 2024/11/26 17:10:45 by craimond         ###   ########.fr        #
+#    Created: 2024/12/03 13:30:58 by craimond          #+#    #+#              #
+#    Updated: 2024/12/03 18:01:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'singleton'
+class MetadataInterceptor < GRPC::ClientInterceptor
 
-class ServiceRegistry
-  include Singleton
-  attr_reader :services
-
-  def initialize
-    @services = {}
-  end
-
-  def register(service_class, handler_class)
-    handler_instance = handler_class.new
-    wrapped_handler = ServerMiddleware.wrap(handler_instance).new
-    @services[service_class] = wrapped_handler
+  def intercept(request, call, method_name, &block)
+    call.metadata['request_id'] = SecureRandom.uuid
+    yield
   end
 
 end

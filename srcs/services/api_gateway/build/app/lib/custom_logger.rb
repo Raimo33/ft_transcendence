@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/28 04:20:43 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 04:23:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:29:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,8 +27,7 @@ class CustomLogger
     @logger = Logger.new(log_file)
     @logger.level = Logger.const_get(log_level.upcase)
     @logger.formatter = proc do |severity, datetime, _, msg|
-      tag = @config.dig('logging', 'tag')
-      "[#{datetime.strftime('%Y-%m-%d %H:%M:%S.%L')}] #{severity} [#{tag}]: #{msg}\n"
+      "[#{datetime.strftime('%Y-%m-%d %H:%M:%S.%L')}] #{severity}: #{msg}\n"
     end
   end
 

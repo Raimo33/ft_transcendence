@@ -6,18 +6,20 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:03:14 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:35:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:19:17 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class CreateTournamentHandler < BaseHandler
-  def call(request, requester_user_id)
-    grpc_request = Tournament::CreateTournamentRequest.new(request.params)
-    metadata = build_request_metadata(request, requester_user_id)
-    response = @grpc_client.stubs[:tournament].create_tournament(grpc_request, metadata)
+  def call(env)
+    response = @grpc_client.create_tournament(build_request_metadata(env))
     
-    [201, {}, [JSON.generate(response)]]
+    body = {
+      tournament_id: response.id,
+    }
+
+    [201, {}, [JSON.generate(body)]]
   end
 end

@@ -6,22 +6,22 @@ import "google/protobuf/empty.proto";
 
 service UserAPIGateway
 {
-  rpc Ping                    (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
-  rpc RegisterUser            (RegisterUserRequest)           returns (RegisterUserResponse)  {}
-  rpc GetUserPublicProfile    (GetUserPublicProfileRequest)   returns (UserPublicProfile)     {}
-  rpc GetUserStatus           (GetUserStatusRequest)          returns (UserStatus)            {}
-  rpc DeleteAccount           (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
-  rpc GetUserPrivateProfile   (google.protobuf.Empty)         returns (UserPrivateProfile)    {}
-  rpc UpdateProfile           (UpdateProfileRequest)          returns (google.protobuf.Empty) {}
-  rpc EnableTFA               (google.protobuf.Empty)         returns (EnableTFAResponse)     {}
-  rpc DisableTFA              (google.protobuf.Empty)         returns (google.protobuf.Empty) {}
-  rpc SubmitTFACode           (SubmitTFACodeRequest)          returns (Tokens)                {}
-  rpc LoginUser               (LoginUserRequest)              returns (LoginUserResponse)     {}
-  rpc RefreshUserToken        (RefreshUserTokenRequest)       returns (Tokens)                {}
-  rpc LogoutUser              (LogoutUserRequest)             returns (google.protobuf.Empty) {}
-  rpc AddFriend               (AddFriendRequest)              returns (google.protobuf.Empty) {}
-  rpc GetFriends              (google.protobuf.Empty)         returns (Friends)               {}
-  rpc RemoveFriend            (RemoveFriendRequest)           returns (google.protobuf.Empty) {}
+  rpc Ping                    (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
+  rpc RegisterUser            (RegisterUserRequest)      returns (UserId)                {}
+  rpc GetUserPublicProfile    (UserId)                   returns (UserPublicProfile)     {}
+  rpc GetUserStatus           (UserId)                   returns (UserStatus)            {}
+  rpc DeleteAccount           (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
+  rpc GetUserPrivateProfile   (google.protobuf.Empty)    returns (UserPrivateProfile)    {}
+  rpc UpdateProfile           (UpdateProfileRequest)     returns (google.protobuf.Empty) {}
+  rpc EnableTFA               (google.protobuf.Empty)    returns (EnableTFAResponse)     {}
+  rpc DisableTFA              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
+  rpc SubmitTFACode           (TFACode)                  returns (Tokens)                {}
+  rpc LoginUser               (LoginUserRequest)         returns (LoginUserResponse)     {}
+  rpc RefreshUserToken        (RefreshUserTokenRequest)  returns (Tokens)                {}
+  rpc LogoutUser              (LogoutUserRequest)        returns (google.protobuf.Empty) {}
+  rpc AddFriend               (UserId)                   returns (google.protobuf.Empty) {}
+  rpc GetFriends              (google.protobuf.Empty)    returns (UserIds)               {}
+  rpc RemoveFriend            (UserId)                   returns (google.protobuf.Empty) {}
 }
 
 message RegisterUserRequest
@@ -30,15 +30,12 @@ message RegisterUserRequest
   string password     = 2;
   string display_name = 3;
 }
-message RegisterUserResponse
+
+message UserId
 {
-  string user_id = 1;
+  string id = 1;
 }
 
-message GetUserPublicProfileRequest
-{
-  string user_id = 1;
-}
 message UserPublicProfile
 {
   string id            = 1;
@@ -47,13 +44,9 @@ message UserPublicProfile
   string status        = 4;
 }
 
-message GetUserStatusRequest
-{
-  string user_id = 1;
-}
 message UserStatus
 {
-  string user_status = 1;
+  string status = 1;
 }
 
 message UserPrivateProfile
@@ -78,9 +71,9 @@ message EnableTFAResponse
   string tfa_qr_code = 2;
 }
 
-message SubmitTFACodeRequest
+message TFACode
 {
-  string tfa_code = 1;
+  string code = 1;
 }
 
 message LoginUserRequest
@@ -89,29 +82,19 @@ message LoginUserRequest
   string password = 2;
 }
 
-message Tokens
-{
-  string session_token = 1;
-  string refresh_token = 2;
-}
-
 message LoginUserResponse
 {
   Tokens tokens       = 1;
   bool   pending_tfa  = 3;
 }
 
-message AddFriendRequest
+message Tokens
 {
-  string friend_id = 1;
+  string session_token = 1;
+  string refresh_token = 2;
 }
 
-message Friends
+message UserIds
 {
-  repeated string friend_ids = 1;
-}
-
-message RemoveFriendRequest
-{
-  string friend_id = 1;
+  repeated string ids = 1;
 }

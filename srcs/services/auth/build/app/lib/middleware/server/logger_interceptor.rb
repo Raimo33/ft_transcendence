@@ -1,36 +1,35 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    request_logger.rb                                  :+:      :+:    :+:    #
+#    logger_interceptor.rb                              :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 20:00:16 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 18:52:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative '../custom_logger'
-require_relative 'openapi_first'
+require 'grpc'
 
-class RequestLogger
+class LoggerInterceptor < GRPC::ServerInterceptor
 
-  def initialize(app)
-    @app = app
+  def initialize
     @logger = CustomLogger.instance.logger
   end
 
-  def call(request, call)
+  def request_response(request: nil, call: nil, method: nil)
     start_time = Time.now
 
-    @logger.info("Received #{request.operation[:operation_id]} - Metadata: #{call.metadata.to_h}")
+    request_id = call.metadata['request_id']
+    @logger.info("Received request #{request_id} on #{method.service_name}/#{method.name}")
 
-    response = @app.call(request, call)
-
-    end_time = Time.now
-    duration = end_time - start_time
-    @logger.info("Completed #{call.method_name} - Metadata: #{call.metadata.to_h} - Duration: #{duration}s")
+    response = yield
     
+    duration = Time.time - start_time
+    @logger.info("Completed request #{request_id} in #{duration} seconds")
+
     response
   end
 

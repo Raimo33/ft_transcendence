@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/11/30 19:06:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 13:38:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,12 +35,10 @@ class DBClient
   def query(sql, params = [])
     @pool.with do |conn|
       result = conn.exec_params(sql, params)
-      begin
-        rows = result.to_a
-        block_given? ? yield(rows) : rows
-      ensure
-        result.clear
-      end
+      rows = result.to_a
+      block_given? ? yield(rows) : rows
+    ensure
+      result.clear
     end
   end
 
@@ -61,12 +59,10 @@ class DBClient
   def exec_prepared(name, params = [])
     @pool.with do |conn|
       result = conn.exec_prepared(name, params)
-      begin
-        rows = result.to_a
-        block_given? ? yield(rows) : rows
-      ensure
-        result.clear
-      end
+      rows = result.to_a
+      block_given? ? yield(rows) : rows
+    ensure
+      result.clear
     end
   end
 
