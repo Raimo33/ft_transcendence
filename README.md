@@ -395,7 +395,8 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
   - Example: `[api_gateway] INFO Request received`.
 - Name metrics descriptively and consistently:
   - Example: `http_request_duration_seconds`, `user_login_attempts_total`.
-- Ensure the end user doesn't see source code information.
+- Ensure that returned responses don't hint at the internal infrastructure.
+  - Example: `Database connection error` instead of `user_id must be an integer`.
 
 
 ## 4. Docker

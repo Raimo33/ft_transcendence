@@ -17,8 +17,8 @@ service UserAPIGateway
   rpc DisableTFA              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
   rpc SubmitTFACode           (TFACode)                  returns (Tokens)                {}
   rpc LoginUser               (LoginUserRequest)         returns (LoginUserResponse)     {}
-  rpc RefreshUserToken        (RefreshUserTokenRequest)  returns (Tokens)                {}
-  rpc LogoutUser              (LogoutUserRequest)        returns (google.protobuf.Empty) {}
+  rpc RefreshUserToken        (google.protobuf.Empty)    returns (Tokens)                {}
+  rpc LogoutUser              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
   rpc AddFriend               (UserId)                   returns (google.protobuf.Empty) {}
   rpc GetFriends              (google.protobuf.Empty)    returns (UserIds)               {}
   rpc RemoveFriend            (UserId)                   returns (google.protobuf.Empty) {}

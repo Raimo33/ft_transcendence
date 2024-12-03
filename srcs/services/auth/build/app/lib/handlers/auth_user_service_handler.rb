@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 18:40:29 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 22:04:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,6 @@ require_relative '../config_handler'
 require_relative '../grpc_server'
 
 class AuthUserServiceHandler < AuthUser::Service
-  include ServiceHandlerMiddleware
 
   def initialize
     @config = ConfigHandler.instance.config
@@ -145,6 +144,9 @@ class AuthUserServiceHandler < AuthUser::Service
 
     AuthUser::JWT.new(jwt)
   end
+
+  def validate_jwt(request, _call)
+    #TODO: implement JWT validations
 
   def rotate_jwt(request, _call)
     check_required_fields(request.jwt)

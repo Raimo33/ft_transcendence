@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 12:36:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 22:03:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,8 @@ class GrpcServer
     )
 
     @services = {
-      AuthUser::Service => AuthUserServiceHandler.new,
+      AuthUser::Service       => AuthUserServiceHandler.new,
+      AuthAPIGateway::Service => AuthAPIGatewayServiceHandler.new
     }
 
     setup_handlers

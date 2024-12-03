@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 19:28:16 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 21:53:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -72,6 +72,11 @@ class GrpcClient
   def generate_jwt(identifier:, expire_after:, custom_claims:, metadata = {})
     request = AuthUser::GenerateJWTRequest(identifier: identifier, expire_after: expire_after, custom_claims: custom_claims)
     @stubs[:auth].generate_jwt(request, metadata: metadata)
+  end
+
+  def validate_jwt(jwt:, metadata = {})
+    request = AuthUser::JWT(jwt: jwt)
+    @stubs[:auth].validate_jwt(request, metadata: metadata)
   end
 
   def rotate_jwt(jwt:, metadata = {})

@@ -10,9 +10,10 @@ service AuthUser
   rpc CheckDomain(Domain)                         returns (google.protobuf.Empty) {}
   rpc HashPassword(Password)                      returns (HashedPassword) {}
   rpc ValidatePassword(ValidatePasswordRequest)   returns (google.protobuf.Empty) {}
-  rpc GenerateTFASecret(UserId)                   returns (GenerateTFASecretResponse) {}
+  rpc GenerateTFASecret(Identifier)               returns (GenerateTFASecretResponse) {}
   rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty) {}
   rpc GenerateJWT(GenerateJWTRequest)             returns (JWT) {}
+  rpc ValidateJWT(JWT)                            returns (google.protobuf.Empty) {}
   rpc RotateJWT(JWT)                              returns (JWT) {}
   rpc RevokeJWT(JWT)                              returns (google.protobuf.Empty) {}
 }
@@ -38,7 +39,7 @@ message ValidatePasswordRequest
   string hashed_password  = 2;
 }
 
-message UserId
+message Identifier
 {
   string id = 1;
 }

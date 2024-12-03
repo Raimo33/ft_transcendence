@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 19:26:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 22:06:14 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,6 @@ require_relative '../grpc_client'
 require_relative '../db_client'
 
 class UserAPIGatewayServiceHandler < UserAPIGateway::Service
-  include ServiceHandlerMiddleware
   include EmailValidator
 
   def initialize
@@ -104,11 +103,11 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     prepare_statements
   end
 
-  def ping(_request, _call)
+  def ping(request, call)
     Empty.new
   end
 
-  def register_user(request, _call)
+  def register_user(request, call)
     check_required_fields(request.email, request.password, request.display_name)
 
     checks = Async::Barrier.new
@@ -140,7 +139,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     async_context&.stop
   end
 
-  def get_user_public_profile(request, _call)
+  def get_user_public_profile(request, call)
     check_required_fields(request.id)
   
     query_result = @db_client.exec_prepared(:get_public_profile, [request.id])
@@ -222,7 +221,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
     
-    tfa_response = @grpc_client.generate_tfa_secret(user_id: requester_user_id)
+    tfa_response = @grpc_client.generate_tfa_secret(identifier: requester_user_id)
     
     qr_code_task = Async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
     db_task = Async { @db_client.query(@prepared_statements[:enable_tfa], [requester_user_id, tfa_response.tfa_secret]) }
@@ -316,13 +315,27 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     async_context&.stop
   end
 
-  #TODO: implement
   def refresh_user_token(request, call)
-    #chiama il corrispondente metodo in auth
+    session_token = call.metadata["session_token"]
+    refresh_token = call.metadata["refresh_token"]
+    check_required_fields(session_token, refresh_token)
+
+    @grpc_client.validate_jwt(jwt: refresh_token)
+
+    session_jwt_task = Async { @grpc_client.rotate_jwt(jwt: session_token) }
+    refresh_jwt_task = Async { @grpc_client.rotate_jwt(jwt: refresh_token) }
+
+    UserAPIGateway::Tokens.new(
+      session_token: session_jwt_task.wait,
+      refresh_token: refresh_jwt_task.wait
+    )
+  ensure
+    session_jwt_task&.stop
+    refresh_jwt_task&.stop
   end
 
   #TODO: implement
-  def logout_user(_request, call)
+  def logout_user(request, call)
     #revoke session JWT
     #revoke refresh JWT
     #update user status

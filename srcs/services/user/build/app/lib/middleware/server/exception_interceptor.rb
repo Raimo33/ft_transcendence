@@ -6,12 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 18:01:43 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/03 21:37:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'pg'
+require 'jwt'
 
 class ExceptionInterceptor < GRPC::ServerInterceptor
 
@@ -42,6 +43,8 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
 
     when PG::UniqueViolation, PG::ForeignKeyViolation, PG::NotNullViolation, PG::CheckViolation, PG::ExclusionViolation
       [GRPC::Core::StatusCodes::INVALID_ARGUMENT, map_constraint_violation(exception.result)]
+    when JWT::DecodeError
+      [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"]
     else
       @logger.error(exception.message)
       @logger.debug(exception.backtrace.join("\n"))
