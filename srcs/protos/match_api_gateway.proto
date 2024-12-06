@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package match;
+
+import "google/protobuf/empty.proto";
+import "common/identifier.proto";
+
+service MatchAPIGateway
+{
+  rpc Ping                      (google.protobuf.Empty)   returns (google.protobuf.Empty)  {}
+  rpc GetUserMatches            (GetUserMatchesRequest)   returns (Identifiers)            {}
+  rpc CreateMatch               (Identifier)              returns (Identifier)             {}
+  rpc GetMatch                  (Identifier)              returns (Match)                  {}
+  rpc LeaveMatch                (Identifier)              returns (google.protobuf.Empty)  {}
+  rpc AcceptMatchInvitation     (Identifier)              returns (google.protobuf.Empty)  {}
+  rpc DeclineMatchInvitation    (Identifier)              returns (google.protobuf.Empty)  {}
+}
+
+message GetUserMatchesRequest
+{
+  string  user_id  = 1;
+  uint32  limit    = 2;
+  uint32  offset   = 3;
+}
+
+message Match
+{
+  string           id                  = 1;
+  string           creator_id          = 2;
+  repeated string  player_ids          = 3;
+  string           status              = 4;
+  uint64           started_at   = 5;
+  uint64           finished_at  = 6;
+}
+
+message Matches
+{
+  repeated Match matches = 1;
+}

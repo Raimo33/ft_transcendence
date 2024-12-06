@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:14:03 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 21:59:24 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 14:51:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ class AuthMiddleware
 
   def initialize(app)
     @app = app
-    @jwt_validator = JwtValidator.instance
+    @grpc_client = GrpcClient.instance
   end
 
   def call(env)
@@ -30,11 +30,17 @@ class AuthMiddleware
     auth_header = openapi_request.headers['Authorization']
     raise GRPC::Unauthenticated.new('Authorization header not found') unless auth_header
 
-    #TODO chiamare il metodo validate_token di AuthService
-    raise GRPC::Unauthenticated.new('Wrong permissions') unless #decoded_token[0]['auth_level'] >= auth_level
+    token = extract_token(auth_header)
+    decoded_jwt = @grpc_client.decode_jwt(token)
+    token_auth_level = decoded_jwt.payload['auth_level']&.number_value || 0
+    raise GRPC::Unauthenticated.new('Wrong permissions') unless token_auth_level >= auth_level
 
-    env['REQUESTER_USER_ID'] = decoded_token[0]['sub']
+    env['REQUESTER_USER_ID'] = decoded_jwt.payload['user_id']&.number_value
     @app.call(env)
+  end
+
+  def extract_token(auth_header)
+    auth_header.split(' ').last
   end
 
 end

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package tournament;
+
+import "google/protobuf/empty.proto";
+import "common/identifier.proto";
+
+service TournamentAPIGateway
+{
+  rpc Ping                 (google.protobuf.Empty)      returns (google.protobuf.Empty)  {}
+  rpc GetUserTournaments   (GetUserTournamentsRequest)  returns (Identifiers)            {}
+  rpc CreateTournament     (google.protobuf.Empty)      returns (Identifier)             {}
+  rpc GetTournament        (Identifier)                 returns (Tournament)             {}
+  rpc CancelTournament     (Identifier)                 returns (google.protobuf.Empty)  {}
+  rpc JoinTournament       (Identifier)                 returns (google.protobuf.Empty)  {}
+  rpc LeaveTournament      (Identifier)                 returns (google.protobuf.Empty)  {}
+}
+
+message GetUserTournamentsRequest
+{
+  string  user_id   = 1;
+  uint32  limit     = 2;
+  uint32  offset    = 3;
+}
+
+message Tournament
+{
+  string           id           = 1;
+  string           creator_id   = 2;
+  repeated string  match_ids    = 3;
+  string           status       = 4;
+  uint64           started_at   = 5;
+  uint64           finished_at  = 6;
+}
+
+message Tournaments
+{
+  repeated Tournament tournaments = 1;
+}

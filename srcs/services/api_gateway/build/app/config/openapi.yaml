@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 16:05:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 14:50:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -384,7 +384,7 @@ paths:
           $ref: "#/components/responses/Conflict"
   /user/refresh:
     post:
-      operationId: refreshUserToken
+      operationId: refreshUserSessionToken
       summary: Refresh JWT token
       description: Generate a new JWT using the refresh token, to extend the user session.
       security:

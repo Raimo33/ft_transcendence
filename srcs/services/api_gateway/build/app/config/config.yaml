@@ -7,6 +7,7 @@ grpc:
     user: user.core:50052
     match: match.core:50052
     tournament: tournament.core:50052
+    auth: auth.core:50052
   timeout: 30
   pool_size: 2      
   pool_keep_alive: 10

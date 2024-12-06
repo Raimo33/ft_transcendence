@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 22:06:14 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 14:49:07 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -133,7 +133,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       insert_result = @db_client.exec_prepared(:insert_user, [email, hashed_password, display_name, avatar || @default_avatar])
 
       UserAPIGateway::RegisterUserResponse.new(insert_result[0]['id'])
-    end.wait
+    end
+
+    async_context.wait
   ensure
     checks&.stop
     async_context&.stop
@@ -249,10 +251,11 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
   def submit_tfa_code(request, call)
     requester_user_id = call.metadata['requester_user_id']
-    check_required_fields(requester_user_id, request.code)
+    refresh_token     = call.metadata["refresh_token"]
+    check_required_fields(requester_user_id, request.code, refresh_token)
   
     session_jwt_task = Async { generate_session_jwt(requester_user_id, false) }
-    refresh_jwt_task = Async { @grpc_client.rotate_jwt(jwt: call.metadata["refresh_token"]) }
+    refresh_jwt_task = Async { @grpc_client.rotate_jwt(jwt: refresh_token) }
     
     query_result = @db_client.exec_prepared(:get_tfa, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
@@ -261,9 +264,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     tfa_status = query_result[0]['tfa_status']
     raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
 
-    check_tfa_code(request.code, tfa_secret)
+    @grpc_client.check_tfa_code(tfa_secret: tfa_secret, tfa_code: request.code)
     @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
-    @grpc_client.revoke_jwt(jwt: call.metadata["session_token"])
 
     UserAPIGateway::Tokens.new(
       session_token: session_jwt_task.wait,
@@ -283,10 +285,11 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       query_result = @db_client.exec_prepared(:get_login_data, [request.email])
       raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
 
-      user_id     = query_result[0]["id"]
-      tfa_status  = query_result[0]["tfa_status"]
-      hashed_psw  = query_result[0]["psw"]
-      user_status = query_result[0]["current_status"]
+      row = query_result.first
+      user_id     = row["id"]
+      tfa_status  = row["tfa_status"]
+      hashed_psw  = row["psw"]
+      user_status = row["current_status"]
 
       raise GRPC::FailedPrecondition.new("User is banned") if user_status == 'banned'
 
@@ -296,8 +299,10 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       refresh_jwt_task = task.async do
         @grpc_client.generate_jwt(
           identifier: user_id,
-          expire_after: @config[:tokens][:refresh][:ttl]
-          custom_claims: { remember_me: request.remember_me }
+          ttl: @config[:tokens][:refresh][:ttl]
+          custom_claims: {
+            remember_me: request.remember_me
+          }
         )
       end
 
@@ -310,17 +315,21 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
         pending_tfa: tfa_status
         )
       )
-    end.wait
+    end
+
+    async_context.wait
   ensure
     async_context&.stop
   end
 
-  def refresh_user_token(request, call)
+  def refresh_user_session_token(request, call)
     session_token = call.metadata["session_token"]
     refresh_token = call.metadata["refresh_token"]
     check_required_fields(session_token, refresh_token)
 
-    @grpc_client.validate_jwt(jwt: refresh_token)
+    decoded_jwt = @grpc_client.decode_jwt(refresh_token)
+    token_expiry = decoded_jwt.payload["exp"]&.number_value || 0
+    raise GRPC::Unauthenticated.new("Invalid refresh token") unless Time.now.to_i < token_expiry
 
     session_jwt_task = Async { @grpc_client.rotate_jwt(jwt: session_token) }
     refresh_jwt_task = Async { @grpc_client.rotate_jwt(jwt: refresh_token) }
@@ -500,17 +509,19 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     settings = @config[:tokens][:session]
 
     if pending_tfa
-      expire_after = settings[:ttl_pending_tfa]
+      ttl = settings[:ttl_pending_tfa]
       auth_level = 1
     else
-      expire_after = settings[:ttl]
+      ttl = settings[:ttl]
       auth_level = 2
     end
 
     @grpc_client.generate_jwt(
-      identifier:   user_id,
-      expire_after: expire_after,
-      custom_claims: { auth_level: auth_level }
+      identifier:  user_id,
+      ttl:         ttl,
+      custom_claims: {
+        auth_level: auth_level
+      }
     )
   end
 

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/03 18:26:28 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 18:44:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 14:01:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,13 +22,13 @@ class LoggerInterceptor < GRPC::ClientInterceptor
     start_time = Time.now
 
     request_id = call.metadata['request_id']
-    @logger.info("Routing request #{request_id} to #{method_name}")
+    @logger.info("Passing request #{request_id} to #{method_name}")
 
     response = yield(request, call)
 
     end_time = Time.now
     duration = end_time - start_time
-    @logger.info("Completed request #{request_id} in #{duration} seconds")
+    @logger.info("#{method_name} finished processing request #{request_id} in #{duration} seconds")
   
     response
   end

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/empty.proto";
+import "common/jwt.proto";
+
+service AuthAPIGateway
+{
+  rpc Ping        (google.protobuf.Empty)  returns (google.protobuf.Empty) {}
+  rpc DecodeJWT   (JWT)                    returns (DecodedJWT)            {}
+}

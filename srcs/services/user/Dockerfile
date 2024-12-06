@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 20:33:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 13:45:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,13 +23,13 @@ RUN gem install bundler
 RUN bundle install
 
 COPY ./build/app/                              /app/
-COPY --from=protos user/user_api_gateway.proto /app/proto
+COPY --from=protos user_api_gateway.proto      /app/protos
 
 RUN adduser -DHS user
 RUN chown -R user:user /app
 RUN chmod -R +x /usr/local/bin/
 
-RUN protoc --ruby_out=./ /app/proto/user_api_gateway.proto
+RUN protoc --ruby_out=./ /app/protos/user_api_gateway.proto
 
 USER user
 EXPOSE 50052

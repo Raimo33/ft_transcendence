@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 21:53:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 14:41:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,7 +60,7 @@ class GrpcClient
   end
 
   def generate_tfa_secret(user_id: nil, metadata = {})
-    request = AuthUser::UserId(user_id: user_id)
+    request = AuthUser::Identifier(user_id: user_id)
     @stubs[:auth].generate_tfa_secret(request, metadata: metadata)
   end
 
@@ -69,14 +69,18 @@ class GrpcClient
     @stubs[:auth].check_tfa_code(request, metadata: metadata)
   end
 
-  def generate_jwt(identifier:, expire_after:, custom_claims:, metadata = {})
-    request = AuthUser::GenerateJWTRequest(identifier: identifier, expire_after: expire_after, custom_claims: custom_claims)
+  def generate_jwt(identifier:, ttl:, custom_claims:, metadata = {})
+    request = AuthUser::GenerateJWTRequest(
+      identifier:     identifier,
+      ttl:            ttl,
+      custom_claims:  Google::Protobuf::Struct.from_hash(custom_claims)
+    )
     @stubs[:auth].generate_jwt(request, metadata: metadata)
   end
 
-  def validate_jwt(jwt:, metadata = {})
+  def decode_jwt(jwt:, metadata = {})
     request = AuthUser::JWT(jwt: jwt)
-    @stubs[:auth].validate_jwt(request, metadata: metadata)
+    @stubs[:auth].decode_jwt(request, metadata: metadata)
   end
 
   def rotate_jwt(jwt:, metadata = {})

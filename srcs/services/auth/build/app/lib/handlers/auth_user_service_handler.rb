@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 22:04:57 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 15:00:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -120,21 +120,20 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   def generate_jwt(request, _call)
-    check_required_fields(request.identifier, request.expire_after)
+    check_required_fields(request.identifier, request.ttl)
 
     settings = @config[:jwt]
 
     now = Time.now.to_i
-    payload = {
+    standard_claims = {
       iss:  settings.fetch(:issuer, 'AuthService'),
       sub:  request.identifier,
       iat:  now,
-      exp:  now + request.expire_after,
+      exp:  now + request.ttl,
       jti:  SecureRandom.uuid,
     }
 
-    if request.custom_claims
-      payload.merge!(request.custom_claims.to_h)
+    payload = standard_claims.merge(request.custom_claims&.to_h)
 
     jwt = JWT.encode(
       payload,
@@ -145,23 +144,35 @@ class AuthUserServiceHandler < AuthUser::Service
     AuthUser::JWT.new(jwt)
   end
 
-  def validate_jwt(request, _call)
-    #TODO: implement JWT validations
+  def decode_jwt(request, _call)
+    check_required_fields(request.jwt)
+
+    payload, headers = JWT.decode(
+      request.jwt,
+      @private_key.public_key,
+      false,
+    ).first
+
+    AuthUser::DecodedJWT.new(
+      payload: Google::Protobuf::Struct.from_hash(payload),
+      headers: Google::Protobuf::Struct.from_hash(headers)
+    )
+  end
 
   def rotate_jwt(request, _call)
     check_required_fields(request.jwt)
 
     settings = @config[:jwt]
 
-    decoded_token = JWT.decode(
+    payload = JWT.decode(
       request.jwt,
       @private_key.public_key,
       false,
     ).first
 
     now = Time.now.to_i
-    original_ttl = decoded_token['exp'] - decoded_token['iat']
-    payload = decoded_token.transform_keys(&:to_sym).except(:exp, :iat, :jti).merge(
+    original_ttl = payload['exp'] - payload['iat']
+    payload = payload.transform_keys(&:to_sym).except(:exp, :iat, :jti).merge(
       iat: now,
       exp: now + original_ttl,
       jti: SecureRandom.uuid
