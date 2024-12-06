@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 14:49:07 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 20:09:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -223,6 +223,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
     
+    #TODO can i avoid specifying the named argument if it is only one?
     tfa_response = @grpc_client.generate_tfa_secret(identifier: requester_user_id)
     
     qr_code_task = Async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
@@ -343,11 +344,20 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     refresh_jwt_task&.stop
   end
 
-  #TODO: implement
   def logout_user(request, call)
-    #revoke session JWT
-    #revoke refresh JWT
-    #update user status
+    session_token = call.metadata["session_token"]
+    refresh_token = call.metadata["refresh_token"]
+    check_required_fields(session_token, refresh_token)
+
+    async_context = Async do |task|
+      task.async { @grpc_client.revoke_jwt(jwt: session_token) }
+      task.async { @grpc_client.revoke_jwt(jwt: refresh_token) }
+      task.async { @db_client.exec_prepared(:update_user_status, [requester_user_id, 'offline']) }
+    end
+
+    async_context.wait
+  ensure
+    async_context&.stop
   end
   
   # def ban_user(request, call)

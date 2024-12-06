@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 14:41:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 19:55:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,7 @@ class GrpcClient
   #TODO il metadata in uscita deve mantenere il request-id di quello in ingresso (per fare il propagate del request-id originale dell'utente)
 
   def initialize
-    @config   = ConfigHandler.instance.config
+    @config = ConfigHandler.instance.config
 
     @connection_options = {
       "grpc.compression_algorithm" => "gzip"

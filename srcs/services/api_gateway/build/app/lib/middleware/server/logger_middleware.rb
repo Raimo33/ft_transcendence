@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 18:43:15 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 20:42:24 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,8 +30,7 @@ class LoggerMiddleware
 
     status, headers, response = @app.call(env)
 
-    end_time = Time.now
-    duration = end_time - start_time
+    duration = Time.now - start_time
     @logger.info("Completed request #{request_id} in #{duration} seconds")
     
     [status, headers, response]

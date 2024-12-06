@@ -1,36 +1,25 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    logger_interceptor.rb                              :+:      :+:    :+:    #
+#    request_context_interceptor.rb                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 20:32:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 20:26:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative '../custom_logger'
 require 'grpc'
+require_relative '../request_context'
 
-class LoggerInterceptor < GRPC::ServerInterceptor
-
-  def initialize
-    @logger = CustomLogger.instance.logger
-  end
+class RequestContextInterceptor < GRPC::ServerInterceptor
 
   def request_response(request: nil, call: nil, method: nil, &block)
     start_time = Time.now
-    request_id = call.metadata['request_id']
+    RequestContext.request_id = call.metadata['request_id'] || SecureRandom.uuid
     
-    @logger.info("Received request #{request_id} on #{method}")
-
-    response = yield
-    
-    duration = Time.now - start_time
-    @logger.info("Completed request #{request_id} in #{duration} seconds")
-
-    response
+    yield
   end
 
 end

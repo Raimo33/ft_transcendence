@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/12/02 19:33:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 19:55:51 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,9 +18,9 @@ require_relative 'handlers/user_api_gateway_service_handler'
 class GrpcServer
 
   def initialize
-    @config   = ConfigHandler.instance.config
+    @config = ConfigHandler.instance.config
 
-    @server   = GRPC::RpcServer.new(
+    @server = GRPC::RpcServer.new(
       server_host:   @config.dig(:grpc, :server, :host),
       server_port:   @config.dig(:grpc, :server, :port),
       pool_size:     @config.dig(:grpc, :server, :pool_size),

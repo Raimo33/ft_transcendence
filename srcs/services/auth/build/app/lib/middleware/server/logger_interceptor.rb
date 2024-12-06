@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 18:52:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 20:43:43 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,8 @@ require_relative '../custom_logger'
 require 'grpc'
 
 class LoggerInterceptor < GRPC::ServerInterceptor
+
+  #TODO request environvment (request_id e metadata) anche per AUTH (guardare user)
 
   def initialize
     @logger = CustomLogger.instance.logger
@@ -27,7 +29,7 @@ class LoggerInterceptor < GRPC::ServerInterceptor
 
     response = yield
     
-    duration = Time.time - start_time
+    duration = Time.now - start_time
     @logger.info("Completed request #{request_id} in #{duration} seconds")
 
     response

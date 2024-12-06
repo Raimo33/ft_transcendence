@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/03 18:26:28 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 14:01:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/06 20:42:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,8 +26,7 @@ class LoggerInterceptor < GRPC::ClientInterceptor
 
     response = yield(request, call)
 
-    end_time = Time.now
-    duration = end_time - start_time
+    duration = Time.now - start_time
     @logger.info("#{method_name} finished processing request #{request_id} in #{duration} seconds")
   
     response
