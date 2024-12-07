@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/03 13:07:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 13:56:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:17:51 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,17 +22,20 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
 
   private
 
+  EXCEPTION_MAP = {
+    JWT::DecodeError => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
+  }.freeze
+
   def handle_exception(exception)
     raise exception if exception.is_a?(GRPC::BadStatus)
 
-    status_code, message = case exception
+    status_code, message = EXCEPTION_MAP.fetch(exception.class, nil)
 
-    when JWT::DecodeError
-      [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"]
-    else
+    if status_code.nil?
       @logger.error(exception.message)
       @logger.debug(exception.backtrace.join("\n"))
-      [GRPC::Core::StatusCodes::INTERNAL, "Internal server error"]
+      status_code, message = GRPC::Core::StatusCodes::INTERNAL, "Internal server error"
+    end
 
     raise GRPC::BadStatus.new(status_code, message)
   end

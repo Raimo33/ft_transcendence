@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 20:29:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:27:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,8 +14,15 @@ require 'grpc'
 require 'pg'
 require 'jwt'
 
-#TODO aggiungere errori di redis
 class ExceptionInterceptor < GRPC::ServerInterceptor
+
+  def request_response(request: nil, call: nil, method: nil, &block)
+    yield
+  rescue StandardError => e
+    handle_exception(e)
+  end
+  
+  private
 
   CONSTRAINT_MESSAGES = {
     'pk_users'                        => 'User already exists',
@@ -29,13 +36,14 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
     'chk_users_display_name'          => 'Invalid display name format'
   }.freeze
 
-  def request_response(request: nil, call: nil, method: nil, &block)
-    yield
-  rescue StandardError => e
-    handle_exception(e)
-  end
-
-  private
+  #TODO capire differenza errori redis
+  EXCEPTION_MAP = {
+    JWT::DecodeError              => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
+    ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection timeout"],
+    Redis::CannotConnectError     => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection error"],
+    Redis::ConnectionError        => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection error"],
+    Redis::TimeoutError           => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection timeout"],
+  }.freeze
 
   def handle_exception(exception)
     raise exception if exception.is_a?(GRPC::BadStatus)
@@ -44,17 +52,16 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
 
     when PG::UniqueViolation, PG::ForeignKeyViolation, PG::NotNullViolation, PG::CheckViolation, PG::ExclusionViolation
       [GRPC::Core::StatusCodes::INVALID_ARGUMENT, map_constraint_violation(exception.result)]
-    when JWT::DecodeError
-      [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"]
-    when ConnectionPool::TimeoutError
-      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection timeout"]
-      #TODO tutti gli errori di redis
-      #TODO tutti gli errori di connectionpool
-      #TODO aggiungere deadline a tutit i grpc client
     else
+      EXCEPTION_MAP[exception.class]
+    end
+
+    if status_code.nil?
       @logger.error(exception.message)
       @logger.debug(exception.backtrace.join("\n"))
-      [GRPC::Core::StatusCodes::INTERNAL, "Internal server error"]
+      status_code = GRPC::Core::StatusCodes::INTERNAL
+      message = "Internal server error"
+    end
 
     raise GRPC::BadStatus.new(status_code, message)
   end

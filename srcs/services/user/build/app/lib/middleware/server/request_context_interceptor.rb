@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 15:49:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:28:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,6 @@ class RequestContextInterceptor < GRPC::ServerInterceptor
 
   def request_response(request: nil, call: nil, method: nil, &block)
     RequestContext.request_id = call.metadata['request_id'] || SecureRandom.uuid
-    
     yield
   end
 

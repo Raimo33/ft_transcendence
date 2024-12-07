@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/03 13:30:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 20:28:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:22:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,6 @@ class MetadataInterceptor < GRPC::ClientInterceptor
 
   def intercept(request, call, method_name, &block)
     call.metadata['request_id'] = RequestContext.request_id
-
     yield
   end
 
