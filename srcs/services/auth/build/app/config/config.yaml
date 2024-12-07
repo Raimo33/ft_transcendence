@@ -15,7 +15,7 @@ password:
     cost: 10
 
 tfa:
-  issuer: pongfumasters
+  issuer: pongfumasters.auth
   digits: 6
   interval: 30
   algorithm: SHA1
@@ -25,6 +25,7 @@ tfa:
   image_url: https://yourapp.com/logo.png
 
 jwt:
-  issuer: pongfumasters
+  issuer: pongfumasters.auth
+  audience: pongfumasters_users
   algorithm: RS256
   private_key: /etc/ssl/private/jwtRS256.key

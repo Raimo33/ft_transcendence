@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 17:27:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 18:49:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -147,10 +147,19 @@ class AuthUserServiceHandler < AuthUser::Service
   def decode_jwt(request, call)
     check_required_fields(request.jwt)
 
+    settings = @config[:jwt]
+
     payload, headers = JWT.decode(
       request.jwt,
       @private_key.public_key,
-      false,
+      true,
+      {
+        algorithm:  settings.fetch(:algorithm, 'RS256'),
+        verify_iss: true,
+        verify_aud: true,
+        iss:        settings.fetch(:issuer, 'AuthService'),
+        aud:        settings.fetch(:audience, nil)
+      }
     ).first
 
     AuthUser::DecodedJWT.new(
