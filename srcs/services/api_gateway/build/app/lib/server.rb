@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 17:57:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:06:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,10 +22,10 @@ class Server
   end
 
   def call(env)
-    parsed_parsed_request = env[OpenapiFirst::REQUEST]
+    parsed_request = env[OpenapiFirst::REQUEST]
     handler = find_handler(parsed_request.operation['operationId'], env)
 
-    handler.call(env)
+    handler.call(parsed_request)
   end
 
   private

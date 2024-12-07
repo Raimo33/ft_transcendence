@@ -1,22 +1,26 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    request_id_middleware.rb                           :+:      :+:    :+:    #
+#    request_context_interceptor.rb                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/12/03 16:43:11 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 16:43:23 by craimond         ###   ########.fr        #
+#    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
+#    Updated: 2024/12/07 22:01:24 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-class RequestIdMiddleware
+require 'grpc'
+require_relative '../request_context'
+
+class RequestContextMidleware
   def initialize(app)
     @app = app
   end
 
-  def call(env)
-    env['HTTP_X_REQUEST_ID'] = SecureRandom.uuid
-    @app.call(env)
+  def call(request)
+    RequestContext.request_id = SecureRandom.uuid
+    @app.call(request)
   end
+
 end

@@ -1,19 +1,31 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    ping_handler.rb                                    :+:      :+:    :+:    #
+#    request_context.rb                                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/23 16:01:13 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:07:10 by craimond         ###   ########.fr        #
+#    Created: 2024/12/06 20:25:23 by craimond          #+#    #+#              #
+#    Updated: 2024/12/07 22:09:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative 'base_handler'
+class RequestContext
 
-class PingHandler < BaseHandler
-  def call(parsed_request)
-    [ 200, { 'Content-Type' => 'text/plain' }, ['pong...FUMASTERS!'] ]
+  def self.request_id
+    Thread.current[:request_id]
   end
+
+  def self.request_id=(value)
+    Thread.current[:request_id] = value
+  end
+
+  def self.requester_user_id
+    Thread.current[:requester_user_id]
+  end
+
+  def self.requester_user_id=(value)
+    Thread.current[:requester_user_id] = value
+  end
+
 end

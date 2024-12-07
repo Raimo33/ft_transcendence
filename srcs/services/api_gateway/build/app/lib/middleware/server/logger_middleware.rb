@@ -6,12 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 20:42:24 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:06:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative '../../custom_logger'
 require 'openapi_first'
+require_relative '../../custom_logger'
+require_relative '../request_context'
 
 class LoggerMiddleware
 
@@ -24,7 +25,7 @@ class LoggerMiddleware
     parsed_request = env[OpenapiFirst::REQUEST]
     start_time = Time.now
 
-    request_id = env['HTTP_X_REQUEST_ID']
+    request_id = RequestContext.request_id
     operation_id = request.operation['operationId']
     @logger.info("Received request #{request_id} on #{operation_id}")
 

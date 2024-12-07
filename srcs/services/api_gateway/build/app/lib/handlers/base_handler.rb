@@ -6,13 +6,14 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:38 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 15:52:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:04:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative 'grpc_client'
 require 'json'
 require 'openapi_first'
+require_relative 'grpc_client'
+require_relative '../request_context'
 
 class BaseHandler
 
@@ -22,14 +23,13 @@ class BaseHandler
 
   protected
 
-  def build_request_metadata(env)
-    parsed_request = env[OpenapiFirst::REQUEST]
+  def build_request_metadata(parsed_request)
     session_token  = parsed_request.parsed_headers['Authorization'].split(' ').last
     refresh_token  = parsed_request.parsed_cookies['refresh_token']
 
     {
-      'request_id'        => env['HTTP_X_REQUEST_ID'],
-      'requester_user_id' => env['REQUESTER_USER_ID'],
+      'request_id'        => RequestContext.request_id,
+      'requester_user_id' => RequestContext.requester_user_id,
       'session_token'     => session_token,
       'refresh_token'     => refresh_token,
     }.compact

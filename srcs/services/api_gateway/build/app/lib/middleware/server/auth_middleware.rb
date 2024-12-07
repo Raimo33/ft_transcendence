@@ -6,9 +6,12 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:14:03 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 15:51:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:08:13 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+require_relative '../../request_context'
+require_relative '../../grpc_client'
 
 class AuthMiddleware
 
@@ -33,7 +36,7 @@ class AuthMiddleware
     token_auth_level = decoded_jwt.payload['auth_level']&.number_value || 0
     raise GRPC::Unauthenticated.new('Wrong permissions') unless token_auth_level >= auth_level
 
-    env['REQUESTER_USER_ID'] = decoded_jwt.payload['user_id']&.number_value
+    RequestContext.requester_user_id = decoded_jwt.payload['user_id']&.number_value
     @app.call(env)
   end
 
