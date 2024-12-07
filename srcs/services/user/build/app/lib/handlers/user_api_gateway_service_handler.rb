@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 15:57:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 18:35:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,6 +25,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     @config       = ConfigHandler.instance.config
     @grpc_client  = GrpcClient.instance
     @db_client    = DBClient.instance
+    @redis_client = RedisClient.instance
 
     @default_avatar = load_default_avatar
     @prepared_statements = {
@@ -170,10 +171,20 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
 
-    query_result = @db_client.exec_prepared(:delete_user, [requester_user_id])
-    raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
+    async_context = Async do |task|
+      task.async { forget_past_sessions(requester_user_id) }
+      task.async { erase_user_cache(requester_user_id) }
+      query_task = task.async { @db_client.exec_prepared(:delete_user, [requester_user_id]) }
+      
+      query_result = query_task.wait
+      raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
+
+      Empty.new
+    end
   
-    Empty.new
+    async_context.wait
+  ensure
+    async_context&.stop
   end
 
   def get_private_profile(request, call)
@@ -199,24 +210,27 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     check_required_fields(requester_user_id)
     raise GRPC::InvalidArgument.new("No fields to update") unless provided?(request.display_name) || provided?(request.avatar)
   
-    checks = Async::Barrier.new
+    async_context = Async do |task|
+      checks = Async::Barrier.new
 
-    checks.async { check_display_name(request.display_name) } if request.display_name
-    if request.avatar
-      checks.async { check_avatar(request.avatar) }
-      avatar_task = Async { compress_avatar(request.avatar) }
+      checks.async { check_display_name(request.display_name) } if request.display_name
+      if request.avatar
+        checks.async { check_avatar(request.avatar) }
+        avatar_task = task.async { compress_avatar(request.avatar) }
+      end
+
+      checks.wait
+      compressed_avatar = avatar_task&.wait
+  
+      query_result = @db_client.exec_prepared(:update_profile, [request.display_name, compressed_avatar, requester_user_id])
+      raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
+
+      Empty.new
     end
 
-    checks.wait
-    compressed_avatar = avatar_task&.wait
-  
-    query_result = @db_client.exec_prepared(:update_profile, [request.display_name, compressed_avatar, requester_user_id])
-    raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
-
-    Empty.new
+    async_context.wait
   ensure
-    checks&.stop
-    avatar_task&.stop
+    async_context&.stop
   end
 
   def enable_tfa(request, call)
@@ -225,21 +239,24 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     
     tfa_response = @grpc_client.generate_tfa_secret(identifier: requester_user_id)
     
-    qr_code_task = Async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
-    db_task = Async { @db_client.query(@prepared_statements[:enable_tfa], [requester_user_id, tfa_response.tfa_secret]) }
+    async_context = Async do |task|
+      qr_code_task = task.async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
+      db_task = task.async { @db_client.query(@prepared_statements[:enable_tfa], [requester_user_id, tfa_response.tfa_secret]) }
 
-    qr_code = qr_code_task.wait
-    db_task.wait
-    UserAPIGateway::Enable2FAResponse.new(
-      tfa_secret: tfa_response.tfa_secret,
-      qr_code:    qr_code
-    )
+      db_task.wait
+      UserAPIGateway::Enable2FAResponse.new(
+        tfa_secret: tfa_response.tfa_secret,
+        qr_code:    qr_code_task.wait
+      )
+    end
+
+    async_context.wait
   ensure
-    qr_code_task&.stop
-    db_task&.stop
+    async_context&.stop
   end
 
   def disable_tfa(request, call)
+    #TODO ulteriore richiesta di totp?
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
 
@@ -251,37 +268,37 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
   def submit_tfa_code(request, call)
     requester_user_id = call.metadata['requester_user_id']
-    refresh_token     = call.metadata["refresh_token"]
-    check_required_fields(requester_user_id, request.code, refresh_token)
+    check_required_fields(requester_user_id, request.code)
   
-    session_jwt_task = Async { generate_session_jwt(requester_user_id, false) }
-    refresh_jwt_task = Async { @grpc_client.rotate_jwt(jwt: refresh_token) }
-    
-    query_result = @db_client.exec_prepared(:get_tfa, [requester_user_id])
-    raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
-    
-    tfa_secret = query_result[0]['tfa_secret']
-    tfa_status = query_result[0]['tfa_status']
-    raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
+    async_context = Async do |task|
+      jwt_generation_task = task.async { generate_session_jwt(requester_user_id, false) }
+      forget_sessions_task = task.async { forget_past_sessions(requester_user_id) }
+      query_task = task.async { @db_client.exec_prepared(:get_tfa, [requester_user_id]) }
 
-    @grpc_client.check_tfa_code(tfa_secret: tfa_secret, tfa_code: request.code)
-    @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
+      query_result = query_task.wait
+      raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
+    
+      tfa_secret = query_result[0]['tfa_secret']
+      tfa_status = query_result[0]['tfa_status']
+      raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
+      
+      @grpc_client.check_tfa_code(tfa_secret: tfa_secret, tfa_code: request.code)
 
-    UserAPIGateway::Tokens.new(
-      session_token: session_jwt_task.wait,
-      refresh_token: refresh_jwt_task.wait
-    )
+      forget_sessions_task.wait
+      @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
+
+      UserAPIGateway::JWT.new(jwt_generation_task.wait)
+    end
+
+    async_context.wait
   ensure
-    session_jwt_task&.stop
-    refresh_jwt_task&.stop
+    async_context&.stop
   end
 
   def login_user(request, call)
     check_required_fields(request.email, request.password)
 
     async_context = Async do |task|
-      task.async { check_email(request.email) }
-    
       query_result = @db_client.exec_prepared(:get_login_data, [request.email])
       raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
 
@@ -293,19 +310,13 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
 
       raise GRPC::FailedPrecondition.new("User is banned") if user_status == 'banned'
 
-      task.async { validate_password(request.password, hashed_psw) }
-
-      session_jwt_task = task.async { generate_session_jwt(user_id, tfa_status) }
-      refresh_jwt_task = task.async do
-        @grpc_client.generate_jwt(
-          identifier: user_id,
-          ttl: @config[:tokens][:refresh][:ttl]
-          custom_claims: {
-            remember_me: request.remember_me
-          }
-        )
-      end
-
+      validate_password_task = task.async { @grpc_client.validate_password(password: request.password, hashed_password: hashed_psw) }
+      session_jwt_task       = task.async { generate_session_jwt(user_id, tfa_status) }
+      refresh_jwt_task       = task.async { generate_refresh_jwt(user_id, request.remember_me) }
+      forget_sessions_task   = task.async { forget_past_sessions(user_id) }
+  
+      validate_password_task.wait
+      forget_sessions_task.wait
       @db_client.exec_prepared(:update_user_status, [user_id, 'online']) unless tfa_status
   
       UserAPIGateway::LoginResponse.new(
@@ -323,35 +334,37 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def refresh_user_session_token(request, call)
-    session_token = call.metadata["session_token"]
-    refresh_token = call.metadata["refresh_token"]
+    session_token     = call.metadata["session_token"]
+    refresh_token     = call.metadata["refresh_token"]
+    requester_user_id = call.metadata["requester_user_id"]
     check_required_fields(session_token, refresh_token)
 
     decoded_jwt = @grpc_client.decode_jwt(refresh_token)
     token_expiry = decoded_jwt.payload["exp"]&.number_value || 0
     raise GRPC::Unauthenticated.new("Invalid refresh token") unless Time.now.to_i < token_expiry
 
-    session_jwt_task = Async { @grpc_client.rotate_jwt(jwt: session_token) }
-    refresh_jwt_task = Async { @grpc_client.rotate_jwt(jwt: refresh_token) }
+    async_context = Async do |task|
+      task.async { forget_past_sessions(requester_user_id) }
+      new_jwt_task = task.async { @grpc_client.clone_jwt(jwt: session_token) }
 
-    UserAPIGateway::Tokens.new(
-      session_token: session_jwt_task.wait,
-      refresh_token: refresh_jwt_task.wait
-    )
+      UserAPIGateway::JWT.new(new_jwt_task.wait)
+    end
+
+    async_context.wait
   ensure
-    session_jwt_task&.stop
-    refresh_jwt_task&.stop
+    async_context&.stop
   end
 
   def logout_user(request, call)
-    session_token = call.metadata["session_token"]
-    refresh_token = call.metadata["refresh_token"]
-    check_required_fields(session_token, refresh_token)
+    refresh_token     = call.metadata["refresh_token"]
+    requester_user_id = call.metadata["requester_user_id"]
+    check_required_fields(refresh_token, requester_user_id)
 
     async_context = Async do |task|
-      task.async { @grpc_client.revoke_jwt(jwt: session_token) }
-      task.async { @grpc_client.revoke_jwt(jwt: refresh_token) }
+      task.async { forget_past_sessions(requester_user_id) }
       task.async { @db_client.exec_prepared(:update_user_status, [requester_user_id, 'offline']) }
+
+      Empty.new
     end
 
     async_context.wait
@@ -415,6 +428,20 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     barrier.wait
   ensure
     barrier.stop
+  end
+
+  def forget_past_sessions(user_id)
+    now = Time.now.to_i - @config[:tokens][:invalidation_grace_period]
+    @redis_client.set("user:#{user_id}:token_invalid_before", now)
+  end
+
+  def erase_user_cache(user_id)
+    cursor = '0'
+    loop do
+      cursor, keys = @redis_client.scan(cursor, match: "user:#{user_id}:*", count: 1000)
+      @redis_client.unlink(*keys) unless keys.empty?
+      break if cursor == '0'
+    end
   end
 
   def load_default_avatar
@@ -530,6 +557,16 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       ttl:         ttl,
       custom_claims: {
         auth_level: auth_level
+      }
+    )
+  end
+
+  def generate_refresh_jwt(user_id, remember_me)
+    @grpc_client.generate_jwt(
+      identifier: user_id,
+      ttl: @config[:tokens][:refresh][:ttl]
+      custom_claims: {
+        remember_me: remember_me
       }
     )
   end

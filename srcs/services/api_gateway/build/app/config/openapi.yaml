@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 14:50:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 16:11:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -310,7 +310,6 @@ paths:
       description: Submit the two-factor authentication code for verification.
       parameters:
         - $ref: "#/components/parameters/tfa_code"
-        - $ref: "#/components/parameters/refresh_token"
       security:
         - jwtAuth: []
       x-auth-level: 1
@@ -322,8 +321,6 @@ paths:
               $ref: "#/components/headers/Content-Length"
             Content-Type:
               $ref: "#/components/headers/Content-Type"
-            Set-Cookie:
-              $ref: "#/components/headers/Set-Cookie"
           content:
             application/json:
               schema:
@@ -400,9 +397,6 @@ paths:
               $ref: "#/components/headers/Content-Length"
             Content-Type:
               $ref: "#/components/headers/Content-Type"
-            Set-Cookie:
-              $ref: "#/components/headers/Set-Cookie"
-              description: Set the refresh token as a cookie.
           content:
             application/json:
               schema:

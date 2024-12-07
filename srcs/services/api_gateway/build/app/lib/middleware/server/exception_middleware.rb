@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 13:32:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 18:11:13 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,9 +14,10 @@ require 'json'
 require 'grpc'
 require 'jwt'
 
+#TODO cacth redis errors
 class ExceptionMiddleware
 
-  STATUS_CODES_MAPPINGS = {
+  GRPC_TO_HTTP_STATUS_CODE = {
     OpenapiFirst::RequestInvalidError => 400,
     GRPC::InvalidArgument             => 400,
     GRPC::OutOfRange                  => 400,
@@ -51,7 +52,7 @@ class ExceptionMiddleware
   private
 
   def handle_exception(exception)
-    status = STATUS_CODES_MAPPINGS[exception.class] || 500
+    status = GRPC_TO_HTTP_STATUS_CODE[exception.class] || 500
 
     [status, {}, [JSON.generate({ error: message })]]
   end

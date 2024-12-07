@@ -185,6 +185,24 @@ services:
     restart: always
     depends_on:
     init: true
+
+  redis:
+    build:
+      context: ./services/redis
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: redis
+    environment:
+    volumes:
+    secrets:
+    ports:
+      - 
+    networks:
+      - data
+    restart: always
+    depends_on:
+    init: true
   
   logstash:
     build:
@@ -241,6 +259,8 @@ services:
     init: true
 
 volumes:
+  #TODO non volumi effettivi ma docker volumes
+  postgresql_data:
   nginx_cert:
 
 secrets: #TODO directory generica per tutti i secret? srcs/secrets?

@@ -4,6 +4,7 @@ package user;
 
 import "google/protobuf/empty.proto";
 import "common/identifier.proto";
+import "common/jwt.proto";
 
 service UserAPIGateway
 {
@@ -16,9 +17,9 @@ service UserAPIGateway
   rpc UpdateProfile           (UpdateProfileRequest)     returns (google.protobuf.Empty) {}
   rpc EnableTFA               (google.protobuf.Empty)    returns (EnableTFAResponse)     {}
   rpc DisableTFA              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
-  rpc SubmitTFACode           (TFACode)                  returns (Tokens)                {}
+  rpc SubmitTFACode           (TFACode)                  returns (JWT)                   {}
   rpc LoginUser               (LoginUserRequest)         returns (LoginUserResponse)     {}
-  rpc RefreshUserSessionToken (google.protobuf.Empty)    returns (Tokens)                {}
+  rpc RefreshUserSessionToken (google.protobuf.Empty)    returns (JWT)                   {}
   rpc LogoutUser              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
   rpc AddFriend               (Identifier)               returns (google.protobuf.Empty) {}
   rpc GetFriends              (google.protobuf.Empty)    returns (Identifiers)           {}

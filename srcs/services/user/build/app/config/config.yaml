@@ -64,3 +64,12 @@ tokens:
   refresh:
     ttl: 604800
     ttl_remember_me: 31536000
+  invalidation_grace_period: 15
+
+redis:
+  host: redis.data
+  port: 6379
+  db: 0
+  pool:
+    size: 10
+    timeout: 30

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 18:23:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 16:43:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,15 +20,11 @@ class SubmitTFACodeHandler < BaseHandler
       code: parsed_request.parsed_params[:code],
       build_request_metadata(env)
     )
-    
-    headers = {
-      'Set-Cookie' => build_refresh_token_cookie_header(response.refresh_token),
-    }
 
     body = {
       session_token: response.session_token
     }
 
-    [200, headers, [JSON.generate(body)]]
+    [200, {}, [JSON.generate(body)]]
   end
 end

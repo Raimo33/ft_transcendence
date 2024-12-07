@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 16:00:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 17:27:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -159,16 +159,16 @@ class AuthUserServiceHandler < AuthUser::Service
     )
   end
 
-  def rotate_jwt(request, call)
+  def clone_jwt(request, call)
     check_required_fields(request.jwt)
 
     settings = @config[:jwt]
 
-    payload = JWT.decode(
+    payload, _headers = JWT.decode(
       request.jwt,
       @private_key.public_key,
       false,
-    ).first
+    )
 
     now = Time.now.to_i
     original_ttl = payload['exp'] - payload['iat']
@@ -184,25 +184,10 @@ class AuthUserServiceHandler < AuthUser::Service
       settings.fetch(:algorithm, 'RS256')
     )
 
-    add_to_blacklist(request.jwt)
-
     AuthUser::JWT.new(new_jwt)
   end
 
-  def revoke_jwt(request, call)
-    check_required_fields(request.jwt)
-
-    add_to_blacklist(request.jwt)
-    
-    Empty.new
-  end
-
   private
-
-  def add_to_blacklist(jwt)
-    #TODO connect to a redis cache.
-    #(cache diverse a seconda del ttl del token)
-  end
 
   def check_required_fields(*fields)
     raise GRPC::InvalidArgument.new("Missing required fields") unless fields.all?(&method(:provided?))

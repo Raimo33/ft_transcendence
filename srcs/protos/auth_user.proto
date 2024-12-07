@@ -17,7 +17,7 @@ service AuthUser
   rpc GenerateJWT(GenerateJWTRequest)             returns (JWT)                       {}
   rpc DecodeJWT(JWT)                              returns (DecodedJWT)                {}
   rpc RotateJWT(JWT)                              returns (JWT)                       {}
-  rpc RevokeJWT(JWT)                              returns (google.protobuf.Empty)     {}
+  rpc CloneJWT(JWT)                               returns (JWT)                       {}
 }
 
 message Domain
@@ -56,7 +56,7 @@ message CheckTFACodeRequest
 message GenerateJWTRequest
 {
   string identifier = 1;
-  uint16 ttl        = 2;
+  uint64 ttl        = 2;
   
   map<string, google.protobuf.Struct.Value> custom_claims = 3;
 }

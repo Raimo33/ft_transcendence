@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 21:37:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 18:00:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,7 @@ require 'grpc'
 require 'pg'
 require 'jwt'
 
+#TODO aggiungere errori di redis
 class ExceptionInterceptor < GRPC::ServerInterceptor
 
   CONSTRAINT_MESSAGES = {
