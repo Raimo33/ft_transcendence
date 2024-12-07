@@ -6,11 +6,9 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:14:03 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 14:51:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 15:51:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
-
-require_relative '../../jwt_validator'
 
 class AuthMiddleware
 

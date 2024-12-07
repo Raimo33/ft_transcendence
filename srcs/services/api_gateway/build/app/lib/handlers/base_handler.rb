@@ -6,12 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:38 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 22:02:07 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 15:52:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'grpc_client'
-require_relative 'jwt_validator'
 require 'json'
 require 'openapi_first'
 
@@ -19,7 +18,6 @@ class BaseHandler
 
   def initialize
     @grpc_client    = GrpcClient.instance
-    @jwt_validator  = JwtValidator.instance
   end
 
   protected
@@ -38,10 +36,10 @@ class BaseHandler
   end
 
   def build_refresh_token_cookie_header(refresh_token)
-    #TODO decode token tramite AuthService per ottenere il remember_me e l'exp
-    cookie_ttl = decoded_token[0]["remember_me"] ? Time.at(decoded_token[0]["exp"] - 60) : 0
+    decoded_token = @grpc_client.decode_jwt(refresh_token)
+    cookie_expire_after = decoded_token[0]["remember_me"] ? Time.at(decoded_token[0]["exp"] - 60) : 0
 
-    "refresh_token=#{refresh_token}; Expires=#{cookie_ttl.httpdate}; Path=/; Secure; HttpOnly; SameSite=Strict"
+    "refresh_token=#{refresh_token}; Expires=#{cookie_expire_after.httpdate}; Path=/; Secure; HttpOnly; SameSite=Strict"
   end
 
 end

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 20:09:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 15:57:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -223,7 +223,6 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
     
-    #TODO can i avoid specifying the named argument if it is only one?
     tfa_response = @grpc_client.generate_tfa_secret(identifier: requester_user_id)
     
     qr_code_task = Async { generate_qr_code(tfa_response.tfa_provisioning_uri) }

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 19:55:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 15:53:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,12 +14,12 @@ require 'grpc'
 require 'singleton'
 require_relative 'ConfigHandler'
 require_relative '../protos/auth_user_services_pb'
+require_relative 'interceptors/metadata_interceptor'
+require_relative 'interceptors/logger_interceptor'
 
 class GrpcClient
   include Singleton
   
-  #TODO il metadata in uscita deve mantenere il request-id di quello in ingresso (per fare il propagate del request-id originale dell'utente)
-
   def initialize
     @config = ConfigHandler.instance.config
 
@@ -27,7 +27,10 @@ class GrpcClient
       "grpc.compression_algorithm" => "gzip"
     }
 
-    interceptors = [MetadataInterceptor.new]
+    interceptors = [
+      MetadataInterceptor.new,
+      LoggerInterceptor.new
+    ]
 
     @channels = {
       auth: create_channel(@config.dig(:grpc, :addresses, :auth))

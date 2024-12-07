@@ -1,24 +1,23 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    request_context_interceptor.rb                     :+:      :+:    :+:    #
+#    request_context.rb                                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 15:49:38 by craimond         ###   ########.fr        #
+#    Created: 2024/12/06 20:25:23 by craimond          #+#    #+#              #
+#    Updated: 2024/12/06 20:26:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'grpc'
-require_relative '../request_context'
+class RequestContext
 
-class RequestContextInterceptor < GRPC::ServerInterceptor
+  def self.request_id
+    Thread.current[:request_id]
+  end
 
-  def request_response(request: nil, call: nil, method: nil, &block)
-    RequestContext.request_id = call.metadata['request_id'] || SecureRandom.uuid
-    
-    yield
+  def self.request_id=(value)
+    Thread.current[:request_id] = value
   end
 
 end
