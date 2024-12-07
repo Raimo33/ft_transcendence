@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 18:00:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 20:29:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,6 +46,11 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
       [GRPC::Core::StatusCodes::INVALID_ARGUMENT, map_constraint_violation(exception.result)]
     when JWT::DecodeError
       [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"]
+    when ConnectionPool::TimeoutError
+      [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection timeout"]
+      #TODO tutti gli errori di redis
+      #TODO tutti gli errori di connectionpool
+      #TODO aggiungere deadline a tutit i grpc client
     else
       @logger.error(exception.message)
       @logger.debug(exception.backtrace.join("\n"))

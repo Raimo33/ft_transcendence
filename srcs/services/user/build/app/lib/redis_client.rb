@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 18:03:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 20:14:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,22 +15,47 @@ require 'singleton'
 require_relative 'CustomLogger'
 require_relative 'ConfigHandler'
 
-class DBClient
+class RedisClient
   include Singleton
 
   def initialize
     @config = ConfigHandler.instance.config
     redis_config = @config[:redis]
 
-    #TODO implement pool
+    @pool = ConnectionPool.new(size: redis_config[:pool][:size], timeout: redis_config[:pool][:timeout]) do
+      Redis.new(
+        host: redis_config[:host],
+        port: redis_config[:port],
+        db: redis_config[:db],
+        password: redis_config[:password]
+      )
+    end
 
     @logger = CustomLogger.instance.logger
   end
 
-  #TODO implement queries
+  def method_missing(method, *args, &block)
+    with_logging do
+      @pool.with do |conn|
+        if conn.respond_to?(method)
+          conn.public_send(method, *args, &block)
+        else
+          super
+        end
+      end
+    end
+  end
+
+  def respond_to_missing?(method, include_private = false)
+    @pool.with do |conn|
+      conn.respond_to?(method) || super
+    end
+  end
 
   def stop
-    @pool.close
+    @pool.shutdown do |conn|
+      conn.close
+    end
   end
 
   private

@@ -70,6 +70,7 @@ redis:
   host: redis.data
   port: 6379
   db: 0
+  password: password
   pool:
     size: 10
     timeout: 30

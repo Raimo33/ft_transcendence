@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 18:35:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 21:38:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -415,7 +415,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     
   def prepare_statements
     barrier   = Async::Barrier.new
-    semaphore = Async::Semaphore.new(@db_client.pool_size)
+    semaphore = Async::Semaphore.new(@config[:database][:pool][:size])
 
     @prepared_statements.each do |name, sql|
       barrier.async do
@@ -435,13 +435,18 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     @redis_client.set("user:#{user_id}:token_invalid_before", now)
   end
 
+  #TODO migliorare con l'uso di Async, barrier, semaphore (redis proposal)
   def erase_user_cache(user_id)
     cursor = '0'
+    total_keys = []
+    
     loop do
       cursor, keys = @redis_client.scan(cursor, match: "user:#{user_id}:*", count: 1000)
-      @redis_client.unlink(*keys) unless keys.empty?
+      total_keys += keys
       break if cursor == '0'
     end
+    
+    @redis_client.del(*total_keys) unless total_keys.empty?
   end
 
   def load_default_avatar
