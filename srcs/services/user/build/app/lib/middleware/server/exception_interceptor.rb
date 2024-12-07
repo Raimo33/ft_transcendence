@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:27:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:32:14 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,11 +36,9 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
     'chk_users_display_name'          => 'Invalid display name format'
   }.freeze
 
-  #TODO capire differenza errori redis
   EXCEPTION_MAP = {
     JWT::DecodeError              => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
     ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection timeout"],
-    Redis::CannotConnectError     => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection error"],
     Redis::ConnectionError        => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection error"],
     Redis::TimeoutError           => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection timeout"],
   }.freeze

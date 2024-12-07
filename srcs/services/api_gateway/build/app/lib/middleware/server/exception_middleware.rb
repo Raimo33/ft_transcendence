@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:18:37 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 22:32:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -48,7 +48,6 @@ class ExceptionMiddleware
     GRPC::Unimplemented               => 501,
     GRPC::Unavailable                 => 503,
 
-    Redis::CannotConnectError         => 503,
     Redis::ConnectionError            => 503,
     Redis::TimeoutError               => 504,
   }.freeze
