@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 15:00:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 16:00:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,11 +24,11 @@ class AuthUserServiceHandler < AuthUser::Service
     @private_key = OpenSSL::PKey::RSA.new(@config[:jwt][:private_key])
   end
 
-  def ping(_request, _call)
+  def ping(_request, call)
     Empty.new
   end
 
-  def check_domain(request, _call)
+  def check_domain(request, call)
     check_required_fields(request.domain)
 
     resolver   = Resolv::DNS.new
@@ -42,7 +42,7 @@ class AuthUserServiceHandler < AuthUser::Service
     resolver.close
   end
 
-  def hash_password(request, _call)
+  def hash_password(request, call)
     check_required_fields(request.password)
 
     hashed_password = BCrypt::Password.create(
@@ -53,7 +53,7 @@ class AuthUserServiceHandler < AuthUser::Service
     AuthUser::HashedPassword.new(hashed_password)
   end
 
-  def validate_password(request, _call)
+  def validate_password(request, call)
     check_required_fields(request.password, request.hashed_password)
 
     password = BCrypt::Password.new(request.hashed_password)
@@ -62,7 +62,7 @@ class AuthUserServiceHandler < AuthUser::Service
     Empty.new
   end
 
-  def generate_tfa_secret(request, _call)
+  def generate_tfa_secret(request, call)
     check_required_fields(request.id)
 
     settings = @config[:tfa]
@@ -119,7 +119,7 @@ class AuthUserServiceHandler < AuthUser::Service
     Empty.new
   end
 
-  def generate_jwt(request, _call)
+  def generate_jwt(request, call)
     check_required_fields(request.identifier, request.ttl)
 
     settings = @config[:jwt]
@@ -144,7 +144,7 @@ class AuthUserServiceHandler < AuthUser::Service
     AuthUser::JWT.new(jwt)
   end
 
-  def decode_jwt(request, _call)
+  def decode_jwt(request, call)
     check_required_fields(request.jwt)
 
     payload, headers = JWT.decode(
@@ -159,7 +159,7 @@ class AuthUserServiceHandler < AuthUser::Service
     )
   end
 
-  def rotate_jwt(request, _call)
+  def rotate_jwt(request, call)
     check_required_fields(request.jwt)
 
     settings = @config[:jwt]
@@ -189,7 +189,7 @@ class AuthUserServiceHandler < AuthUser::Service
     AuthUser::JWT.new(new_jwt)
   end
 
-  def revoke_jwt(request, _call)
+  def revoke_jwt(request, call)
     check_required_fields(request.jwt)
 
     add_to_blacklist(request.jwt)

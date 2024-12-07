@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/03 22:04:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 16:00:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,8 +16,9 @@ require 'rotp'
 require 'resolv'
 require_relative '../config_handler'
 require_relative '../grpc_server'
+require_relative '../protos/auth_api_gateway_pb'
 
-class AuthUserServiceHandler < AuthUser::Service
+class AuthApiGatewayServiceHandler < AuthApiGateway::Service
 
   def initialize
     @config = ConfigHandler.instance.config
@@ -28,7 +29,20 @@ class AuthUserServiceHandler < AuthUser::Service
     Empty.new
   end
 
-  
+  def decode_jwt(request, call)
+    check_required_fields(request.jwt)
+
+    payload, headers = JWT.decode(
+      request.jwt,
+      @private_key.public_key,
+      false,
+    ).first
+
+    AuthUser::DecodedJWT.new(
+      payload: Google::Protobuf::Struct.from_hash(payload),
+      headers: Google::Protobuf::Struct.from_hash(headers)
+    )
+  end
 
   private
 
