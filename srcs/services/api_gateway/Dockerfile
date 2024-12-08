@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 13:46:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/08 17:27:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,6 @@ COPY --from=protos match_api_gateway.proto \
 
 RUN adduser -DHS api_gateway
 RUN chown -R api_gateway:api_gateway /app
-RUN chmod -R +x /usr/local/bin/
 
 RUN protoc --ruby_out=./ /app/protos/match_api_gateway.proto \
                          /app/protos/tournament_api_gateway.proto \

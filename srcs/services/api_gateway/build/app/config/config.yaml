@@ -12,6 +12,15 @@ grpc:
   pool_size: 2      
   pool_keep_alive: 10
 
+redis:
+  host: redis.data
+  port: 6379
+  db: 0
+  password: password
+  pool:
+    size: 10
+    timeout: 30
+
 jwt:
   leeway: 60
   public_key: /etc/ssl/certs/jwtRS256.key.pub

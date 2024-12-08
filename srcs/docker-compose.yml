@@ -1,5 +1,13 @@
 services:
 
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+      args:
+    volumes:
+      - frontend_data:/var/www/html
+
   nginx:
     build:
       context: ./services/nginx
@@ -172,12 +180,17 @@ services:
       context: ./services/postgresql
       dockerfile: Dockerfile
       args:
-
     container_name: postgresql
     environment:
-      - DB_NAME=${DB_NAME}
+      - PGDATA=/var/lib/postgresql/data
     volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
     secrets:
+      - source: postgresql_key
+        target: /etc/ssl/private/postgresql.key
+        uid: #TODO uid
+        mode: 0400
     ports:
       - "5432:5432"
     networks:

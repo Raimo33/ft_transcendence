@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 13:45:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/08 17:28:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,6 @@ COPY --from=protos user_api_gateway.proto      /app/protos
 
 RUN adduser -DHS user
 RUN chown -R user:user /app
-RUN chmod -R +x /usr/local/bin/
 
 RUN protoc --ruby_out=./ /app/protos/user_api_gateway.proto
 

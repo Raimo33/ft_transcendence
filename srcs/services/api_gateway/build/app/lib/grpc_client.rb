@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/06 15:05:16 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/08 14:16:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -93,8 +93,9 @@ class GrpcClient
     @stubs[:user].enable_tfa(Empty.new, metadata: metadata)
   end
 
-  def disable_tfa(metadata = {})
-    @stubs[:user].disable_tfa(Empty.new, metadata: metadata)
+  def disable_tfa(code:, metadata = {})
+    request = UserAPIGateway::TFACode.new(code: tfa_code)
+    @stubs[:user].disable_tfa(request, metadata: metadata)
   end
 
   def submit_tfa_code(code:, metadata = {})

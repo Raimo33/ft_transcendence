@@ -16,7 +16,7 @@ service UserAPIGateway
   rpc GetUserPrivateProfile   (google.protobuf.Empty)    returns (UserPrivateProfile)    {}
   rpc UpdateProfile           (UpdateProfileRequest)     returns (google.protobuf.Empty) {}
   rpc EnableTFA               (google.protobuf.Empty)    returns (EnableTFAResponse)     {}
-  rpc DisableTFA              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
+  rpc DisableTFA              (TFACode)                  returns (google.protobuf.Empty) {}
   rpc SubmitTFACode           (TFACode)                  returns (JWT)                   {}
   rpc LoginUser               (LoginUserRequest)         returns (LoginUserResponse)     {}
   rpc RefreshUserSessionToken (google.protobuf.Empty)    returns (JWT)                   {}

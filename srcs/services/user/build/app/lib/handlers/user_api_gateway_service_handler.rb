@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 21:38:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/08 14:19:16 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -65,7 +65,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
             tfa_secret = $2 
         WHERE id = $1 AND tfa_status = false
       SQL
-      disable_tfa: <<~SQL
+      delete_tfa: <<~SQL
         UPDATE Users
         SET tfa_status = false, tfa_secret = NULL
         WHERE id = $1 AND tfa_status = true
@@ -256,11 +256,17 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def disable_tfa(request, call)
-    #TODO ulteriore richiesta di totp?
     requester_user_id = call.metadata['requester_user_id']
-    check_required_fields(requester_user_id)
+    check_required_fields(requester_user_id, request.code)
 
-    query_result = @db_client.exec_prepared(:disable_tfa, [requester_user_id])
+    @db_client.exec_prepared(:get_tfa, [requester_user_id])
+    tfa_secret = query_result[0]['tfa_secret']
+    tfa_status = query_result[0]['tfa_status']
+    raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
+
+    @grpc_client.check_tfa_code(tfa_secret: tfa_secret, tfa_code: request.code)
+
+    query_result = @db_client.exec_prepared(:delete_tfa, [requester_user_id])
     raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
   
     Empty.new

@@ -2,6 +2,7 @@
 
 require_relative 'lib/grpc_server'
 
+
 if $PROGRAM_NAME == __FILE__
   server = GrpcServer.new
 
