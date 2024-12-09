@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 16:45:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 21:12:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,7 @@ RUN chown -R auth:auth /app
 RUN protoc --ruby_out=./ /app/protos/auth_user.proto /app/protos/auth_api_gateway.proto
 
 USER auth
-EXPOSE 50052
+EXPOSE 50051
 VOLUME ["/etc/ssl/private"]
 
 ENTRYPOINT ["main.rb"]

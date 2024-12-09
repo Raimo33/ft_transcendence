@@ -6,12 +6,13 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/08 18:13:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 21:26:34 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'pg'
+require 'redis'
 require 'jwt'
 
 class ExceptionInterceptor < GRPC::ServerInterceptor
@@ -38,7 +39,8 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
 
   EXCEPTION_MAP = {
     JWT::DecodeError              => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
-    ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection timeout"],
+    PG::ConnectionBad             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection error"],
+    ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Connection timeout"],
     Redis::ConnectionError        => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection error"],
     Redis::TimeoutError           => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection timeout"],
   }.freeze

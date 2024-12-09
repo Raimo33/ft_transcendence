@@ -6,14 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 15:55:15 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 21:04:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative 'config_handler'
-require_relative '../protos/user_api_gateway_services_pb'
-require_relative 'handlers/user_api_gateway_service_handler'
+require_relative '../protos/match_api_gateway_services_pb'
+require_relative '../protos/match_matchmaking_services_pb'
+require_relative 'handlers/match_api_gateway_service_handler'
+require_relative 'handlers/match_matchmaking_service_handler'
 require_relative 'interceptors/logger_interceptor'
 require_relative 'interceptors/exception_interceptor'
 require_relative 'interceptors/request_context_interceptor'
@@ -35,7 +37,8 @@ class GrpcServer
     )
 
     @services = {
-      UserAPIGateway::Service => UserAPIGatewayServiceHandler.new,
+      MatchApiGatewayService  => MatchApiGatewayServiceHandler.new
+      MatchMatchmakingService => MatchMatchmakingServiceHandler.new
     }
 
     setup_handlers

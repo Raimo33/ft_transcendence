@@ -5,11 +5,11 @@ logging:
 grpc:
   server:
     host: 0.0.0.0
-    port: 50052
+    port: 50051
     pool_size: 10
   client:
     addresses:
-      auth: auth.core:50052
+      auth: auth.core:50051
 
 database:
   host: postgresql.data
@@ -25,6 +25,7 @@ redis:
   host: redis.data
   port: 6379
   db: 0
+  username: user
   password: password
   pool:
     size: 10

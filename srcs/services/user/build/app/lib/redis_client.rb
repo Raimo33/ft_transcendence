@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 16:35:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 21:09:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,6 +27,7 @@ class RedisClient
         host: redis_config[:host],
         port: redis_config[:port],
         db: redis_config[:db],
+        username: redis_config[:username],
         password: redis_config[:password]
       )
     end

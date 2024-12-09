@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 19:05:10 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 21:09:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -434,23 +434,13 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     barrier.stop
   end
 
-  def forget_past_sessions(sub)
+  def forget_past_sessions(user_id)
     now = Time.now.to_i - @config[:tokens][:invalidation_grace_period]
-    @redis_client.set("sub:#{sub}:token_invalid_before", now)
+    @redis_client.set("sub:#{user_id}:token_invalid_before", now)
   end
 
-  #TODO migliorare con l'uso di Async, barrier, semaphore (redis proposal)
   def erase_user_cache(user_id)
-    cursor = '0'
-    total_keys = []
-    
-    loop do
-      cursor, keys = @redis_client.scan(cursor, match: "user:#{user_id}:*", count: 1000)
-      total_keys += keys
-      break if cursor == '0'
-    end
-    
-    @redis_client.del(*total_keys) unless total_keys.empty?
+    @redi_client.unlink("sub:#{user_id}:*")
   end
 
   def load_default_avatar

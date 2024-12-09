@@ -6,7 +6,7 @@ require_relative 'proto/auth_services_pb'
 if $PROGRAM_NAME == __FILE__
   stubs = {
     user: Auth::Stub.new(
-      'localhost:50052',
+      'localhost:50051',
       :this_channel_is_insecure
     )
   }

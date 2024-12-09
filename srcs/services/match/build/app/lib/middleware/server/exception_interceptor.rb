@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/08 18:13:06 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 21:26:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,22 +25,12 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
   private
 
   CONSTRAINT_MESSAGES = {
-    'pk_users'                        => 'User already exists',
-    'pk_friendships'                  => 'Friendship already exists', 
-    'unq_users_email'                 => 'Email already in use',
-    'unq_users_display_name'          => 'Display name already in use',
-    'fk_friendships_user1'            => 'User not found',
-    'fk_friendships_user2'            => 'User not found',
-    'chk_friendships_different_users' => 'Cannot be friends with yourself',
-    'chk_users_email'                 => 'Invalid email format',
-    'chk_users_display_name'          => 'Invalid display name format'
+    'pk_matches' => "Match already exists",
   }.freeze
 
   EXCEPTION_MAP = {
-    JWT::DecodeError              => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
-    ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection timeout"],
-    Redis::ConnectionError        => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection error"],
-    Redis::TimeoutError           => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection timeout"],
+    PG::ConnectionBad             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection error"],
+    ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Connection timeout"],
   }.freeze
 
   def handle_exception(exception)

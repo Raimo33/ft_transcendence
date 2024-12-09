@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 18:50:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 21:16:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -187,7 +187,7 @@ class GrpcClient
   private
 
   def create_channel(addr)
-    GRPC::Core::Channel.new(addr, @connection_options)
+    GRPC::Core::Channel.new(addr, @connection_options, credentials: :this_channel_is_insecure)
   end
   
 end

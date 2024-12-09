@@ -5,16 +5,17 @@ logging:
 grpc:
   server:
     host: 0.0.0.0
-    port: 50052
+    port: 50051
     pool_size: 10
   client:
     addresses:
-      user: user:50052
+      user: user:50051
 
 redis:
   host: redis.data
   port: 6379
   db: 0
+  username: auth
   password: password
   pool:
     size: 10
