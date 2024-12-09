@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/08 21:43:08 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 16:31:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,7 +35,7 @@ RUN pg_ctl -m fast -w stop
 RUN rm -rf /tmp/
 
 EXPOSE 5432
-VOLUME ["/var/lib/postgresql/data", "/etc/ssl/certs", "/etc/ssl/private"]
+VOLUME ["/var/lib/postgresql/data"]
 
 ENTRYPOINT ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["pg_isready"]

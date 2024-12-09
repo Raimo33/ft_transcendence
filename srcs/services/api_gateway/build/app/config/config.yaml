@@ -23,4 +23,4 @@ redis:
 
 jwt:
   leeway: 60
-  public_key: /etc/ssl/certs/jwtRS256.key.pub
+  public_key: /etc/ssl/public/jwt.pub

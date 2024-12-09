@@ -1,37 +1,5 @@
 services:
 
-  frontend:
-    build:
-      context: ./services/frontend
-      dockerfile: Dockerfile
-      args:
-    volumes:
-      - frontend_data:/var/www/html
-
-  nginx:
-    build:
-      context: ./services/nginx
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: nginx
-    environment:
-    volumes:
-      - nginx_cert:/etc/ssl/certs/nginx.crt:ro
-    secrets:
-      - source: nginx_key
-        target: /etc/ssl/private/nginx.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      - "80:80"
-      - "443:443"
-    networks:
-      - edge
-    restart: always
-    depends_on:
-    init: true
-
   api_gateway:
     build:
       context: ./services/api_gateway
@@ -43,6 +11,7 @@ services:
     environment:
       - RACK_ENV=production
     volumes:
+      - jwt_public_key:/etc/ssl/public/jwt.pub:ro
     secrets:
     ports:
       - "3000:3000"
@@ -53,22 +22,91 @@ services:
       nginx:
         condition: service_healthy
     init: true
-  
-  user:
+
+  auth:
     build:
-      context: ./services/user
+      context: ./services/auth
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
       args:
-    container_name: user
+    
+    container_name: auth
+    environment:
+    volumes:
+    secrets:
+      - source: jwt_private_key
+        target: ./etc/ssl/private/jwt.key
+        uid: #TODO uid
+        mode: 0400
+    ports:
+      -
+    networks:
+      - core
+    restart: always
+    depends_on:
+    init: true
+  
+  elasticsearch:
+    build:
+      context: ./services/elasticsearch
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: elasticsearch
     environment:
     volumes:
     secrets:
     ports:
-      - 50052:50052
+      - 
+    networks:
+      - monitoring
+    restart: always
+    depends_on:
+    init: true
+
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+      args:
+    volumes:
+      - frontend_data:/var/www/html
+  
+  game_state:
+    build:
+      context: ./services/game_state
+      additional_contexts:
+        - protos=./protos
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: game_state
+    environment:
+    volumes:
+    secrets:
+    ports:
+      - 
     networks:
       - core
+    restart: always
+    depends_on:
+    init: true
+
+  logstash:
+    build:
+      context: ./services/logstash
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: logstash
+    environment:
+    volumes:
+    secrets:
+    ports:
+      - 
+    networks:
+      - monitoring
     restart: always
     depends_on:
     init: true
@@ -87,50 +125,6 @@ services:
     secrets:
     ports:
       - 
-    networks:
-      - core
-    restart: always
-    depends_on:
-    init: true
-  
-  tournament:
-    build:
-      context: ./services/tournament
-      additional_contexts:
-        - protos=./protos
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: tournament
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - 
-    networks:
-      - core
-    restart: always
-    depends_on:
-    init: true
-  
-  auth:
-    build:
-      context: ./services/auth
-      additional_contexts:
-        - protos=./protos
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: auth
-    environment:
-    volumes:
-    secrets:
-      - source: jwt_key
-        target: ./etc/ssl/private/jwtRS256.key
-        uid: #TODO uid
-        mode: 0400
-    ports:
-      -
     networks:
       - core
     restart: always
@@ -157,20 +151,26 @@ services:
     depends_on:
     init: true
   
-  game_state:
+  nginx:
     build:
-      context: ./services/game_state
+      context: ./services/nginx
       dockerfile: Dockerfile
       args:
     
-    container_name: game_state
+    container_name: nginx
     environment:
     volumes:
+      - nginx_cert:/etc/ssl/public/nginx.crt:ro
     secrets:
+      - source: nginx_key
+        target: /etc/ssl/private/nginx.key
+        uid: #TODO uid
+        mode: 0400
     ports:
-      - 
+      - "80:80"
+      - "443:443"
     networks:
-      - core
+      - edge
     restart: always
     depends_on:
     init: true
@@ -185,12 +185,7 @@ services:
       - PGDATA=/var/lib/postgresql/data
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-      - postgresql_cert:/etc/ssl/certs/postgresql.crt:ro
     secrets:
-      - source: postgresql_key
-        target: /etc/ssl/private/postgresql.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - "5432:5432"
     networks:
@@ -210,45 +205,9 @@ services:
     volumes:
     secrets:
     ports:
-      - 
+      - "6379:6379"
     networks:
       - data
-    restart: always
-    depends_on:
-    init: true
-  
-  logstash:
-    build:
-      context: ./services/logstash
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: logstash
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - 
-    networks:
-      - monitoring
-    restart: always
-    depends_on:
-    init: true
-  
-  elasticsearch:
-    build:
-      context: ./services/elasticsearch
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: elasticsearch
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - 
-    networks:
-      - monitoring
     restart: always
     depends_on:
     init: true
@@ -271,16 +230,57 @@ services:
     depends_on:
     init: true
 
+  tournament:
+    build:
+      context: ./services/tournament
+      additional_contexts:
+        - protos=./protos
+      dockerfile: Dockerfile
+      args:
+    
+    container_name: tournament
+    environment:
+    volumes:
+    secrets:
+    ports:
+      - 
+    networks:
+      - core
+    restart: always
+    depends_on:
+    init: true
+
+  user:
+    build:
+      context: ./services/user
+      additional_contexts:
+        - protos=./protos
+      dockerfile: Dockerfile
+      args:
+    container_name: user
+    environment:
+    volumes:
+    secrets:
+    ports:
+      - 50052:50052
+    networks:
+      - core
+    restart: always
+    depends_on:
+    init: true
+
 volumes:
   #TODO non volumi effettivi ma docker volumes
   postgresql_data:
   nginx_cert:
 
-secrets: #TODO directory generica per tutti i secret? srcs/secrets?
+secrets:
+  jwt_private_key:
+    file: ./secrets/jwt.key
+  jwt_public_key:
+    file: ./secrets/jwt.pub
   nginx_key:
-    file: 
-  jwt_key:
-    file:
+    file: ./secrets/nginx.key
 
 networks:
   edge:

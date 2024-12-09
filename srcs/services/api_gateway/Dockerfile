@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/08 17:27:57 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 16:46:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,6 +37,7 @@ RUN protoc --ruby_out=./ /app/protos/match_api_gateway.proto \
 
 USER api_gateway
 EXPOSE 3000
+VOLUME ["/etc/ssl/public"]
 
 ENTRYPOINT ["falcon", "serve", \
             "--bind", "http://0.0.0.0:3000", \

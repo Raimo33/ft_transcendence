@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/12/01 13:56:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 16:46:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ COPY ./build/nginx.conf    /etc/nginx/nginx.conf
 COPY ./build/headers.conf  /etc/nginx/http.d/headers.conf
 
 WORKDIR /var/www/html
-VOLUME ["var/www/html", "/etc/ssl/certs"]
+VOLUME ["var/www/html", "/etc/ssl/public", "/etc/ssl/private"]
 USER nginx
 EXPOSE 80 443
 

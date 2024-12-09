@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 16:45:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 17:45:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,28 +14,14 @@ FROM alpine:3.19
 
 SHELL ["/bin/ash", "-c"]
 
-RUN apk add --no-cache ruby protobuf
+RUN apk add --no-cache redis
 
-COPY ./build/Gemfile ./build/Gemfile.lock /app/
+COPY ./build/redis.conf /etc/redis.conf
+COPY ./build/redis.acl  /etc/redis.acl
 
-WORKDIR /app
-RUN gem install bundler
-RUN bundle install
+USER redis
+EXPOSE 6379
+VOLUME []
 
-COPY ./build/app/  /app/
-COPY --from=protos auth_user.proto \
-                   auth_api_gateway.proto \
-                   /app/protos/
-
-RUN adduser -DHS auth
-RUN chown -R auth:auth /app
-
-RUN protoc --ruby_out=./ /app/protos/auth_user.proto /app/protos/auth_api_gateway.proto
-
-USER auth
-EXPOSE 50052
-VOLUME ["/etc/ssl/private"]
-
-ENTRYPOINT ["main.rb"]
-
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["healthcheck.rb"]
+ENTRYPOINT ["redis-server", "/etc/redis.conf"]
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["redis-cli", "ping"]
