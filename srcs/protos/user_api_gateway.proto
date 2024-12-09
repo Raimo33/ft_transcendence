@@ -9,21 +9,21 @@ import "common/jwt.proto";
 service UserAPIGateway
 {
   rpc Ping                    (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
-  rpc RegisterUser            (RegisterUserRequest)      returns (Identifier)            {}
-  rpc GetUserPublicProfile    (Identifier)               returns (UserPublicProfile)     {}
-  rpc GetUserStatus           (Identifier)               returns (UserStatus)            {}
+  rpc RegisterUser            (RegisterUserRequest)      returns (common.Identifier)     {}
+  rpc GetUserPublicProfile    (common.Identifier)        returns (UserPublicProfile)     {}
+  rpc GetUserStatus           (common.Identifier)        returns (UserStatus)            {}
   rpc DeleteAccount           (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
   rpc GetUserPrivateProfile   (google.protobuf.Empty)    returns (UserPrivateProfile)    {}
   rpc UpdateProfile           (UpdateProfileRequest)     returns (google.protobuf.Empty) {}
   rpc EnableTFA               (google.protobuf.Empty)    returns (EnableTFAResponse)     {}
   rpc DisableTFA              (TFACode)                  returns (google.protobuf.Empty) {}
-  rpc SubmitTFACode           (TFACode)                  returns (JWT)                   {}
+  rpc SubmitTFACode           (TFACode)                  returns (common.JWT)            {}
   rpc LoginUser               (LoginUserRequest)         returns (LoginUserResponse)     {}
-  rpc RefreshUserSessionToken (google.protobuf.Empty)    returns (JWT)                   {}
+  rpc RefreshUserSessionToken (google.protobuf.Empty)    returns (common.JWT)            {}
   rpc LogoutUser              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
-  rpc AddFriend               (Identifier)               returns (google.protobuf.Empty) {}
-  rpc GetFriends              (google.protobuf.Empty)    returns (Identifiers)           {}
-  rpc RemoveFriend            (Identifier)               returns (google.protobuf.Empty) {}
+  rpc AddFriend               (common.Identifier)        returns (google.protobuf.Empty) {}
+  rpc GetFriends              (google.protobuf.Empty)    returns (common.Identifiers)    {}
+  rpc RemoveFriend            (common.Identifier)        returns (google.protobuf.Empty) {}
 }
 
 message RegisterUserRequest

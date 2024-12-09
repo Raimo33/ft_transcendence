@@ -8,12 +8,12 @@ import "common/identifier.proto";
 service TournamentAPIGateway
 {
   rpc Ping                 (google.protobuf.Empty)      returns (google.protobuf.Empty)  {}
-  rpc GetUserTournaments   (GetUserTournamentsRequest)  returns (Identifiers)            {}
-  rpc CreateTournament     (google.protobuf.Empty)      returns (Identifier)             {}
-  rpc GetTournament        (Identifier)                 returns (Tournament)             {}
-  rpc CancelTournament     (Identifier)                 returns (google.protobuf.Empty)  {}
-  rpc JoinTournament       (Identifier)                 returns (google.protobuf.Empty)  {}
-  rpc LeaveTournament      (Identifier)                 returns (google.protobuf.Empty)  {}
+  rpc GetUserTournaments   (GetUserTournamentsRequest)  returns (common.Identifiers)     {}
+  rpc CreateTournament     (google.protobuf.Empty)      returns (common.Identifier)      {}
+  rpc GetTournament        (common.Identifier)          returns (Tournament)             {}
+  rpc CancelTournament     (common.Identifier)          returns (google.protobuf.Empty)  {}
+  rpc JoinTournament       (common.Identifier)          returns (google.protobuf.Empty)  {}
+  rpc LeaveTournament      (common.Identifier)          returns (google.protobuf.Empty)  {}
 }
 
 message GetUserTournamentsRequest
