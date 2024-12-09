@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 19:05:10 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 18:39:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -345,7 +345,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata["requester_user_id"]
     check_required_fields(session_token, refresh_token)
 
-    @grpc_client.validate_refresh_token(refresh_token: refresh_token)
+    decoded_jwt = @grpc_client.decode_jwt(refresh_token)
+    token_expiry = decoded_jwt.payload["exp"]&.number_value || 0
+    raise GRPC::Unauthenticated.new("Invalid refresh token") unless Time.now.to_i < token_expiry
 
     async_context = Async do |task|
       task.async { forget_past_sessions(requester_user_id) }
@@ -434,9 +436,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     barrier.stop
   end
 
-  def forget_past_sessions(sub)
+  def forget_past_sessions(user_id)
     now = Time.now.to_i - @config[:tokens][:invalidation_grace_period]
-    @redis_client.set("sub:#{sub}:token_invalid_before", now)
+    @redis_client.set("user:#{user_id}:token_invalid_before", now)
   end
 
   #TODO migliorare con l'uso di Async, barrier, semaphore (redis proposal)

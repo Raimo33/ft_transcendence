@@ -3,24 +3,9 @@ logging:
   file: /dev/stdout
 
 grpc:
-  addresses:
-    user: user.core:50052
-    match: match.core:50052
-    tournament: tournament.core:50052
-    auth: auth.core:50052
-  timeout: 30
-  pool_size: 2      
-  pool_keep_alive: 10
-
-redis:
-  host: redis.data
-  port: 6379
-  db: 0
-  password: password
-  pool:
-    size: 10
-    timeout: 30
-
-jwt:
-  leeway: 60
-  public_key: /etc/ssl/public/jwt.pub
+  client:
+    addresses:
+      user: user.core:50052
+      match: match.core:50052
+      tournament: tournament.core:50052
+      auth: auth.core:50052

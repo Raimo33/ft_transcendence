@@ -3,13 +3,13 @@ logging:
   file: /dev/stdout
 
 grpc:
-  addresses:
-    auth: auth.core:50052
   server:
     host: 0.0.0.0
     port: 50052
     pool_size: 10
   client:
+    addresses:
+      auth: auth.core:50052
 
 database:
   host: postgresql.data
@@ -20,6 +20,29 @@ database:
   pool:
     size: 10
     timeout: 30
+
+redis:
+  host: redis.data
+  port: 6379
+  db: 0
+  password: password
+  pool:
+    size: 10
+    timeout: 30
+
+tokens:
+  session:
+    ttl: 3600
+    ttl_pending_tfa: 300
+  refresh:
+    ttl: 604800
+    ttl_remember_me: 31536000
+  invalidation_grace_period: 15
+
+jwt:
+  issuer: pongfumasters.auth
+  audience: pongfumasters_users
+  leeway: 30
 
 display_name:
   min_length: 3
@@ -56,21 +79,3 @@ avatar:
   compression_quality: 80
   format: jpeg
   default: /etc/default_avatar.jpg
-
-tokens:
-  session:
-    ttl: 3600
-    ttl_pending_tfa: 300
-  refresh:
-    ttl: 604800
-    ttl_remember_me: 31536000
-  invalidation_grace_period: 15
-
-redis:
-  host: redis.data
-  port: 6379
-  db: 0
-  password: password
-  pool:
-    size: 10
-    timeout: 30

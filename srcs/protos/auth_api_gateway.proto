@@ -7,6 +7,12 @@ import "common/jwt.proto";
 
 service AuthAPIGateway
 {
-  rpc Ping        (google.protobuf.Empty)  returns (google.protobuf.Empty) {}
-  rpc DecodeJWT   (JWT)                    returns (DecodedJWT)            {}
+  rpc Ping                  (google.protobuf.Empty)       returns (google.protobuf.Empty) {}
+  rpc ValidateSessionToken  (ValidateSessionTokenRequest) returns (google.protobuf.Empty) {}
+}
+
+message ValidateSessionTokenRequest
+{
+  string session_token        = 1;
+  int16  required_auth_level  = 2;
 }

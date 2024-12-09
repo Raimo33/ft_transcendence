@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 18:46:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/07 15:53:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,7 @@ class GrpcClient
     ]
 
     @channels = {
-      auth: create_channel(@config.dig(:grpc, :client, :addresses, :auth))
+      auth: create_channel(@config.dig(:grpc, :addresses, :auth))
     }
 
     @stubs = {
@@ -81,14 +81,19 @@ class GrpcClient
     @stubs[:auth].generate_jwt(request, metadata: metadata)
   end
 
-  def validate_refresh_token(refresh_token:, metadata = {})
+  def decode_jwt(jwt:, metadata = {})
     request = AuthUser::JWT(jwt: jwt)
-    @stubs[:auth].validate_refresh_token(request, metadata: metadata)
+    @stubs[:auth].decode_jwt(request, metadata: metadata)
   end
 
-  def extend_jwt(jwt:, ttl:, metadata = {})
+  def rotate_jwt(jwt:, metadata = {})
     request = AuthUser::JWT(jwt: jwt)
-    @stubs[:auth].extend_jwt(request, metadata: metadata)
+    @stubs[:auth].rotate_jwt(request, metadata: metadata)
+  end
+
+  def revoke_jwt(jwt:, metadata = {})
+    request = AuthUser::JWT(jwt: jwt)
+    @stubs[:auth].revoke_jwt(request, metadata: metadata)
   end
 
   private

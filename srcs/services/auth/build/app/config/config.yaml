@@ -3,12 +3,22 @@ logging:
   file: /dev/stdout
 
 grpc:
-  addresses:
-    user: user:50052
   server:
     host: 0.0.0.0
     port: 50052
     pool_size: 10
+  client:
+    addresses:
+      user: user:50052
+
+redis:
+  host: redis.data
+  port: 6379
+  db: 0
+  password: password
+  pool:
+    size: 10
+    timeout: 30
 
 password:
   bcrypt:
@@ -28,4 +38,5 @@ jwt:
   issuer: pongfumasters.auth
   audience: pongfumasters_users
   algorithm: RS256
+  leeway: 30
   private_key: /etc/ssl/private/jwtRS256.key

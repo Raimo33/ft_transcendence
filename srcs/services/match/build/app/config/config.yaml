@@ -1,0 +1,22 @@
+logging:
+  level: INFO
+  file: /dev/stdout
+
+grpc:
+  addresses:
+    - api
+  server:
+    host: 0.0.0.0
+    port: 50052
+    pool_size: 10
+  client:
+
+database:
+  host: postgresql.data
+  port: 5432
+  name: pongfumasters
+  user: match
+  password: password
+  pool:
+    size: 10
+    timeout: 30

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 18:49:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 19:06:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,12 +16,13 @@ require 'rotp'
 require 'resolv'
 require_relative '../config_handler'
 require_relative '../grpc_server'
+require_relative '../jwt_validator'
 
 class AuthUserServiceHandler < AuthUser::Service
 
   def initialize
     @config = ConfigHandler.instance.config
-    @private_key = OpenSSL::PKey::RSA.new(@config[:jwt][:private_key])
+    @jwt_validator = JwtValidator.instance
   end
 
   def ping(_request, call)
@@ -144,7 +145,7 @@ class AuthUserServiceHandler < AuthUser::Service
     AuthUser::JWT.new(jwt)
   end
 
-  def decode_jwt(request, call)
+  def validate_refresh_token(request, call)
     check_required_fields(request.jwt)
 
     settings = @config[:jwt]
@@ -154,21 +155,25 @@ class AuthUserServiceHandler < AuthUser::Service
       @private_key.public_key,
       true,
       {
-        algorithm:  settings.fetch(:algorithm, 'RS256'),
+        algorithm: settings.fetch(:algorithm, 'RS256'),
+        required_claims: %w[sub iat exp iss jti remember_me],
         verify_iss: true,
         verify_aud: true,
-        iss:        settings.fetch(:issuer, 'AuthService'),
-        aud:        settings.fetch(:audience, nil)
+        verify_exp: true,
+        verify_iat: true,
+        iss: settings.fetch(:issuer, 'AuthService'),
+        aud: settings.fetch(:audience, nil),
+        iat: Time.now.to_i,
+        leeway: settings.fetch(:leeway, 0),
       }
-    ).first
-
-    AuthUser::DecodedJWT.new(
-      payload: Google::Protobuf::Struct.from_hash(payload),
-      headers: Google::Protobuf::Struct.from_hash(headers)
     )
+
+    raise GRPC::Unauthenticated.new('Revoked token') if @jwt_validator.token_revoked?(payload['sub'], payload['iat'])
+
+    Empty.new
   end
 
-  def clone_jwt(request, call)
+  def extend_jwt(request, call)
     check_required_fields(request.jwt)
 
     settings = @config[:jwt]
@@ -197,13 +202,20 @@ class AuthUserServiceHandler < AuthUser::Service
   end
 
   private
-
+  
   def check_required_fields(*fields)
     raise GRPC::InvalidArgument.new("Missing required fields") unless fields.all?(&method(:provided?))
   end
-
+  
   def provided?(field)
     field.respond_to?(:empty?) ? !field.empty? : !field.nil?
+  end
+
+  def token_revoked?(user_id, iat)
+    token_invalid_before = @redis_client.get("user:#{user_id}:token_invalid_before")
+    return true if token_invalid_before.nil?
+
+    iat < token_invalid_before.to_i
   end
 
 end

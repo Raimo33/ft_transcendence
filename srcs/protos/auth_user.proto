@@ -14,10 +14,9 @@ service AuthUser
   rpc ValidatePassword(ValidatePasswordRequest)   returns (google.protobuf.Empty)     {}
   rpc GenerateTFASecret(Identifier)               returns (GenerateTFASecretResponse) {}
   rpc CheckTFACode(CheckTFACodeRequest)           returns (google.protobuf.Empty)     {}
-  rpc GenerateJWT(GenerateJWTRequest)             returns (JWT)                       {}
-  rpc DecodeJWT(JWT)                              returns (DecodedJWT)                {}
-  rpc RotateJWT(JWT)                              returns (JWT)                       {}
-  rpc CloneJWT(JWT)                               returns (JWT)                       {}
+  rpc GenerateJWT(GenerateJWTRequest)             returns (common.JWT)                {}
+  rpc ValidateRefreshToken(common.JWT)            returns (google.protobuf.Empty)     {}
+  rpc ExtendJWT(common.JWT)                       returns (common.JWT)                {}
 }
 
 message Domain

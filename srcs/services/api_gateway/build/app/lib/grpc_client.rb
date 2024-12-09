@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/08 14:16:16 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/09 18:50:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,10 +32,10 @@ class GrpcClient
     interceptors = [LoggerInterceptor.new]
 
     channels = {
-      user:         create_channel(@config.dig('grpc', 'addresses', 'user')),
-      match:        create_channel(@config.dig('grpc', 'addresses', 'match')),
-      tournament:   create_channel(@config.dig('grpc', 'addresses', 'tournament'))
-      auth:         create_channel(@config.dig('grpc', 'addresses', 'auth'))
+      user:         create_channel(@config.dig(:grpc, :client, :addresses, :user)),
+      match:        create_channel(@config.dig(:grpc, :client, :addresses, :match)),
+      tournament:   create_channel(@config.dig(:grpc, :client, :addresses, :tournament))
+      auth:         create_channel(@config.dig(:grpc, :client, :addresses, :auth))
     }
 
     @stubs = {
@@ -179,9 +179,9 @@ class GrpcClient
     @stubs[:tournament].leave_tournament(request, metadata: metadata)
   end
 
-  def decode_jwt(jwt:, metadata = {})
-    request = AuthAPIGateway::JWT.new(jwt: jwt)
-    @stubs[:auth].decode_jwt(request, metadata: metadata)
+  def validate_session_token(jwt:, required_auth_level:, metadata = {})
+    request = AuthAPIGateway::ValidateSessionTokenRequest.new(jwt: jwt, required_auth_level: required_auth_level) #TODO capire se usare COMMON invece che AuthAPIGateway
+    @stubs[:auth].validate_session_token(request, metadata: metadata)
   end
 
   private
