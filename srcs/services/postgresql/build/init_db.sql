@@ -18,10 +18,10 @@ CREATE TABLE Users
 
   CONSTRAINT pk_users               PRIMARY KEY (id),
   CONSTRAINT unq_users_email        UNIQUE (email),
-  CONSTRAINT unq_users_display_name UNIQUE (display_name),
+  CONSTRAINT unq_users_displayname  UNIQUE (display_name),
 
   CONSTRAINT chk_users_email        CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$'),
-  CONSTRAINT chk_users_display_name CHECK (LENGTH(display_name) <= 25 AND LENGTH(display_name) > 3 AND display_name ~ '^[a-zA-Z0-9_]+$'),
+  CONSTRAINT chk_users_displayname  CHECK (LENGTH(display_name) <= 25 AND LENGTH(display_name) > 3 AND display_name ~ '^[a-zA-Z0-9_]+$'),
   CONSTRAINT chk_users_avatar       CHECK (LENGTH(avatar) <= 5242880)
 );
 
@@ -37,16 +37,16 @@ CREATE TABLE Matches
   tournament_id     uuid,
 
   CONSTRAINT    pk_matches                PRIMARY KEY (id),
-  CONSTRAINT    fk_matches_creator_id     FOREIGN KEY (creator_id)    REFERENCES Users(id)       ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT    fk_matches_creatorid      FOREIGN KEY (creator_id)    REFERENCES Users(id)       ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT    fk_matches_tournament     FOREIGN KEY (tournament_id) REFERENCES Tournaments(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
-  CONSTRAINT    unq_matches_tournament_id UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT    unq_matches_tournamentid  UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
 
-  CONSTRAINT    chk_matches_started_at  CHECK (started_at <= NOW()),
-  CONSTRAINT    chk_matches_finished_at CHECK (finished_at <= NOW())
-);
+  CONSTRAINT    chk_matches_startedat   CHECK (started_at <= NOW()),
+  CONSTRAINT    chk_matches_finishedat  CHECK (finished_at <= NOW())
+) PARTITION BY RANGE (started_at);
 
-CREATE INDEX idx_match_started_at  ON Matches(started_at DESC);
-CREATE INDEX idx_match_finished_at ON Matches(finished_at);
+CREATE INDEX idx_match_startedat  ON Matches(started_at DESC);
+CREATE INDEX idx_match_finishedat ON Matches(finished_at);
 
 CREATE TYPE tournament_status AS ENUM ('pending', 'ongoing', 'completed', 'cancelled');
 
@@ -61,12 +61,12 @@ CREATE TABLE Tournaments
   CONSTRAINT  pk_tournaments          PRIMARY KEY (id),
   CONSTRAINT  fk_tournaments_creator  FOREIGN KEY (creator_id) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   
-  CONSTRAINT  chk_tournaments_started_at   CHECK (started_at  <= NOW()),
-  CONSTRAINT  chk_tournaments_finished_at  CHECK (finished_at <= NOW())
-);
+  CONSTRAINT  chk_tournaments_startedat   CHECK (started_at  <= NOW()),
+  CONSTRAINT  chk_tournaments_finishedat  CHECK (finished_at <= NOW())
+) PARTITION BY RANGE (started_at);
 
-CREATE INDEX idx_tournament_started_at   ON Tournaments(started_at DESC);
-CREATE INDEX idx_tournament_finished_at  ON Tournaments(finished_at);
+CREATE INDEX idx_tournament_startedat   ON Tournaments(started_at DESC);
+CREATE INDEX idx_tournament_finishedat  ON Tournaments(finished_at);
 
 CREATE TYPE friendship_status AS ENUM ('pending', 'accepted', 'blocked', 'rejected');
 
@@ -81,7 +81,7 @@ CREATE TABLE Friendships
   CONSTRAINT fk_friendships_user2 FOREIGN KEY (user_id_2) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE,
 
   CONSTRAINT chk_friendships_different_users CHECK (user_id_1 < user_id_2)
-);
+) PARTITION BY HASH (user_id_1);
 
 CREATE INDEX idx_friendships_user1_status ON Friendships(user_id_1, current_status);
 CREATE INDEX idx_friendships_user2_status ON Friendships(user_id_2, current_status);
@@ -92,13 +92,13 @@ CREATE TABLE UserMatches
   match_id  uuid  NOT NULL,
   position  smallint NOT NULL,
 
-  CONSTRAINT   pk_usermatches           PRIMARY KEY (match_id, user_id),
-  CONSTRAINT   fk_usermatches_match_id  FOREIGN KEY (match_id) REFERENCES Matches(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
-  CONSTRAINT   fk_usermatches_user_id   FOREIGN KEY (user_id)  REFERENCES Users(id)   ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED
-);
+  CONSTRAINT   pk_usermatches          PRIMARY KEY (match_id, user_id),
+  CONSTRAINT   fk_usermatches_matchid  FOREIGN KEY (match_id) REFERENCES Matches(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT   fk_usermatches_userid   FOREIGN KEY (user_id)  REFERENCES Users(id)   ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED
+) PARTITION BY HASH (user_id);
 
-CREATE INDEX idx_usermatches_user_id           ON UserMatches(user_id);
-CREATE INDEX idx_usermatches_match_id_position ON UserMatches(match_id, position);
+CREATE INDEX idx_usermatches_userid           ON UserMatches(user_id);
+CREATE INDEX idx_usermatches_matchid_position ON UserMatches(match_id, position);
 
 CREATE TABLE UserTournaments
 (
@@ -106,13 +106,13 @@ CREATE TABLE UserTournaments
   tournament_id  uuid  NOT NULL,
   position       smallint NOT NULL,
 
-  CONSTRAINT  pk_usertournaments                PRIMARY KEY (tournament_id, user_id),
-  CONSTRAINT  fk_usertournaments_tournament_id  FOREIGN KEY (tournament_id) REFERENCES Tournaments(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
-  CONSTRAINT  fk_usertournaments_user_id        FOREIGN KEY (user_id)       REFERENCES Users(id)       ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED
-);
+  CONSTRAINT  pk_usertournaments               PRIMARY KEY (tournament_id, user_id),
+  CONSTRAINT  fk_usertournaments_tournamentid  FOREIGN KEY (tournament_id) REFERENCES Tournaments(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT  fk_usertournaments_userid        FOREIGN KEY (user_id)       REFERENCES Users(id)       ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED
+) PARTITION BY HASH (user_id);
 
-CREATE INDEX idx_usertournaments_user_id                ON UserTournaments(user_id);
-CREATE INDEX idx_usertournaments_tournament_id_position ON UserTournaments(tournament_id, position);
+CREATE INDEX idx_usertournaments_userid                ON UserTournaments(user_id);
+CREATE INDEX idx_usertournaments_tournamentid_position ON UserTournaments(tournament_id, position);
 
 CREATE VIEW UserPublicProfiles AS
 SELECT 
@@ -133,3 +133,17 @@ SELECT
   current_status
 FROM
   Users;
+
+--TODO capire quando e' meglio fare il refresh della view (se viene fatto ad ogni inserimento succede che le queries si possono perdere determinati valori o ripetere piu valori siccome i match possono solo aumentare)
+CREATE MATERIALIZED VIEW UserMatchSorted AS
+SELECT 
+  um.user_id,
+  um.match_id,
+  m.created_at,
+  ROW_NUMBER() OVER (PARTITION BY um.user_id ORDER BY m.created_at DESC) AS age
+FROM
+  UserMatches um
+JOIN
+  Matches m ON um.match_id = m.id;
+
+-- TODO hashed index di 'created_at' + keyset pagination? cosi' la chiave fornita viene paragonata all'index in O(1)

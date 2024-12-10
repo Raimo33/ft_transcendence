@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:26:34 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/10 18:12:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,12 +29,12 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
     'pk_users'                        => 'User already exists',
     'pk_friendships'                  => 'Friendship already exists', 
     'unq_users_email'                 => 'Email already in use',
-    'unq_users_display_name'          => 'Display name already in use',
+    'unq_users_displayname'          => 'Display name already in use',
     'fk_friendships_user1'            => 'User not found',
     'fk_friendships_user2'            => 'User not found',
     'chk_friendships_different_users' => 'Cannot be friends with yourself',
     'chk_users_email'                 => 'Invalid email format',
-    'chk_users_display_name'          => 'Invalid display name format'
+    'chk_users_displayname'          => 'Invalid display name format'
   }.freeze
 
   EXCEPTION_MAP = {
