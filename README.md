@@ -50,9 +50,9 @@ The API Gateway is responsible for routing client requests to the appropriate mi
 - **Role Validation**: Ensures that the requesting user has the appropriate role/permissions to access specific API endpoints, preventing unauthorized access to sensitive data or services.
 
 ### Scalability
-- **Non-Blocking sockets**
-- **Async I/O with fibers**
-- **Early Bad Request detection**
+- Non-Blocking sockets
+- Async I/O with fibers
+- Early Bad Request detection
 
 ## User
 
@@ -109,7 +109,7 @@ The Notification Service is responsible for delivering real-time notifications a
 - **Online Status Notifications**: Sends real-time notifications to users when a friend or a player they follow comes online. This helps keep users informed about when their friends or teammates are available to play or interact.
 
 ### Scalability
-- **Server-Side-Events**
+- Server-Side-Events
 </i>
 
 ## Game State
@@ -125,9 +125,9 @@ The Game State Service is responsible for managing the real-time state of ongoin
 - **Game Stats**: Collects and updates key statistics related to the game, including player performance and scores. These stats are transmitted to clients as part of the game state updates to ensure that players always have the latest information.
 
 ### Scalability
-- **Web-Sockets**
-- **Connection Pooling**
-- **Queue based events**
+- Web-Sockets
+- Connection Pooling
+- Queue based events
 
 ## Matchmaking
 
@@ -140,8 +140,8 @@ The Matchmaking Service is responsible for pairing players together in a competi
 - **Finds Available Players**: Continuously searches for available players within the matchmaking pool. The service evaluates players' preferences (e.g., mode, team size) and availability to create matches. It ensures that no players are left unmatched for extended periods.
 
 ### Scalability
-- **Caching Player Data**
-- **Asynchronous Processing**
+- Caching Player Data
+- Asynchronous Processing
 
 <i>
 
@@ -173,8 +173,8 @@ The DB Gateway serves as an intermediary between the gRPC API and the database. 
 - **Caches Common Requests**: Frequently queried data is cached by the DB Gateway to reduce database load and speed up response times. This caching mechanism ensures that repeated queries (e.g., retrieving user data or match information) are served faster, improving the overall performance of the system.
 
 ### Scalability Considerations
-- **Query Caching**
-- **Persistent Connection**
+- Query Caching
+- Persistent Connection
 
 </i>
 <i>
@@ -189,7 +189,7 @@ The Blockchain Service is responsible for interacting with the Ethereum blockcha
 - **Transaction Management**: Handles sending transactions to the blockchain and manages the confirmation process. It ensures that transactions are properly broadcast to the network and monitors their status until they are successfully mined.
 
 ### Scalability
-- **Node Pooling**
+- Node Pooling
 
 </i>
 
@@ -208,12 +208,12 @@ PostgreSQL is chosen as the primary relational database for its robust support f
 - **Connection Pooling**: Manages database connections efficiently by reusing connections from a pool, reducing the overhead of repeatedly opening and closing connections. This improves the performance of database queries and ensures optimal resource usage under heavy load.
 
 ### Scalability
-- **Materialized Views**
-- **Connection Pooling**
-- **Prepared Statements**
-- **Indexing**
-- ***Fragmentation***
-- ***Read Replicas***
+- Materialized Views
+- Connection Pooling
+- Prepared Statements
+- Indexing
+- *Fragmentation*
+- *Read Replicas*
 
 <i>
 
@@ -228,8 +228,8 @@ Redis is chosen for its in-memory key-value store capabilities, providing extrem
 - **Different Profiles for Each Service**: Each service in the architecture can have its own caching profile, with configurable TTL (Time-To-Live) and expiration policies based on the type of data and access frequency. This allows each service to manage its cache independently, optimizing resource usage and data freshness.
 
 ### Scalability  
-- ***Replication***
-- ***Sharding***
+- *Replication*
+- *Sharding*
 
 </i>
 <i>
@@ -245,8 +245,8 @@ Geth (Go Ethereum) is chosen for its ability to self-host an Ethereum node, prov
 - **Posts Transactions to the Mempool**: Sends new transactions to the Ethereum mempool for validation and inclusion in blocks. This enables the system to interact with smart contracts and perform actions on the blockchain.
 
 ### Scalability
-- **Sync Optimization**
-- **Disk Storage**
+- Sync Optimization
+- Disk Storage
 
 </i>
 
@@ -262,8 +262,8 @@ Logstash is chosen for its powerful capabilities in collecting, filtering, enric
 - **Labeling**: Adds labels or tags to logs to categorize them based on type, severity, or source. This makes it easier to identify patterns, troubleshoot issues, and segment logs for analysis.
 
 ### Scalability  
-- ***Clustered Setup***
-- ***Pipeline Optimization***
+- *Clustered Setup*
+- *Pipeline Optimization*
 
 
 ## Elasticsearch
@@ -277,8 +277,9 @@ Elasticsearch is chosen for its powerful full-text search capabilities, scalabil
 - **Log Aggregation**: Aggregates log data from multiple sources, enabling easy access and analysis of logs from various services, applications, and systems in a unified manner.
 
 ### Scalability  
-- **Elastic Scaling**
-- ***Sharding and Replication***
+- Elastic Scaling
+- *Sharding*
+- *Replication*
   
 
 ## Kibana
@@ -339,9 +340,8 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
   ├── services/
     ├──api_gateway/
       ├──build/
-      ├──shared/
-        └──conf/
-      └──Dockerfile
+      ├──Dockerfile
+      └──README.md
     ├──auth/
     └──...
   └── docker-compose.yml
@@ -397,6 +397,7 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
   - Example: `http_request_duration_seconds`, `user_login_attempts_total`.
 - Ensure that returned responses don't hint at the internal infrastructure.
   - Example: `Database connection error` instead of `user_id must be an integer`.
+- Propagate the original request ID across every internal service call for traceability.
 
 
 ## 4. Docker
