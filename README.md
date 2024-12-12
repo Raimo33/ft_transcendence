@@ -212,6 +212,7 @@ PostgreSQL is chosen as the primary relational database for its robust support f
 - Connection Pooling
 - Prepared Statements
 - Indexing
+- Partitioning
 - *Fragmentation*
 - *Read Replicas*
 

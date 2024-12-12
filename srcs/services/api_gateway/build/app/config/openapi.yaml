@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 16:11:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/12 18:45:28 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -841,7 +841,9 @@ components:
           $ref: "#/components/schemas/user_avatar"
         status:
           $ref: "#/components/schemas/user_status"
-      required: [id, display_name, avatar, status]
+        created_at:
+          $ref: "#/components/schemas/timestamp"
+      required: [id, display_name, avatar, status, created_at]
 
     UserPrivateProfile:
       description: Represents a private user profile with additional information.
@@ -854,7 +856,7 @@ components:
             tfa_status:
               $ref: "#/components/schemas/tfa_status"
           additionalProperties: false
-      required: [id, display_name, avatar, status, email, tfa_status]
+      required: [id, display_name, avatar, status, created_at, email, tfa_status]
 
     Match:
       description: Represents a match of Pong between two players.

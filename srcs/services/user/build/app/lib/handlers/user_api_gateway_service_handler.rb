@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:09:20 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/12 18:58:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,7 @@ require 'base64'
 require 'mini_magick'
 require 'async'
 require 'email_validator'
+require 'rqr_code'
 require_relative '../config_handler'
 require_relative '../grpc_client'
 require_relative '../db_client'
@@ -35,8 +36,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
         RETURNING id
       SQL
       get_public_profile: <<~SQL
-        SELECT id, display_name, avatar, current_status
-        FROM UserProfiles
+        SELECT *
+        FROM UserPublicProfiles
         WHERE id = $1
       SQL
       get_status: <<~SQL
@@ -49,7 +50,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
         WHERE id = $1
       SQL
       get_private_profile: <<~SQL
-        SELECT * FROM UserPrivateProfiles
+        SELECT *
+        FROM UserPrivateProfiles
         WHERE id = $1
       SQL
       update_profile: <<~SQL
@@ -149,11 +151,15 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
 
     row = query_result.first
+    created_at_time = Time.parse(row["created_at"])
+    created_at_timestamp = Google::Protobuf::Timestamp.new
+    created_at_timestamp.from_time(created_at_time)
     UserAPIGateway::UserPublicProfile.new(
       user_id:      row["id"],
       display_name: row["display_name"],
       avatar:       row["avatar"] || @default_avatar,
-      status:       row["current_status"]
+      status:       row["current_status"],
+      created_at:   created_at_timestamp
     )
   end
 
@@ -195,13 +201,17 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
   
     row = query_result.first
+    created_at_time = Time.parse(row["created_at"])
+    created_at_timestamp = Google::Protobuf::Timestamp.new
+    created_at_timestamp.from_time(created_at_time)
     UserAPIGateway::UserPrivateProfile.new(
       id:            row["id"],
       email:         row["email"],
       display_name:  row["display_name"],
       avatar:        row["avatar"] || @default_avatar,
-      tfa_status:    row["tfa_status"]
-      status:        row["current_status"]
+      tfa_status:    row["tfa_status"],
+      status:        row["current_status"],
+      created_at:    created_at_timestamp
     )
   end
 

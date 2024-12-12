@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:05:08 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:07:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/12 19:00:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,8 +27,8 @@ class GetTournamentHandler < BaseHandler
         creator_id:     response.creator_id,
         match_ids:      response.match_ids,
         status:         response.status,
-        started_at:     response.started_at,
-        finished_at:    response.finished_at
+        started_at:     response.started_at.seconds,
+        finished_at:    response.finished_at.seconds
       }
     }
     

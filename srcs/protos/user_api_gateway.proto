@@ -3,6 +3,7 @@ syntax = "proto3";
 package user;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 import "common/identifier.proto";
 import "common/jwt.proto";
 
@@ -35,10 +36,11 @@ message RegisterUserRequest
 
 message UserPublicProfile
 {
-  string id            = 1;
-  string display_name  = 2;
-  string avatar        = 3;
-  string status        = 4;
+  string                    id            = 1;
+  string                    display_name  = 2;
+  string                    avatar        = 3;
+  string                    status        = 4;
+  google.protobuf.Timestamp created_at    = 5;
 }
 
 message UserStatus
@@ -48,12 +50,13 @@ message UserStatus
 
 message UserPrivateProfile
 {
-  string id              = 1;
-  string display_name    = 2;
-  string email           = 3;
-  string avatar          = 4;
-  bool   tfa_status      = 5;
-  string status          = 6;
+  string id                            = 1;
+  string display_name                  = 2;
+  string email                         = 3;
+  string avatar                        = 4;
+  bool   tfa_status                    = 5;
+  string status                        = 6;
+  google.protobuf.Timestamp created_at = 7;
 }
 
 message UpdateProfileRequest

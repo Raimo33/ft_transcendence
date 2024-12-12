@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:07:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/12 18:52:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,6 +26,7 @@ class GetUserPublicProfileHandler < BaseHandler
       display_name: response.display_name,
       avatar:       response.avatar,
       status:       response.status,
+      created_at:   response.created_at.seconds,
     }
 
     [200, {}, [JSON.generate(body)]]
