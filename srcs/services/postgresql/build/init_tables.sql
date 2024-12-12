@@ -17,7 +17,7 @@ CREATE TABLE Users
   avatar                   bytea,
   tfa_status               boolean DEFAULT false NOT NULL,
   current_status           user_status DEFAULT 'offline' NOT NULL,
-  created_at               timestamptz DEFAULT now(), -- TODO aggiungere al db schema su readme
+  created_at               timestamptz DEFAULT now(), /* TODO aggiungere al db schema su  readme */
 
   CONSTRAINT pk_users               PRIMARY KEY (id),
   CONSTRAINT unq_users_email        UNIQUE (email),
@@ -83,7 +83,7 @@ CREATE TABLE Friendships
   user_id_1       uuid NOT NULL,
   user_id_2       uuid NOT NULL,
   current_status  friendship_status DEFAULT 'pending' NOT NULL,
-  created_at      timestamptz DEFAULT now(), -- TODO aggiungere al db schema su readme
+  created_at      timestamptz DEFAULT now(), /* TODO aggiungere al db schema su readme */
 
   CONSTRAINT pk_friendships       PRIMARY KEY (user_id_1, user_id_2),
   CONSTRAINT fk_friendships_user1 FOREIGN KEY (user_id_1) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -144,7 +144,7 @@ SELECT
 FROM
   Users;
 
--- TODO implement cursor in prepared statements. the cursor should hold both started_at and match_id
+/* TODO implement cursor in prepared statements. the cursor should hold both started_at and match_id */
 CREATE MATERIALIZED VIEW UserMatchChronologicalMatView AS
 SELECT
   um.user_id,
