@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 16:18:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 17:31:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -75,7 +75,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     result = @db_client.exec_prepared(:insert_match, [creator_id, opponent_id])
     match_id = result.first['match_id']
 
-    #TODO, fare parsing di asyncapi?
+    #TODO aderire alla asyncapi specification
     payload = { match_id: match_id }
     @grpc_client.notify_clients([opponent_id], 'match_invitation', payload)
 

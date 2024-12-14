@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 15:58:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 16:51:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -368,7 +368,6 @@ paths:
               $ref: "#/components/headers/Content-Type"
             Set-Cookie:
               $ref: "#/components/headers/Set-Cookie"
-              description: Set the refresh token as a cookie.
           content:
             application/json:
               schema:

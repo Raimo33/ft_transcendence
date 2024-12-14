@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:22:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 17:31:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -47,7 +47,8 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def 
+  def notify_clients()
+    #TODO utilizza la asyncapi specification, chiama notification service
 
   private
 
