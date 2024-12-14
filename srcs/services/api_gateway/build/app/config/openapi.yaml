@@ -6,11 +6,15 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
+<<<<<<< Updated upstream
 #    Updated: 2024/12/14 13:54:44 by craimond         ###   ########.fr        #
+=======
+#    Updated: 2024/12/09 19:12:58 by craimond         ###   ########.fr        #
+>>>>>>> Stashed changes
 #                                                                              #
 # **************************************************************************** #
 
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: Pongfumasters API
   description: REST-ful API to interact with the Pongfumasters gateway.
