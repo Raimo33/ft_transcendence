@@ -6,11 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-<<<<<<< Updated upstream
-#    Updated: 2024/12/14 13:54:44 by craimond         ###   ########.fr        #
-=======
-#    Updated: 2024/12/09 19:12:58 by craimond         ###   ########.fr        #
->>>>>>> Stashed changes
+#    Updated: 2024/12/14 15:58:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -511,7 +507,7 @@ paths:
     post:
       operationId: createMatch
       summary: Start a new match
-      description: Initialize a new Pong match by providing the match settings and the opponent user IDs.
+      description: Initialize a new Pong match by providing the opponent user ID.
       requestBody:
         content:
           application/json:
@@ -787,7 +783,7 @@ components:
     match_status:
       description: Current status of the match.
       type: string
-      enum: [ongoing, completed]
+      enum: [pending, ongoing, completed]
       example: "ongoing"
 
     player_position:

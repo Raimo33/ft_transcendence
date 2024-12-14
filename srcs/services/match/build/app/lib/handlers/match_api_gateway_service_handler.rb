@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 14:42:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 16:18:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,9 +27,21 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     @prepared_statements = {
       get_user_matches: <<~SQL
         SELECT match_id
-        FROM UserMatchChronologicalMatView
+        FROM MatchPlayersChronologicalMatView
         WHERE user_id = $1 AND (started_at, match_id) < ($2, $3)
         LIMIT $4
+      SQL
+      insert_match: <<~SQL
+        WITH new_match AS (
+          INSERT INTO Matches (creator_id, opponent_id)
+          VALUES ($1, $2)
+          RETURNING id
+        )
+        INSERT INTO MatchPlayers (match_id, user_id)
+        VALUES 
+          ((SELECT id FROM new_match), $1, 1),
+          ((SELECT id FROM new_match), $2, 2)
+        RETURNING match_id
       SQL
     }
 
@@ -55,7 +67,24 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     MatchAPIGateway::Identifiers.new(ids: match_ids)
   end
 
-  def 
+  def create_match(request, call)
+    opponent_id = request.opponent_id
+    creator_id  = call.metadata['requester_user_id']
+    check_required_fields(creator_id, opponent_id)
+
+    result = @db_client.exec_prepared(:insert_match, [creator_id, opponent_id])
+    match_id = result.first['match_id']
+
+    #TODO, fare parsing di asyncapi?
+    payload = { match_id: match_id }
+    @grpc_client.notify_clients([opponent_id], 'match_invitation', payload)
+
+    MatchAPIGateway::Identifier.new(id: match_id)
+  end
+
+  def accept_match_invitation(request, call)
+
+    @grpc_client.start_game_state_management(match_id)
 
   private
 

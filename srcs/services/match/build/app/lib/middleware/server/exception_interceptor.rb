@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:26:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 15:12:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,12 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
   private
 
   CONSTRAINT_MESSAGES = {
-    'pk_matches' => "Match already exists",
+    'pk_matches'               => "Match already exists",
+    'fk_matches_creatorid'     => "User not found",
+    'fk_matches_tournamentid'  => "Tournament not found",
+    'unq_matches_tournamentid' => "Tournament already exists",
+    'chk_matches_startedat'    => "Match cannot start in the past",
+    'chk_matches_endedat'      => "Match cannot end before it starts",
   }.freeze
 
   EXCEPTION_MAP = {
