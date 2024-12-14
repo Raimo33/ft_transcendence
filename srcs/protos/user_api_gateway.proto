@@ -23,7 +23,7 @@ service UserAPIGateway
   rpc RefreshUserSessionToken (google.protobuf.Empty)    returns (common.JWT)            {}
   rpc LogoutUser              (google.protobuf.Empty)    returns (google.protobuf.Empty) {}
   rpc AddFriend               (common.Identifier)        returns (google.protobuf.Empty) {}
-  rpc GetFriends              (google.protobuf.Empty)    returns (common.Identifiers)    {}
+  rpc GetFriends              (GetFriendsRequest)        returns (common.Identifiers)    {}
   rpc RemoveFriend            (common.Identifier)        returns (google.protobuf.Empty) {}
 }
 
@@ -86,6 +86,12 @@ message LoginUserResponse
 {
   Tokens tokens       = 1;
   bool   pending_tfa  = 3;
+}
+
+message GetFriendsRequest
+{
+  string cursor = 1;
+  uint32 limit  = 2;
 }
 
 message Tokens

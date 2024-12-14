@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:16:27 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 14:02:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,13 +66,13 @@ class GrpcClient
     @stubs[:user].get_user_status(request, metadata: metadata)
   end
 
-  def get_user_matches(user_id:, limit:, offset:, metadata = {})
-    request = UserAPIGateway::Identifier.new(id: user_id, limit: limit, offset: offset)
+  def get_user_matches(user_id:, cursor:, limit:, metadata = {})
+    request = UserAPIGateway::GetUserMatchesRequest.new(user_id: user_id, cursor: cursor, limit: limit)
     @stubs[:match].get_user_matches(request, metadata: metadata)
   end
 
-  def get_user_tournaments(user_id:, metadata = {})
-    request = UserAPIGateway::Identifier.new(id: user_id)
+  def get_user_tournaments(user_id:, cursor:, limit:, metadata = {})
+    request = UserAPIGateway::GetUserMatchesRequest.new(user_id: user_id, cursor: cursor, limit: limit)
     @stubs[:tournament].get_user_tournaments(request, metadata: metadata)
   end
 
@@ -121,8 +121,9 @@ class GrpcClient
     @stubs[:user].add_friend(request, metadata: metadata)
   end
 
-  def get_friends(metadata = {})
-    @stubs[:user].get_friends(Empty.new, metadata: metadata)
+  def get_friends(cursor:, limit:, metadata = {})
+    request = UserAPIGateway::GetFriendsRequest.new(cursor: cursor, limit: limit)
+    @stubs[:user].get_friends(request, metadata: metadata)
   end
 
   def remove_friend(friend_id:, metadata = {})

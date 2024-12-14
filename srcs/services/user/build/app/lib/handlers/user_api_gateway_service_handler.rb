@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/12 18:58:00 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 14:33:43 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -412,7 +412,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::NotFound.new("No friends found") if query_result.ntuples.zero?
 
     friend_ids = query_result.map { |row| row["friend_id"] }
-    UserAPIGateway::UserIds(friend_ids)
+    UserAPIGateway::Identifiers(friend_ids)
   end
 
   def remove_friend(request, call)

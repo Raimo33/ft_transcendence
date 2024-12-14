@@ -17,7 +17,7 @@ CREATE TABLE Users
   avatar                   bytea,
   tfa_status               boolean DEFAULT false NOT NULL,
   current_status           user_status DEFAULT 'offline' NOT NULL,
-  created_at               timestamptz DEFAULT now(), /* TODO aggiungere al db schema su  readme */
+  created_at               timestamptz DEFAULT now(),
 
   CONSTRAINT pk_users               PRIMARY KEY (id),
   CONSTRAINT unq_users_email        UNIQUE (email),
@@ -83,7 +83,7 @@ CREATE TABLE Friendships
   user_id_1       uuid NOT NULL,
   user_id_2       uuid NOT NULL,
   current_status  friendship_status DEFAULT 'pending' NOT NULL,
-  created_at      timestamptz DEFAULT now(), /* TODO aggiungere al db schema su readme */
+  created_at      timestamptz DEFAULT now(),
 
   CONSTRAINT pk_friendships       PRIMARY KEY (user_id_1, user_id_2),
   CONSTRAINT fk_friendships_user1 FOREIGN KEY (user_id_1) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -144,7 +144,6 @@ SELECT
 FROM
   Users;
 
-/* TODO implement cursor in prepared statements. the cursor should hold both started_at and match_id */
 CREATE MATERIALIZED VIEW UserMatchChronologicalMatView AS
 SELECT
   um.user_id,
@@ -159,22 +158,5 @@ ORDER BY
   m.started_at DESC,
   um.match_id DESC;
 
-CREATE INDEX idx_usermatchechronologicalmatview_userid ON UserMatchChronologicalMatView USING HASH (user_id);
-CREATE INDEX idx_usermatchchronologicalmatview_userid_createdat_matchid ON UserMatchChronologicalMatView(started_at DESC, match_id DESC);
-
-/* TODO
-PREPARE get_user_matches (uuid, timestamptz, uuid, int) AS
-SELECT
-  user_id,
-  match_id,
-  started_at
-FROM
-  UserMatchChronologicalMatView
-WHERE
-  user_id = $1 AND
-  (started_at, match_id) < ($2, $3)
-ORDER BY
-  started_at DESC,
-  match_id DESC
-LIMIT $4;
-*/
+CREATE INDEX idx_usermatchechronologicalmatview_userid                  ON UserMatchChronologicalMatView USING HASH (user_id);
+CREATE INDEX idx_usermatchchronologicalmatview_userid_createdat_matchid ON UserMatchChronologicalMatView (started_at DESC, match_id DESC);

@@ -6,11 +6,12 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:58:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 14:42:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'async'
+require 'base64'
 require_relative '../config_handler'
 require_relative '../grpc_client'
 require_relative '../db_client'
@@ -25,7 +26,10 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
 
     @prepared_statements = {
       get_user_matches: <<~SQL
-        #TODO trovare un modo per evitare il sorting ogni volta (limit e offset servono a quello)
+        SELECT match_id
+        FROM UserMatchChronologicalMatView
+        WHERE user_id = $1 AND (started_at, match_id) < ($2, $3)
+        LIMIT $4
       SQL
     }
 
@@ -39,9 +43,19 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
   def get_user_matches(request, call)
     check_required_fields(request.user_id)
 
-    limit  = request.limit || 10
-    offset = request.offset || 0
+    cursor = decode_cursor(request.cursor) if provided?(request.cursor)
+    started_at_str, match_id_str = cursor&.split(',')
 
+    started_at = started_at_str ? Time.parse(started_at_str) : Time.now
+    match_id   = match_id_str
+
+    result = @db_client.exec_prepared(:get_user_matches, [request.user_id, started_at, match_id, request.limit])
+
+    match_ids = result.map { |row| row['match_id'] }      
+    MatchAPIGateway::Identifiers.new(ids: match_ids)
+  end
+
+  def 
 
   private
 
@@ -51,6 +65,14 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
 
   def provided?(field)
     field.respond_to?(:empty?) ? !field.empty? : !field.nil?
+  end
+
+  def decode_cursor(cursor)
+    Base64.decode64(cursor)
+  end
+
+  def encode_cursor(cursor)
+    Base64.encode64(cursor)
   end
 
 end

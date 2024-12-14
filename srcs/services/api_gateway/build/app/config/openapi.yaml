@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/12 18:45:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 13:54:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -142,7 +142,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
-        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/cursor"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -163,6 +163,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/match_id"
+                  next_cursor:
+                    $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /users/{user_id}/tournaments:
@@ -172,8 +174,8 @@ paths:
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
         - $ref: "#/components/parameters/user_id"
+        - $ref: "#/components/parameters/cursor"
         - $ref: "#/components/parameters/limit"
-        - $ref: "#/components/parameters/offset"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -194,6 +196,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/tournament_id"
+                  next_cursor:
+                    $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -455,8 +459,8 @@ paths:
       summary: Get list of friends
       description: Retrieve the list of friends of the current user.
       parameters:
+        - $ref: "#/components/parameters/cursor"
         - $ref: "#/components/parameters/limit"
-        - $ref: "#/components/parameters/offset"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -477,6 +481,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/user_id"
+                  next_cursor:
+                    $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /user/friends/{user_id}:
@@ -828,6 +834,11 @@ components:
       description: JWT for session management.
       type: string
       example: "<Header>.<Payload>.<Signature>"
+    
+    cursor_token:
+      description: Cursor token for pagination.
+      type: string
+      example: "eyJ0b2tlbiI6ImN1cnNvci10b2tlbiJ9"
 
     UserPublicProfile:
       description: Represents a public user profile with limited information.
@@ -947,15 +958,13 @@ components:
         format: int32
         minimum: 1
       required: false
-
-    offset:
-      description: Number of items to skip.
-      name: offset
+    
+    cursor:
+      description: Cursor token for pagination.
+      name: cursor
       in: query
       schema:
-        type: integer
-        format: int32
-        minimum: 0
+        $ref: "#/components/schemas/cursor_token"
       required: false
     
     refresh_token:

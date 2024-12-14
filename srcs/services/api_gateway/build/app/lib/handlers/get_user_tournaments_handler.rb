@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:07:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 13:59:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,8 @@ class GetUserTournamentsHandler < BaseHandler
 
     response = @grpc_client.get_user_tournaments(
       user_id: parsed_request.parsed_params['user_id'],
+      cursor:  parsed_request.parsed_params['cursor'],
+      limit:   parsed_request.parsed_params['limit'],
       build_request_metadata(parsed_request)
     )
     
