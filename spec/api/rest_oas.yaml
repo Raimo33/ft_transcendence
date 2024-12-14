@@ -1,22 +1,22 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    openapi.yaml                                       :+:      :+:    :+:    #
+#    rest_oas.yaml                                      :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 16:51:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 18:23:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 openapi: 3.0.0
 info:
-  title: Pongfumasters API
+  title: Pongfumasters REST API
   description: REST-ful API to interact with the Pongfumasters gateway.
   version: 1.0.0
 servers:
-  - url: pongfumasters.com/api/v1
+  - url: api.pongfumasters.com/v1
     description: Main API server
 security:
   - jwtAuth: []

@@ -1,0 +1,27 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    events_aas.yaml                                    :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
+#    Updated: 2024/12/14 18:29:13 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+asyncapi: 3.0.0
+
+info:
+  title: Pongfumasters Events API
+  description: Events API for Pongfumasters game connection and notifications.
+  version: 1.0.0
+servers:
+  production:
+    description: Production server for Pongfumasters events.
+    url: pongfumasters.com
+    protocol: https
+    security:
+      - jwt: []
+channels:
+  

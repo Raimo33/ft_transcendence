@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 16:46:47 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/14 18:22:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,8 +16,8 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache nginx
 
-COPY ./build/nginx.conf    /etc/nginx/nginx.conf
-COPY ./build/headers.conf  /etc/nginx/http.d/headers.conf
+COPY ./build/nginx.conf  /etc/nginx/nginx.conf
+COPY ./build/http.d/     /etc/nginx/http.d/
 
 WORKDIR /var/www/html
 VOLUME ["var/www/html", "/etc/ssl/public", "/etc/ssl/private"]
