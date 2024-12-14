@@ -196,7 +196,7 @@ The Blockchain Service is responsible for interacting with the Ethereum blockcha
 ## Database (PostgreSQL)
 
 ### Database ERD
-![DB](https://github.com/user-attachments/assets/3764baf1-0e8a-482c-98a1-dcd9f5d75417)
+![DB](https://github.com/user-attachments/assets/dfefa497-fcbc-482e-92ba-b14f322e6ac7)
 
 ### Reasoning
 PostgreSQL is chosen as the primary relational database for its robust support for ACID transactions, scalability, and advanced features like support for complex queries and indexing. It is used as a central repository for all system data, ensuring consistency, reliability, and high performance.
