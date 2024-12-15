@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 18:23:47 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 18:27:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -502,41 +502,44 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
+#TODO refactor di PROTOS, API GATEWAY, MATCH per riflettere cambiamenti in API matches 
   /matches:
     post:
-      operationId: createMatch
-      summary: Start a new match
-      description: Initialize a new Pong match by providing the opponent user ID.
+      operationId: startMatchmaking
+      summary: Start matchmaking
+      description: Join the matchmaking queue to find an opponent for a Pong match.
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /matches/challenges:
+    post:
+      operationId: challengeFriend
+      summary: Challenge a friend
+      description: Join a private matchmaking queue to challenge a friend to a Pong match.
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                opponent_id:
+                friend_id:
                   $ref: "#/components/schemas/user_id"
-              required: [opponent_id]
+              required: [friend_id]
               additionalProperties: false
         required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
       responses:
-        "201":
-          description: Returns the match ID of the newly created match.
-          headers:
-            Content-Length:
-              $ref: "#/components/headers/Content-Length"
-            Content-Type:
-              $ref: "#/components/headers/Content-Type"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  match_id:
-                    $ref: "#/components/schemas/match_id"
-                required: [match_id]
+        "204":
+          $ref: "#/components/responses/NoContent"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
@@ -567,8 +570,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
     delete:
       operationId: leaveMatch
-      summary: Leave the current match
-      description: Exit and terminate the ongoing match.
+      summary: Leave the current match or decline an invitation
+      description: Exit and terminate the ongoing match or decline an invitation to join a match by providing the match ID.
       parameters:
         - $ref: "#/components/parameters/match_id"
       security:
@@ -583,9 +586,9 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/{match_id}/accept:
+  /matches/{match_id}/invitation: #TODO actually creates the match object in the database (assigning it the match_id)
     post:
-      operationId: acceptMatchInvitation
+      operationId: acceptMatch
       summary: Accept match invitation
       description: Accept an invitation to join a match by providing the match ID.
       parameters:
@@ -594,7 +597,7 @@ paths:
         - jwtAuth: []
       x-auth-level: 2
       responses:
-        "204":
+        "201":
           $ref: "#/components/responses/NoContent"
         "401":
           $ref: "#/components/responses/Unauthorized"
@@ -602,9 +605,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/{match_id}/decline:
-    post:
-      operationId: declineMatchInvitation
+    delete:
+      operationId: declineMatch
       summary: Decline match invitation
       description: Decline an invitation to join a match by providing the match ID.
       parameters:
@@ -874,8 +876,6 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/match_id"
-        creator_id:
-          $ref: "#/components/schemas/user_id"
         player_ids:
           type: array
           items:
@@ -886,7 +886,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_at:
           $ref: "#/components/schemas/timestamp"
-      required: [id, creator_id, player_ids, status, started_at]
+      required: [id, player_ids, status, started_at]
 
     Tournament:
       description: Represents a Pong tournament, containing multiple matches and players.

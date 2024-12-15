@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 18:29:13 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 18:28:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,12 +16,174 @@ info:
   title: Pongfumasters Events API
   description: Events API for Pongfumasters game connection and notifications.
   version: 1.0.0
+
 servers:
-  production:
-    description: Production server for Pongfumasters events.
-    url: pongfumasters.com
-    protocol: https
-    security:
-      - jwt: []
+  main:
+    description: Unified server for WebSocket and SSE.
+    url: http://api.pongfumasters.com
+    protocol: http
+
+#TODO aggiungere MATCH FOUND SSE
+
 channels:
-  
+  game/updates:
+    description: Channel for real-time game updates via WebSocket.
+    bindings:
+      wss:
+        type: wss
+    subscribe:
+      summary: Subscribe to receive game updates.
+      operationId: receiveGameUpdates
+      message:
+        oneOf:
+          - $ref: '#/components/messages/HandshakeMessage'
+          - $ref: '#/components/messages/InputMessage'
+          - $ref: '#/components/messages/GameStateMessage'
+          - $ref: '#/components/messages/GameOverMessage'
+
+#TODO implement notifications (guardare /matches in oas)
+  notifications:
+    description: Channel for receiving notifications via Server-Sent Events (SSE).
+    bindings:
+      http:
+        type: sse
+    subscribe:
+      summary: Subscribe to receive notifications.
+      operationId: receiveNotifications
+      message:
+        contentType: application/json
+        payload:
+          type: object
+          properties:
+            notificationType:
+              description: Type of notification
+              type: string
+              enum: [friendRequest, gameInvitation, systemAlert]
+            data:
+              description: Data for the notification.
+              type: object
+              example:
+                message: "Player123 has sent you a friend request."
+
+components:
+  schemas:
+    user_id:
+      description: Unique identifier for the user.
+      type: string
+      format: uuid
+    match_id:
+      description: Unique identifier for the match.
+      type: string
+      format: uuid
+    jwt:
+      description: JSON Web Token for authentication.
+      type: string
+    timestamp:
+      description: Timestamp in unix timestamp format.
+      type: integer
+      format: int64
+      minimum: 0
+    vec2:
+      type: object
+      properties:
+        x:
+          type: number
+          format: float
+        y:
+          type: number
+          format: float
+    paddle_position:
+      description: Position of the paddle; 0 is top, 1 is bottom.
+      type: number
+      format: float
+    score:
+      type: integer
+      minimum: 0
+
+  messages:
+    HandshakeMessage:
+      name: HandshakeMessage
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [handshake]
+          data:
+            type: object
+            properties:
+              match_id:
+                $ref: '#/components/schemas/match_id'
+              jwt:
+                $ref: '#/components/schemas/jwt'
+    InputMessage:
+      name: InputMessage
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [input]
+          data:
+            type: object
+            properties:
+              direction:
+                description: True for up, false for down.
+                type: boolean
+              timestamp:
+                $ref: '#/components/schemas/timestamp'
+    GameStateMessage:
+      name: GameStateMessage
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [gameState]
+          data:
+            type: object
+            properties:
+              ballPosition:
+                $ref: '#/components/schemas/vec2'
+              ballVelocity:
+                $ref: '#/components/schemas/vec2'
+              paddlePositions:
+                type: object
+                properties:
+                  player1:
+                    $ref: '#/components/schemas/paddle_position'
+                  player2:
+                    $ref: '#/components/schemas/paddle_position'
+              scores:
+                type: object
+                properties:
+                  player1:
+                    $ref: '#/components/schemas/score'
+                  player2:
+                    $ref: '#/components/schemas/score'
+              timestamp:
+                $ref: '#/components/schemas/timestamp'
+    GameOverMessage:
+      name: GameOverMessage
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [gameOver]
+          data:
+            type: object
+            properties:
+              winner:
+                $ref: '#/components/schemas/user_id'
+              scores:
+                type: object
+                properties:
+                  player1:
+                    $ref: '#/components/schemas/score'
+                  player2:
+                    $ref: '#/components/schemas/score'

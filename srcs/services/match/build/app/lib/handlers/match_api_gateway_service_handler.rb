@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 17:31:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 18:22:01 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -67,11 +67,13 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     MatchAPIGateway::Identifiers.new(ids: match_ids)
   end
 
-  def create_match(request, call)
+  def challenge_friend(request, call)
     opponent_id = request.opponent_id
     creator_id  = call.metadata['requester_user_id']
     check_required_fields(creator_id, opponent_id)
 
+    #TODO controllare se l'opponent e' un amico
+    #TODO controllare se l'opponent e' online
     result = @db_client.exec_prepared(:insert_match, [creator_id, opponent_id])
     match_id = result.first['match_id']
 

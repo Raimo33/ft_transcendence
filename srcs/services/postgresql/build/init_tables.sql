@@ -36,14 +36,12 @@ CREATE TYPE match_status AS ENUM ('pending', 'ongoing', 'completed');
 CREATE TABLE Matches
 (
   id                uuid NOT NULL gen_random_uuid(),
-  creator_id        uuid NOT NULL,
   current_status    match_status  NOT NULL DEFAULT 'ongoing',
   started_at        timestamptz   NOT NULL DEFAULT now(),
   finished_at       timestamptz,
   tournament_id     uuid,
 
   CONSTRAINT    pk_matches                PRIMARY KEY (id),
-  CONSTRAINT    fk_matches_creatorid      FOREIGN KEY (creator_id)    REFERENCES Users(id)       ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT    fk_matches_tournamentid   FOREIGN KEY (tournament_id) REFERENCES Tournaments(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT    unq_matches_tournamentid  UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
 
