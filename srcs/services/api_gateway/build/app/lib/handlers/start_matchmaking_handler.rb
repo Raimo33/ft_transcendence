@@ -1,28 +1,24 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    create_tournament_handler.rb                       :+:      :+:    :+:    #
+#    start_matchmaking_handler.rb                       :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/24 20:03:14 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 20:28:38 by craimond         ###   ########.fr        #
+#    Created: 2024/11/24 18:38:31 by craimond          #+#    #+#              #
+#    Updated: 2024/12/15 20:25:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
-class CreateTournamentHandler < BaseHandler
+class StartMatchmakingHandler < BaseHandler
 
   def call(parsed_request)
     metadata = build_request_metadata(parsed_request)
-    response = @grpc_client.create_tournament(metadata)
-    
-    body = {
-      tournament_id: response.id,
-    }
+    response = @grpc_client.start_matchmaking(metadata)
 
-    [201, {}, [JSON.generate(body)]]
+    [204, {}, []]
   end
-  
+
 end

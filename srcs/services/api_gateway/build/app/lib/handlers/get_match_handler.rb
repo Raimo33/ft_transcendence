@@ -6,18 +6,19 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 19:14:05 by craimond          #+#    #+#              #
-#    Updated: 2024/12/12 19:00:39 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 20:29:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class GetMatchHandler < BaseHandler
+
   def call(parsed_request)
-    parsed_request = env[OpenapiFirst::REQUEST]
+    metadata = build_request_metadata(parsed_request)
     response = @grpc_client.get_match(
       match_id: request.params['match_id'],
-      build_request_metadata(parsed_request)
+      metadata
     )
     
     body = {
@@ -33,4 +34,5 @@ class GetMatchHandler < BaseHandler
 
     [200, {}, [JSON.generate(body)]]
   end
+  
 end

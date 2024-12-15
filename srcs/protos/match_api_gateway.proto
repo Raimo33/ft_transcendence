@@ -8,13 +8,15 @@ import "common/identifier.proto";
 
 service MatchAPIGateway
 {
-  rpc Ping                      (google.protobuf.Empty)   returns (google.protobuf.Empty)  {}
-  rpc GetUserMatches            (GetUserMatchesRequest)   returns (common.Identifiers)     {}
-  rpc CreateMatch               (common.Identifier)       returns (common.Identifier)      {}
-  rpc GetMatch                  (common.Identifier)       returns (Match)                  {}
-  rpc LeaveMatch                (common.Identifier)       returns (google.protobuf.Empty)  {}
-  rpc AcceptMatchInvitation     (common.Identifier)       returns (google.protobuf.Empty)  {}
-  rpc DeclineMatchInvitation    (common.Identifier)       returns (google.protobuf.Empty)  {}
+  rpc Ping                      (google.protobuf.Empty)   returns (google.protobuf.Empty)  {};
+  rpc GetUserMatches            (GetUserMatchesRequest)   returns (common.Identifiers)     {};
+  rpc StartMatchmaking          (google.protobuf.Empty)   returns (google.protobuf.Empty)  {};
+  rpc StopMatchmaking           (google.protobuf.Empty)   returns (google.protobuf.Empty)  {};
+  rpc ChallengeFriend           (common.Identifier)       returns (google.protobuf.Empty)  {};
+  rpc GetMatch                  (common.Identifier)       returns (Match)                  {};
+  rpc LeaveMatch                (common.Identifier)       returns (google.protobuf.Empty)  {};
+  rpc AcceptMatchInvitation     (common.Identifier)       returns (google.protobuf.Empty)  {};
+  rpc DeclineMatchInvitation    (common.Identifier)       returns (google.protobuf.Empty)  {};
 }
 
 message GetUserMatchesRequest

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 14:33:43 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 19:58:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -87,9 +87,19 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
         SET current_status = $2
         WHERE id = $1
       SQL
-      insert_friendship: <<~SQL
+      check_friendship: <<~SQL
+        SELECT status
+        FROM Friendships
+        WHERE user_id_1 = $1 AND user_id_2 = $2
+      SQL
+      insert_friend_request: <<~SQL        
         INSERT INTO Friendships (user_id_1, user_id_2)
         VALUES ($1, $2)
+      SQL
+      update_friendship: <<~SQL
+        UPDATE Friendships
+        SET status = $3
+        WHERE user_id_1 = $1 AND user_id_2 = $2
       SQL
       get_friends: <<~SQL
         SELECT friend_id
@@ -396,7 +406,22 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id, request.id)
 
-    query_result = @db_client.exec_prepared(:insert_friendship, [requester_user_id, request.id])
+    @db_client.transaction do |conn|
+      existing_request = conn.exec_prepared('check_friendship', [friend_user_id, requester_user_id])
+  
+      if existing_request.ntuples > 0
+        status = existing_request[0]['status']
+        case status
+        when 'pending'
+          conn.exec_prepared('update_friendship', [friend_user_id, requester_user_id, 'accepted'])
+        when 'accepted'
+          raise GRPC::FailedPrecondition.new("Friendship already exists")
+        when 'blocked'
+          break
+      else
+        conn.exec_prepared('insert_friend_request', [requester_user_id, friend_user_id])
+      end
+    end
 
     Empty.new
   end

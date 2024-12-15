@@ -6,17 +6,17 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 17:43:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 20:08:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 openapi: 3.0.0
 info:
-  title: Pongfumasters API
+  title: Pongfumasters REST API
   description: REST-ful API to interact with the Pongfumasters gateway.
   version: 1.0.0
 servers:
-  - url: pongfumasters.com/api/v1
+  - url: api.pongfumasters.com/v1
     description: Main API server
 security:
   - jwtAuth: []
@@ -431,7 +431,7 @@ paths:
     post:
       operationId: addFriend
       summary: Add a friend
-      description: Add a user to the friend list.
+      description: Send a friend request by providing the friend ID.
       requestBody:
         content:
           application/json:
@@ -453,7 +453,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-    get:
+    get: #TODO filter by status (pending, accepted, blocked)
       operationId: getFriends
       summary: Get list of friends
       description: Retrieve the list of friends of the current user.
@@ -484,13 +484,72 @@ paths:
                     $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
-  /user/friends/{user_id}:
     delete:
       operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
-      parameters:
-        - $ref: "#/components/parameters/user_id"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /user/friends/requests:
+    post:
+      operationId: acceptFriendRequest
+      summary: Accept friend request
+      description: Accept a friend request by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      operationId: rejectFriendRequest
+      summary: Reject friend request
+      description: Reject a friend request by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -502,41 +561,59 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
+      
+#TODO refactor di PROTOS, API GATEWAY, MATCH per riflettere cambiamenti in API matches 
   /matches:
     post:
-      operationId: createMatch
-      summary: Start a new match
-      description: Initialize a new Pong match by providing the opponent user ID.
+      operationId: startMatchmaking
+      summary: Start matchmaking
+      description: Join the matchmaking queue to find an opponent for a Pong match.
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      operationId: stopMatchmaking
+      summary: Stop matchmaking
+      description: Leave the matchmaking queue and stop searching for an opponent.
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /matches/challenges:
+    post:
+      operationId: challengeFriend
+      summary: Challenge a friend
+      description: Join a private matchmaking queue to challenge a friend to a Pong match.
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                opponent_id:
+                friend_id:
                   $ref: "#/components/schemas/user_id"
-              required: [opponent_id]
+              required: [friend_id]
               additionalProperties: false
         required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
       responses:
-        "201":
-          description: Returns the match ID of the newly created match.
-          headers:
-            Content-Length:
-              $ref: "#/components/headers/Content-Length"
-            Content-Type:
-              $ref: "#/components/headers/Content-Type"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  match_id:
-                    $ref: "#/components/schemas/match_id"
-                required: [match_id]
+        "204":
+          $ref: "#/components/responses/NoContent"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
@@ -567,8 +644,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
     delete:
       operationId: leaveMatch
-      summary: Leave the current match
-      description: Exit and terminate the ongoing match.
+      summary: Leave the current match or decline an invitation
+      description: Exit and terminate the ongoing match by providing the match ID.
       parameters:
         - $ref: "#/components/parameters/match_id"
       security:
@@ -583,7 +660,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/{match_id}/accept:
+  /matches/{match_id}/invitation:
     post:
       operationId: acceptMatchInvitation
       summary: Accept match invitation
@@ -594,7 +671,7 @@ paths:
         - jwtAuth: []
       x-auth-level: 2
       responses:
-        "204":
+        "201":
           $ref: "#/components/responses/NoContent"
         "401":
           $ref: "#/components/responses/Unauthorized"
@@ -602,8 +679,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/{match_id}/decline:
-    post:
+    delete:
       operationId: declineMatchInvitation
       summary: Decline match invitation
       description: Decline an invitation to join a match by providing the match ID.
@@ -874,8 +950,6 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/match_id"
-        creator_id:
-          $ref: "#/components/schemas/user_id"
         player_ids:
           type: array
           items:
@@ -886,7 +960,7 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_at:
           $ref: "#/components/schemas/timestamp"
-      required: [id, creator_id, player_ids, status, started_at]
+      required: [id, player_ids, status, started_at]
 
     Tournament:
       description: Represents a Pong tournament, containing multiple matches and players.

@@ -6,15 +6,17 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:44 by craimond          #+#    #+#              #
-#    Updated: 2024/12/12 18:52:54 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 20:29:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
 class GetUserPrivateProfileHandler < BaseHandler
+
   def call(parsed_request)
-    response = @grpc_client.get_user_private_profile(build_request_metadata(parsed_request))
+    metadata = build_request_metadata(parsed_request)
+    response = @grpc_client.get_user_private_profile(metadata)
     
     body = {
       id:           response.id,
@@ -28,4 +30,5 @@ class GetUserPrivateProfileHandler < BaseHandler
 
     [200, {}, [JSON.generate(body)]]
   end
+  
 end

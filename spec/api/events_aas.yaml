@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 18:28:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 20:07:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,9 +22,8 @@ servers:
     description: Unified server for WebSocket and SSE.
     url: http://api.pongfumasters.com
     protocol: http
-
-#TODO aggiungere MATCH FOUND SSE
-
+    protocolVersion: '2.0'
+ 
 channels:
   game/updates:
     description: Channel for real-time game updates via WebSocket.
@@ -41,7 +40,6 @@ channels:
           - $ref: '#/components/messages/GameStateMessage'
           - $ref: '#/components/messages/GameOverMessage'
 
-#TODO implement notifications (guardare /matches in oas)
   notifications:
     description: Channel for receiving notifications via Server-Sent Events (SSE).
     bindings:
@@ -58,7 +56,7 @@ channels:
             notificationType:
               description: Type of notification
               type: string
-              enum: [friendRequest, gameInvitation, systemAlert]
+              enum: [friendRequest, matchInvitation]
             data:
               description: Data for the notification.
               type: object
@@ -66,6 +64,7 @@ channels:
                 message: "Player123 has sent you a friend request."
 
 components:
+
   schemas:
     user_id:
       description: Unique identifier for the user.
@@ -101,6 +100,7 @@ components:
       minimum: 0
 
   messages:
+
     HandshakeMessage:
       name: HandshakeMessage
       contentType: application/json
@@ -187,3 +187,48 @@ components:
                     $ref: '#/components/schemas/score'
                   player2:
                     $ref: '#/components/schemas/score'
+
+    MatchFoundNotification: #effettivo match found notif. -> wss (con match_id nel uri)
+      name: MatchFoundNotification
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [matchFound]
+          data:
+            type: object
+            properties:
+              match_id:
+                $ref: '#/components/schemas/match_id'
+              opponent:
+                $ref: '#/components/schemas/user_id'
+    MatchInvitationNotification: #TODO invito notif. -> ACCEPT tramite API -> creazione del match object nel db -> match_found notif. -> wss (con match_id nel uri)
+      name: MatchInvitationNotification
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [matchInvitation]
+          data:
+            type: object
+            properties:
+              from_user:
+                $ref: '#/components/schemas/user_id'
+    FriendRequestNotification:
+      name: FriendRequestNotification
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [friendRequest]
+          data:
+            type: object
+            properties:
+              from_user:
+                $ref: '#/components/schemas/user_id'

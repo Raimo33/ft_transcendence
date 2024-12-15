@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 18:27:53 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 20:08:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -431,7 +431,7 @@ paths:
     post:
       operationId: addFriend
       summary: Add a friend
-      description: Add a user to the friend list.
+      description: Send a friend request by providing the friend ID.
       requestBody:
         content:
           application/json:
@@ -453,7 +453,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-    get:
+    get: #TODO filter by status (pending, accepted, blocked)
       operationId: getFriends
       summary: Get list of friends
       description: Retrieve the list of friends of the current user.
@@ -484,13 +484,72 @@ paths:
                     $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
-  /user/friends/{user_id}:
     delete:
       operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
-      parameters:
-        - $ref: "#/components/parameters/user_id"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /user/friends/requests:
+    post:
+      operationId: acceptFriendRequest
+      summary: Accept friend request
+      description: Accept a friend request by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      operationId: rejectFriendRequest
+      summary: Reject friend request
+      description: Reject a friend request by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -502,12 +561,27 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
+      
 #TODO refactor di PROTOS, API GATEWAY, MATCH per riflettere cambiamenti in API matches 
   /matches:
     post:
       operationId: startMatchmaking
       summary: Start matchmaking
       description: Join the matchmaking queue to find an opponent for a Pong match.
+      security:
+        - jwtAuth: []
+      x-auth-level: 2
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      operationId: stopMatchmaking
+      summary: Stop matchmaking
+      description: Leave the matchmaking queue and stop searching for an opponent.
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -571,7 +645,7 @@ paths:
     delete:
       operationId: leaveMatch
       summary: Leave the current match or decline an invitation
-      description: Exit and terminate the ongoing match or decline an invitation to join a match by providing the match ID.
+      description: Exit and terminate the ongoing match by providing the match ID.
       parameters:
         - $ref: "#/components/parameters/match_id"
       security:
@@ -586,9 +660,9 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/{match_id}/invitation: #TODO actually creates the match object in the database (assigning it the match_id)
+  /matches/{match_id}/invitation:
     post:
-      operationId: acceptMatch
+      operationId: acceptMatchInvitation
       summary: Accept match invitation
       description: Accept an invitation to join a match by providing the match ID.
       parameters:
@@ -606,7 +680,7 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
     delete:
-      operationId: declineMatch
+      operationId: declineMatchInvitation
       summary: Decline match invitation
       description: Decline an invitation to join a match by providing the match ID.
       parameters:

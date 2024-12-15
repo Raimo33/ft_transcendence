@@ -1,30 +1,27 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    create_match_handler.rb                            :+:      :+:    :+:    #
+#    challenge_friend_handler.rb                        :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/24 18:38:31 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:07:11 by craimond         ###   ########.fr        #
+#    Created: 2024/12/15 20:20:31 by craimond          #+#    #+#              #
+#    Updated: 2024/12/15 20:28:01 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'base_handler'
 
-class CreateMatchHandler < BaseHandler
+class ChallengeFriendHandler < BaseHandler
+
   def call(parsed_request)
-    parsed_request = env[OpenapiFirst::REQUEST]
-
-    response = @grpc_client.create_match(
-      opponent_id: parsed_request.parsed_params[:opponent_id]
-      build_request_metadata(parsed_request)
+    metadata = build_request_metadata(parsed_request)
+    response = @grpc_client.challenge_friend(
+      friend_id:  parsed_request.parsed_params['friend_id'],
+      metadata:   metadata
     )
-    
-    body = {
-      match_id: response.id,
-    }
 
-    [201, {}, [JSON.generate(body)]]
+    [201, {}, []]
   end
+
 end

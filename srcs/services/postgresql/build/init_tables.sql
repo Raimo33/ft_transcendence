@@ -74,7 +74,7 @@ CREATE INDEX idx_tournaments_id          ON Tournaments(id) USING HASH;
 CREATE INDEX idx_tournaments_startedat   ON Tournaments(started_at DESC);
 CREATE INDEX idx_tournaments_finishedat  ON Tournaments(finished_at);
 
-CREATE TYPE friendship_status AS ENUM ('pending', 'accepted', 'blocked', 'rejected');
+CREATE TYPE friendship_status AS ENUM ('pending', 'accepted', 'blocked');
 
 CREATE TABLE Friendships
 (

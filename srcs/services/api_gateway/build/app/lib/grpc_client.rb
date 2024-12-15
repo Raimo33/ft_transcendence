@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 14:02:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 20:18:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -131,9 +131,17 @@ class GrpcClient
     @stubs[:user].remove_friend(request, metadata: metadata)
   end
 
-  def create_match(opponent_id:, metadata = {})
-    request = MatchAPIGateway::Identifier.new(id: opponent_id)
-    @stubs[:match].create_match(request, metadata: metadata)
+  def start_matchmaking(metadata = {})
+    @stubs[:match].start_matchmaking(Empty.new, metadata: metadata)
+  end
+
+  def challenge_friend(friend_id:, metadata = {})
+    request = MatchAPIGateway::Identifier.new(id: friend_id)
+    @stubs[:match].challenge_friend(request, metadata: metadata)
+  end
+
+  def stop_matchmaking(metadata = {})
+    @stubs[:match].stop_matchmaking(Empty.new, metadata: metadata)
   end
 
   def get_match(match_id:, metadata = {})
