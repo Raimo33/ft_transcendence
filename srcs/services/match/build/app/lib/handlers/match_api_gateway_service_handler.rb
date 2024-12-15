@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 18:22:01 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/15 20:32:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -65,6 +65,10 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
 
     match_ids = result.map { |row| row['match_id'] }      
     MatchAPIGateway::Identifiers.new(ids: match_ids)
+  end
+
+  def start_matchmaking(request, call)
+    #TODO implementare la logica di matchmaking
   end
 
   def challenge_friend(request, call)
