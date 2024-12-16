@@ -1,5 +1,3 @@
-\c pongfumasters
-
 CREATE USER user        WITH PASSWORD 'password';
 CREATE USER match       WITH PASSWORD 'password';
 CREATE USER tournament  WITH PASSWORD 'password';

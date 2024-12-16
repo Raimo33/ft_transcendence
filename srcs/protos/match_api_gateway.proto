@@ -29,7 +29,6 @@ message GetUserMatchesRequest
 message Match
 {
   string                      id           = 1;
-  string                      creator_id   = 2;
   repeated string             player_ids   = 3;
   string                      status       = 4;
   google.protobuf.Timestamp   started_at   = 5;

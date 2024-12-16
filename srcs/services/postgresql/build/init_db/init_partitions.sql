@@ -1,4 +1,4 @@
-\c pongfumasters
+CREATE EXTENSION IF NOT EXISTS pg_partman;
 
 CREATE SCHEMA partman;
 

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 15:12:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/16 19:13:07 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,12 +25,15 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
   private
 
   CONSTRAINT_MESSAGES = {
-    'pk_matches'               => "Match already exists",
-    'fk_matches_creatorid'     => "User not found",
-    'fk_matches_tournamentid'  => "Tournament not found",
-    'unq_matches_tournamentid' => "Tournament already exists",
-    'chk_matches_startedat'    => "Match cannot start in the past",
-    'chk_matches_endedat'      => "Match cannot end before it starts",
+    'pk_matches'                      => "Match already exists",
+    'fk_matches_creatorid'            => "User not found",
+    'fk_matches_tournamentid'         => "Tournament not found",
+    'fk_friendships_user_id_1'        => "Friendship not found",
+    'fk_friendships_user_id_2'        => "Friendship not found",
+    'unq_matches_tournamentid'        => "Tournament already exists",
+    'chk_matches_startedat'           => "Match cannot start in the past",
+    'chk_matches_endedat'             => "Match cannot end before it starts",
+    'chk_friendships_different_users' => "Cannot be friends with yourself",
   }.freeze
 
   EXCEPTION_MAP = {

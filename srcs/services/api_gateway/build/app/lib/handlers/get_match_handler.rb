@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 19:14:05 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 20:29:26 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/16 18:32:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,6 @@ class GetMatchHandler < BaseHandler
     body = {
       match: {
         id:             response.id,
-        creator_id:     response.creator_id,
         player_ids:     response.player_ids,
         status:         response.status,
         started_at:     response.started_at.seconds,

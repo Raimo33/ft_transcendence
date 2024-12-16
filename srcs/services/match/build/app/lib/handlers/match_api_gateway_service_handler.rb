@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 20:32:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/16 19:46:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,17 +31,29 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
         WHERE user_id = $1 AND (started_at, match_id) < ($2, $3)
         LIMIT $4
       SQL
-      insert_match: <<~SQL
-        WITH new_match AS (
-          INSERT INTO Matches (creator_id, opponent_id)
-          VALUES ($1, $2)
-          RETURNING id
-        )
-        INSERT INTO MatchPlayers (match_id, user_id)
-        VALUES 
-          ((SELECT id FROM new_match), $1, 1),
-          ((SELECT id FROM new_match), $2, 2)
-        RETURNING match_id
+      is_playing: <<~SQL
+        SELECT EXISTS (
+          SELECT 1
+          FROM MatchPlayersChronologicalMatView
+          WHERE user_id = $1 AND ended_at IS NULL
+        ) AS is_playing
+      SQL
+      are_friends: <<~SQL
+        SELECT EXISTS (
+          SELECT 1
+          FROM Friendships
+          WHERE user_id_1 = $1 AND user_id_2 = $2
+        ) AS are_friends
+      SQL
+      get_user_status: <<~SQL
+        SELECT current_status
+        FROM Users
+        WHERE user_id = $1
+      SQL
+      get_match_info: <<~SQL
+        SELECT *
+        FROM Matches
+        WHERE match_id = $1
       SQL
     }
 
@@ -68,24 +80,74 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
   end
 
   def start_matchmaking(request, call)
-    #TODO implementare la logica di matchmaking
+    user_id = call.metadata['requester_user_id']
+    check_required_fields(user_id)
+
+    response = @db_client.exec_prepared(:is_playing, [user_id])
+    is_playing = response.first['is_playing'] == 't'
+    raise GRPC::FailedPrecondition.new("User is already playing a match") if is_playing
+
+    @grpc_client.add_matchmaking_user(user_id) #TODO will retun Conflict error if user is already in the queue
+
+    Empty.new
+  end
+
+  def stop_matchmaking(request, call)
+    user_id = call.metadata['requester_user_id']
+    check_required_fields(user_id)
+
+    @grpc_client.remove_matchmaking_user(user_id) #TODO will return Conflict error if user is not in the queue
+
+    Empty.new
   end
 
   def challenge_friend(request, call)
-    opponent_id = request.opponent_id
-    creator_id  = call.metadata['requester_user_id']
-    check_required_fields(creator_id, opponent_id)
+    friend_id = request.friend_id
+    user_id = call.metadata['requester_user_id']
+    check_required_fields(user_id, friend_id)
 
-    #TODO controllare se l'opponent e' un amico
-    #TODO controllare se l'opponent e' online
-    result = @db_client.exec_prepared(:insert_match, [creator_id, opponent_id])
-    match_id = result.first['match_id']
+    async_context = Async do |task|
+      are_friends_task = task.async do
+        response = @db_client.exec_prepared(:are_friends, [user_id, friend_id])
+        response.first['are_friends'] == 't'
+      end
+    
+      is_playing_task = task.async do
+        response = @db_client.exec_prepared(:is_playing, [friend_id])
+        response.first['is_playing'] == 't'
+      end
 
-    #TODO aderire alla asyncapi specification
-    payload = { match_id: match_id }
-    @grpc_client.notify_clients([opponent_id], 'match_invitation', payload)
+      is_online_task = task.async do
+        response = @db_client.exec_prepared(:get_user_status, [friend_id])
+        response.first['current_status'] == 'online'
+      end
+      
+      raise GRPC::FailedPrecondition.new("Users are not friends") unless are_friends_task.wait
+      raise GRPC::FailedPrecondition.new("Friend is already playing a match") if is_playing_task.wait
+      raise GRPC::FailedPrecondition.new("Friend is not online") unless is_online_task.wait
+    end
 
-    MatchAPIGateway::Identifier.new(id: match_id)
+    notification_type = 'matchInvitation'
+    notification_payload = { from_user: user_id }
+    @grpc_client.notify_clients([friend_id], notification_type, notification_payload)
+
+    Empty.new
+  ensure
+    async_context&.stop
+  end
+
+  def get_match(request, call)
+    match_id = request.match_id
+    check_required_fields(match_id)
+
+    response = @db_client.exec_prepared(:get_match_info, [match_id])
+    raise GRPC::NotFound.new("Match not found") if response.empty?
+
+    row = response.first
+    MatchAPIGateway::Match.new(
+      id:         row['id'],
+      player_ids: row['player_ids'],
+      #TODO implement
   end
 
   def accept_match_invitation(request, call)
