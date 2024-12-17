@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    rest_api_oas.yaml                                  :+:      :+:    :+:    #
+#    rest_api_oas.pdf                                   :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 17:17:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:05:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -782,7 +782,7 @@ components:
     match_status:
       description: Current status of the match.
       type: string
-      enum: [pending, ongoing, completed]
+      enum: [pending, ongoing, ended]
       example: "ongoing"
 
     player_position:
@@ -800,7 +800,7 @@ components:
     tournament_status:
       description: Current status of the tournament.
       type: string
-      enum: [pending, ongoing, completed, cancelled]
+      enum: [pending, ongoing, ended, cancelled]
       example: "ongoing"
     timestamp:
       description: Timestamp in unix timestamp format.
@@ -884,7 +884,7 @@ components:
           $ref: "#/components/schemas/match_status"
         started_at:
           $ref: "#/components/schemas/timestamp"
-        finished_at:
+        ended_at:
           $ref: "#/components/schemas/timestamp"
       required: [id, creator_id, player_ids, status, started_at]
 
@@ -904,7 +904,7 @@ components:
           $ref: "#/components/schemas/tournament_status"
         started_at:
           $ref: "#/components/schemas/timestamp"
-        finished_at:
+        ended_at:
           $ref: "#/components/schemas/timestamp"
       required: [id, creator_id, match_ids, status, started_at]
 

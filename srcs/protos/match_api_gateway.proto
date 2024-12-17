@@ -32,7 +32,7 @@ message Match
   repeated string             player_ids    = 3;
   string                      status        = 4;
   google.protobuf.Timestamp   started_at    = 5;
-  google.protobuf.Timestamp   finished_at   = 6;
+  google.protobuf.Timestamp   ended_at   = 6;
   string                      tournament_id = 7;
 }
 

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 18:13:17 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:05:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ require 'base64'
 require_relative '../config_handler'
 require_relative '../grpc_client'
 require_relative '../db_client'
+require_relative '../protos/match_api_gateway_services_pb'
 
 class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
   include EmailValidator
@@ -169,7 +170,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
       player_ids:  pg_array_to_protobuf_array(row['player_ids']),
       status:      row['current_status'],
       started_at:  time_to_protobuf_timestamp(row['started_at']&.to_i),
-      finished_at: time_to_protobuf_timestamp(row['finished_at']&.to_i)
+      ended_at: time_to_protobuf_timestamp(row['ended_at']&.to_i)
     )
   end
 

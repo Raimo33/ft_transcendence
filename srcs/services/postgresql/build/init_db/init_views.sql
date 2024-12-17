@@ -41,7 +41,7 @@ SELECT
   m.id,
   m.current_status,
   m.started_at,
-  m.finished_at,
+  m.ended_at,
   m.tournament_id,
   array_agg(mp.user_id) AS player_ids
 FROM Matches m

@@ -26,14 +26,14 @@ CREATE TABLE Users
 CREATE INDEX idx_users_id          ON Users(id)           USING HASH;
 CREATE INDEX idx_users_displayname ON Users(display_name) USING HASH;
 
-CREATE TYPE match_status AS ENUM ('pending', 'ongoing', 'completed');
+CREATE TYPE match_status AS ENUM ('pending', 'ongoing', 'ended');
 
 CREATE TABLE Matches
 (
   id              uuid NOT NULL gen_random_uuid(),
   current_status  match_status  NOT NULL DEFAULT 'ongoing',
   started_at      timestamptz   NOT NULL DEFAULT now(),
-  finished_at     timestamptz,
+  ended_at        timestamptz,
   tournament_id   uuid,
 
   CONSTRAINT  pk_matches                PRIMARY KEY (id),
@@ -41,14 +41,14 @@ CREATE TABLE Matches
   CONSTRAINT  unq_matches_tournamentid  UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
 
   CONSTRAINT  chk_matches_startedat   CHECK (started_at <= NOW()),
-  CONSTRAINT  chk_matches_finishedat  CHECK (finished_at <= NOW())
+  CONSTRAINT  chk_matches_finishedat  CHECK (ended_at <= NOW())
 );
 
 CREATE INDEX idx_matches_id         ON Matches(id) USING HASH;
 CREATE INDEX idx_matches_startedat  ON Matches(started_at DESC);
-CREATE INDEX idx_matches_finishedat ON Matches(finished_at);
+CREATE INDEX idx_matches_finishedat ON Matches(ended_at);
 
-CREATE TYPE tournament_status AS ENUM ('pending', 'ongoing', 'completed', 'cancelled');
+CREATE TYPE tournament_status AS ENUM ('pending', 'ongoing', 'ended', 'cancelled');
 
 CREATE TABLE Tournaments
 (
@@ -56,18 +56,18 @@ CREATE TABLE Tournaments
   creator_id      uuid NOT NULL,
   current_status  tournament_status NOT NULL DEFAULT 'pending',
   started_at      timestamptz NOT NULL DEFAULT now(),
-  finished_at     timestamptz,
+  ended_at        timestamptz,
 
   CONSTRAINT  pk_tournaments          PRIMARY KEY (id),
   CONSTRAINT  fk_tournaments_creator  FOREIGN KEY (creator_id) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   
   CONSTRAINT  chk_tournaments_startedat   CHECK (started_at  <= NOW()),
-  CONSTRAINT  chk_tournaments_finishedat  CHECK (finished_at <= NOW())
+  CONSTRAINT  chk_tournaments_finishedat  CHECK (ended_at <= NOW())
 );
 
 CREATE INDEX idx_tournaments_id         ON Tournaments(id) USING HASH;
 CREATE INDEX idx_tournaments_startedat  ON Tournaments(started_at DESC);
-CREATE INDEX idx_tournaments_finishedat ON Tournaments(finished_at);
+CREATE INDEX idx_tournaments_finishedat ON Tournaments(ended_at);
 
 CREATE TYPE friendship_status AS ENUM ('pending', 'accepted', 'blocked');
 
