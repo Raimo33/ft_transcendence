@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 17:55:13 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:53:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -94,14 +94,12 @@ class GrpcClient
     @stubs[:auth].extend_jwt(request, metadata: metadata)
   end
 
-  def notify_clients(user_ids:, event:, payload:, metadata = {})
-    request = NotificationUser::NotifyClientsRequest(
-      user_ids: user_ids,
-      event:    event,
-      payload:  Google::Protobuf::Struct.from_hash(payload)
+  def notify_friend_request(from_user_id:, to_user_id:, metadata = {})
+    request = NotificationUser::NotifyFriendRequestRequest(
+      from_user_id: from_user_id,
+      to_user_id:   to_user_id
     )
-
-    @stubs[:notification].notify_clients(request, metadata: metadata)
+    @stubs[:notification].notify_friend_request(request, metadata: metadata)
   end
 
   private

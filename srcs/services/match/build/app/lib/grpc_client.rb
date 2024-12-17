@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 18:23:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:49:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -67,15 +67,15 @@ class GrpcClient
 
   def close_game_state()
 
-  def notify_clients(user_ids:, event:, payload:, metadata = {})
-    request = NotificationUser::NotifyClientsRequest(
-      user_ids: user_ids,
-      event:    event,
-      payload:  Google::Protobuf::Struct.from_hash(payload)
+  def notify_match_invitation(from_user_id:, to_user_id:, metadata = {})
+    request = NotificationUser::NotifyMatchInvitationRequest(
+      from_user_id: from,
+      to_user_id:   to
     )
 
-    @stubs[:notification].notify_clients(request, metadata: metadata)
+    @stubs[:notification].notify_match_invitation(request, metadata: metadata)
   end
+
 
   private
 

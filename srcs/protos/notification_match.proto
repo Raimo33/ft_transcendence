@@ -8,13 +8,13 @@ import "google/protobuf/struct.proto";
 
 service NotificationMatch
 {
-  rpc Ping           (google.protobuf.Empty)  returns (google.protobuf.Empty)  {};
-  rpc NotifyClients  (NotifyClientsRequest)   returns (google.protobuf.Empty)  {};
+  rpc Ping                  (google.protobuf.Empty)        returns (google.protobuf.Empty)  {};
+  rpc NotifyMatchInvitation (NotifyMatchInvitationRequest) returns (google.protobuf.Empty)  {};
+  rpc NotifyMatchFound      (NotifyMatchFoundRequest)      returns (google.protobuf.Empty)  {};
 }
 
-message NotifyClientsRequest
+message NotifyMatchInvitationRequest
 {
-  common.Identifiers      user_ids  = 1;
-  string                  event     = 3;
-  google.protobuf.Struct  payload   = 4;
+  string  from_user_id  = 1;
+  string  to_user_id    = 2;
 }

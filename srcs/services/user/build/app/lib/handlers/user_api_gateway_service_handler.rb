@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 17:41:42 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:52:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -424,7 +424,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       end
     end
 
-    @grpc_client.notify_clients([friend_user_id], 'friendRequest', { from_user: requester_user_id })
+    @grpc_client.notify_friend_request(from_user_id: requester_user_id, to_user_id: friend_user_id)
 
     Empty.new
   end

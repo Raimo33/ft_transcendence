@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:05:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:56:19 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -562,7 +562,6 @@ paths:
           $ref: "#/components/responses/Conflict"
 
       
-#TODO refactor di PROTOS, API GATEWAY, MATCH per riflettere cambiamenti in API matches 
   /matches:
     post:
       operationId: startMatchmaking

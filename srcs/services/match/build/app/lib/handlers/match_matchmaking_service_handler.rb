@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:22:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:55:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,14 @@ class MatchMatchmakingServiceHandler < MatchMatchmaking::Service
     @db_client    = DBClient.instance
 
     @prepared_statements = {
-      
+      insert_match: <<~SQL
+        INSERT INTO Matches (id)
+        VALUES ($1)
+      SQL
+      insert_match_players: <<~SQL
+        INSERT INTO MatchPlayers
+        VALUES ($1, $2), ($1, $3)
+      SQL
     }
 
     prepare_statements
@@ -36,7 +43,19 @@ class MatchMatchmakingServiceHandler < MatchMatchmaking::Service
   end
 
   def match_found(request, call)
-    #TODO creera l'oggetto match e inviera' la notification_payload a tutti i giocatori
+    user_id_1 = requester_user_id_1
+    user_id_2 = request.user_id_2
+    check_required_fields(player_1, player_2)
+
+    match_id = SecureRandom.uuid
+    @db_client.transaction do |tx|
+      tx.exec_prepared('insert_match', [request.match_id])
+      tx.exec_prepared('insert_match_players', [match_id, user_id_1, user_id_2])
+    end
+
+    @grpc_client.notify_match_found(user_id_1, user_id_2, match_id)
+
+    Empty.new
   end
 
   private

@@ -6,9 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 17:41:40 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 20:21:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+#TODO fix and valdate
 
 asyncapi: 3.0.0
 
@@ -25,7 +27,7 @@ servers:
     protocolVersion: '2.0'
  
 channels:
-  game/updates:
+  matches/{match_id}/updates:
     description: Channel for real-time game updates via WebSocket.
     bindings:
       wss:
@@ -204,7 +206,7 @@ components:
                 $ref: '#/components/schemas/match_id'
               opponent:
                 $ref: '#/components/schemas/user_id'
-    MatchInvitationNotification: #TODO invito notif. -> ACCEPT tramite API -> creazione del match object nel db -> match_found notif. -> wss (con match_id nel uri)
+    MatchInvitationNotification:
       name: MatchInvitationNotification
       contentType: application/json
       payload:

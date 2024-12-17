@@ -16,7 +16,7 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - edge
+      - core
     restart: always
     depends_on:
       nginx:

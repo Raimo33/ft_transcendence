@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:05:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 19:51:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -144,7 +144,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
 
       add_invitation_task.wait
 
-      @grpc_client.notify_clients([friend_id], matchInvitation, { from_user: user_id })
+      @grpc_client.notify_match_invitation(from_user_id: user_id, to_user_id: friend_id)
       
       Empty.new
     rescue
@@ -206,7 +206,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
         raise
       end
 
-      @grpc_client.notify_clients([user_id, friend_id], 'matchFound', { match_id: match_id })
+      @grpc_client.notify_match_found(user_id, friend_id, match_id)
   
       Empty.new
     end
