@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 20:08:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 16:18:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -660,13 +660,22 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/{match_id}/invitation:
+  /matches/invitation:
     post:
       operationId: acceptMatchInvitation
       summary: Accept match invitation
-      description: Accept an invitation to join a match by providing the match ID.
-      parameters:
-        - $ref: "#/components/parameters/match_id"
+      description: Accept an invitation to join a match by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -682,9 +691,18 @@ paths:
     delete:
       operationId: declineMatchInvitation
       summary: Decline match invitation
-      description: Decline an invitation to join a match by providing the match ID.
-      parameters:
-        - $ref: "#/components/parameters/match_id"
+      description: Decline an invitation to join a match by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                match_id:
+                  $ref: "#/components/schemas/match_id"
+              required: [match_id]
+              additionalProperties: false
+        required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -960,6 +978,8 @@ components:
           $ref: "#/components/schemas/timestamp"
         finished_at:
           $ref: "#/components/schemas/timestamp"
+        tournament_id:
+          $ref: "#/components/schemas/tournament_id"
       required: [id, player_ids, status, started_at]
 
     Tournament:

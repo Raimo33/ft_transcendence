@@ -13,6 +13,6 @@ service AuthAPIGateway
 
 message ValidateSessionTokenRequest
 {
-  string session_token        = 1;
+  string session_token = 1;
   int16  required_auth_level  = 2;
 }

@@ -43,9 +43,9 @@ SELECT
   m.started_at,
   m.finished_at,
   m.tournament_id,
-  ARRAY_AGG(mp.user_id) AS player_ids
+  array_agg(mp.user_id) AS player_ids
 FROM Matches m
-LEFT JOIN MatchPlayers mp ON m.id = mp.match_id
+JOIN MatchPlayers mp ON m.id = mp.match_id
 GROUP BY m.id;
 
 CREATE INDEX idx_matchesinfomatview_id ON MatchesInfoMatView USING HASH (id);

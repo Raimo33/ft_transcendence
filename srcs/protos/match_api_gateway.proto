@@ -28,11 +28,12 @@ message GetUserMatchesRequest
 
 message Match
 {
-  string                      id           = 1;
-  repeated string             player_ids   = 3;
-  string                      status       = 4;
-  google.protobuf.Timestamp   started_at   = 5;
-  google.protobuf.Timestamp   finished_at  = 6;
+  string                      id            = 1;
+  repeated string             player_ids    = 3;
+  string                      status        = 4;
+  google.protobuf.Timestamp   started_at    = 5;
+  google.protobuf.Timestamp   finished_at   = 6;
+  string                      tournament_id = 7;
 }
 
 message Matches

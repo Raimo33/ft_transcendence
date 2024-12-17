@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package game_state;
+
+import "google/protobuf/empty.proto";
+import "common/identifier.proto";
+
+service GameStateMatch
+{
+  rpc Ping            (google.protobuf.Empty)  returns (google.protobuf.Empty)  {};
+  rpc SetupGameState  (common.Identifier)      returns (google.protobuf.Empty)  {}; //TODO will return Conflict if user already playing (websocket already existent)
+  rpc CloseGameState  (common.Identifier)      returns (google.protobuf.Empty)  {}; //TODO will return Conflict if user not playing (websocket not existent)
+}
+

@@ -10,6 +10,7 @@ grpc:
   client:
     addresses:
       auth: auth.core:50051
+      notification: notification.core:50051
 
 database:
   host: postgresql.data

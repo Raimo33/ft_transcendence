@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 20:07:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 17:41:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -218,6 +218,7 @@ components:
             properties:
               from_user:
                 $ref: '#/components/schemas/user_id'
+
     FriendRequestNotification:
       name: FriendRequestNotification
       contentType: application/json

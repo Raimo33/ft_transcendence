@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/15 19:58:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 17:41:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -143,9 +143,9 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       hashed_password = password_task.wait
       avatar = avatar_task&.wait
     
-      insert_result = @db_client.exec_prepared(:insert_user, [email, hashed_password, display_name, avatar || @default_avatar])
+      db_response = @db_client.exec_prepared(:insert_user, [email, hashed_password, display_name, avatar || @default_avatar])
 
-      UserAPIGateway::RegisterUserResponse.new(insert_result[0]['id'])
+      UserAPIGateway::RegisterUserResponse.new(db_response.first['id'])
     end
 
     async_context.wait
@@ -157,10 +157,10 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   def get_user_public_profile(request, call)
     check_required_fields(request.id)
   
-    query_result = @db_client.exec_prepared(:get_public_profile, [request.id])
-    raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
+    db_response = @db_client.exec_prepared(:get_public_profile, [request.id])
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
 
-    row = query_result.first
+    row = db_response.first
     created_at_time = Time.parse(row["created_at"])
     created_at_timestamp = Google::Protobuf::Timestamp.new
     created_at_timestamp.from_time(created_at_time)
@@ -177,10 +177,10 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(request.id)
 
-    query_result = @db_client.exec_prepared(:get_status, [request.id])
-    raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
+    db_response = @db_client.exec_prepared(:get_status, [request.id])
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
   
-    UserAPIGateway::UserStatus.new(query_result[0]['current_status'])
+    UserAPIGateway::UserStatus.new(db_response.first['current_status'])
   end
 
   def delete_account(request, call)
@@ -207,13 +207,12 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id)
 
-    query_result = @db_client.exec_prepared(:get_private_profile, [requester_user_id])
-    raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
+    db_response = @db_client.exec_prepared(:get_private_profile, [requester_user_id])
+    raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
   
-    row = query_result.first
-    created_at_time = Time.parse(row["created_at"])
-    created_at_timestamp = Google::Protobuf::Timestamp.new
-    created_at_timestamp.from_time(created_at_time)
+    row = db_response.first
+    created_at_time = row["created_at"]
+    created_at_timestamp = Google::Protobuf::Timestamp.new(seconds: created_at_time.to_i)
     UserAPIGateway::UserPrivateProfile.new(
       id:            row["id"],
       email:         row["email"],
@@ -242,8 +241,8 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       checks.wait
       compressed_avatar = avatar_task&.wait
   
-      query_result = @db_client.exec_prepared(:update_profile, [request.display_name, compressed_avatar, requester_user_id])
-      raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
+      db_response = @db_client.exec_prepared(:update_profile, [request.display_name, compressed_avatar, requester_user_id])
+      raise GRPC::NotFound.new("User not found") if db_response.cmd_tuples.zero?
 
       Empty.new
     end
@@ -261,7 +260,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     
     async_context = Async do |task|
       qr_code_task = task.async { generate_qr_code(tfa_response.tfa_provisioning_uri) }
-      db_task = task.async { @db_client.query(@prepared_statements[:enable_tfa], [requester_user_id, tfa_response.tfa_secret]) }
+      db_task = task.async { @db_client.exec_prepared(:enable_tfa, [requester_user_id, tfa_response.tfa_secret]) }
 
       db_task.wait
       UserAPIGateway::Enable2FAResponse.new(
@@ -280,14 +279,15 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     check_required_fields(requester_user_id, request.code)
 
     @db_client.exec_prepared(:get_tfa, [requester_user_id])
-    tfa_secret = query_result[0]['tfa_secret']
-    tfa_status = query_result[0]['tfa_status']
+    row = db_response.first
+    tfa_secret = row['tfa_secret']
+    tfa_status = row['tfa_status']
     raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
 
     @grpc_client.check_tfa_code(tfa_secret: tfa_secret, tfa_code: request.code)
 
-    query_result = @db_client.exec_prepared(:delete_tfa, [requester_user_id])
-    raise GRPC::NotFound.new("User not found") if query_result.cmd_tuples.zero?
+    db_response = @db_client.exec_prepared(:delete_tfa, [requester_user_id])
+    raise GRPC::NotFound.new("User not found") if db_response.cmd_tuples.zero?
   
     Empty.new
   end
@@ -297,15 +297,16 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     check_required_fields(requester_user_id, request.code)
   
     async_context = Async do |task|
-      jwt_generation_task = task.async { generate_session_jwt(requester_user_id, false) }
-      forget_sessions_task = task.async { forget_past_sessions(requester_user_id) }
+      jwt_generation_task   = task.async { generate_session_jwt(requester_user_id, false) }
+      forget_sessions_task  = task.async { forget_past_sessions(requester_user_id) }
       query_task = task.async { @db_client.exec_prepared(:get_tfa, [requester_user_id]) }
 
-      query_result = query_task.wait
-      raise GRPC::NotFound.new("User not found") if query_result.ntuples.zero?
+      db_response = query_task.wait
+      raise GRPC::NotFound.new("User not found") if db_response.ntuples.zero?
     
-      tfa_secret = query_result[0]['tfa_secret']
-      tfa_status = query_result[0]['tfa_status']
+      row = db_response.first
+      tfa_secret = row['tfa_secret']
+      tfa_status = row['tfa_status']
       raise GRPC::FailedPrecondition.new("2FA is not enabled") if !tfa_status || tfa_secret.nil?
       
       @grpc_client.check_tfa_code(tfa_secret: tfa_secret, tfa_code: request.code)
@@ -406,22 +407,24 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     requester_user_id = call.metadata['requester_user_id']
     check_required_fields(requester_user_id, request.id)
 
-    @db_client.transaction do |conn|
-      existing_request = conn.exec_prepared('check_friendship', [friend_user_id, requester_user_id])
+    @db_client.transaction do |tx|
+      existing_request = tx.exec_prepared('check_friendship', [friend_user_id, requester_user_id])
   
       if existing_request.ntuples > 0
         status = existing_request[0]['status']
         case status
         when 'pending'
-          conn.exec_prepared('update_friendship', [friend_user_id, requester_user_id, 'accepted'])
+          tx.exec_prepared('update_friendship', [friend_user_id, requester_user_id, 'accepted'])
         when 'accepted'
           raise GRPC::FailedPrecondition.new("Friendship already exists")
         when 'blocked'
           break
       else
-        conn.exec_prepared('insert_friend_request', [requester_user_id, friend_user_id])
+        tx.exec_prepared('insert_friend_request', [requester_user_id, friend_user_id])
       end
     end
+
+    @grpc_client.notify_clients([friend_user_id], 'friendRequest', { from_user: requester_user_id })
 
     Empty.new
   end

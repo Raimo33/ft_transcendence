@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:16:36 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 17:55:13 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,7 @@ require 'grpc'
 require 'singleton'
 require_relative 'ConfigHandler'
 require_relative '../protos/auth_user_services_pb'
+require_relative '../protos/notification_user_services_pb'
 require_relative 'interceptors/metadata_interceptor'
 require_relative 'interceptors/logger_interceptor'
 
@@ -34,10 +35,12 @@ class GrpcClient
 
     @channels = {
       auth: create_channel(@config.dig(:grpc, :client, :addresses, :auth))
+      notification: create_channel(@config.dig(:grpc, :client, :addresses, :notification))
     }
 
     @stubs = {
       auth: AuthUser::Stub.new(@channels[:auth], interceptors: interceptors)
+      notification: NotificationUser::Stub.new(@channels[:notification], interceptors: interceptors)
     }
   ensure
     stop
@@ -89,6 +92,16 @@ class GrpcClient
   def extend_jwt(jwt:, ttl:, metadata = {})
     request = AuthUser::JWT(jwt: jwt)
     @stubs[:auth].extend_jwt(request, metadata: metadata)
+  end
+
+  def notify_clients(user_ids:, event:, payload:, metadata = {})
+    request = NotificationUser::NotifyClientsRequest(
+      user_ids: user_ids,
+      event:    event,
+      payload:  Google::Protobuf::Struct.from_hash(payload)
+    )
+
+    @stubs[:notification].notify_clients(request, metadata: metadata)
   end
 
   private

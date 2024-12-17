@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package notification;
+
+import "google/protobuf/empty.proto";
+import "common/identifier.proto";
+import "google/protobuf/struct.proto";
+
+service NotificationUser
+{
+  rpc Ping           (google.protobuf.Empty)  returns (google.protobuf.Empty)  {};
+  rpc NotifyClients  (NotifyClientsRequest)   returns (google.protobuf.Empty)  {};
+}
+
+message NotifyClientsRequest
+{
+  common.Identifiers      user_ids  = 1;
+  string                  event     = 3;
+  google.protobuf.Struct  payload   = 4;
+}

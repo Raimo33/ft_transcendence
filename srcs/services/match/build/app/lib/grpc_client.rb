@@ -6,14 +6,16 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 17:31:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/17 18:23:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'singleton'
 require_relative 'ConfigHandler'
-require_relative '../protos/auth_user_services_pb'
+require_relative '../protos/matchmaking_user_services_pb'
+require_relative '../protos/game_state_user_services_pb'
+require_relative '../protos/notification_user_services_pb'
 require_relative 'interceptors/metadata_interceptor'
 require_relative 'interceptors/logger_interceptor'
 
@@ -33,11 +35,15 @@ class GrpcClient
     ]
 
     @channels = {
-      auth: create_channel(@config.dig(:grpc, :addresses, :auth))
+      matchmaking: create_channel(@config.dig(:grpc, :client, :addresses, :matchmaking)),
+      game_state: create_channel(@config.dig(:grpc, :client, :addresses, :game_state)),
+      notification: create_channel(@config.dig(:grpc, :client, :addresses, :notification))
     }
 
     @stubs = {
-      auth: AuthUser::Stub.new(@channels[:auth], interceptors: interceptors)
+      matchmaking: Matchmaking::Stub.new(@channels[:matchmaking], interceptors: interceptors),
+      game_state: GameState::Stub.new(@channels[:game_state], interceptors: interceptors),
+      notification: Notification::Stub.new(@channels[:notification], interceptors: interceptors)
     }
   ensure
     stop
@@ -47,8 +53,29 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def notify_clients()
-    #TODO utilizza la asyncapi specification, chiama notification service
+  def add_matchmaking_user()
+
+  def remove_matchmaking_user()
+
+  def add_match_invitation()
+  
+  def delete_match_invitation()
+
+  def accept_match_invitation()
+
+  def setup_game_state()
+
+  def close_game_state()
+
+  def notify_clients(user_ids:, event:, payload:, metadata = {})
+    request = NotificationUser::NotifyClientsRequest(
+      user_ids: user_ids,
+      event:    event,
+      payload:  Google::Protobuf::Struct.from_hash(payload)
+    )
+
+    @stubs[:notification].notify_clients(request, metadata: metadata)
+  end
 
   private
 
