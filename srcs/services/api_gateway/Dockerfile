@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 16:46:47 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/18 14:31:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,10 +42,8 @@ VOLUME ["/etc/ssl/public"]
 ENTRYPOINT ["falcon", "serve", \
             "--bind", "http://0.0.0.0:3000", \
             "--config", "config.ru", \
-            "--timeout", "30", \
-            "--backlog", "1024", \
             "--environment", "production", \
-            "--protocol", "HTTP2", \
+            "--protocol", "HTTP1", \
             "--reuse-port", \
             "--quiet"]
 

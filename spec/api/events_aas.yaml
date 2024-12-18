@@ -6,11 +6,9 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 20:21:48 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/18 13:11:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
-
-#TODO fix and valdate
 
 asyncapi: 3.0.0
 
@@ -21,17 +19,19 @@ info:
 
 servers:
   main:
-    description: Unified server for WebSocket and SSE.
-    url: http://api.pongfumasters.com
+    description: Server for WebSocket live game updates.
+    host: api.pongfumasters.com
+    pathname: /ws
+    protocol: wss
+  sse:
+    description: Server for SSE notifications.
+    host: api.pongfumasters.com
     protocol: http
-    protocolVersion: '2.0'
- 
+    protocolVersion: "1.1"
+
 channels:
   matches/{match_id}/updates:
     description: Channel for real-time game updates via WebSocket.
-    bindings:
-      wss:
-        type: wss
     subscribe:
       summary: Subscribe to receive game updates.
       operationId: receiveGameUpdates
@@ -43,27 +43,15 @@ channels:
           - $ref: '#/components/messages/GameOverMessage'
 
   notifications:
-    description: Channel for receiving notifications via Server-Sent Events (SSE).
-    bindings:
-      http:
-        type: sse
+    description: Channel for receiving notifications via SSE.
     subscribe:
       summary: Subscribe to receive notifications.
       operationId: receiveNotifications
       message:
-        contentType: application/json
-        payload:
-          type: object
-          properties:
-            notificationType:
-              description: Type of notification
-              type: string
-              enum: [friendRequest, matchInvitation]
-            data:
-              description: Data for the notification.
-              type: object
-              example:
-                message: "Player123 has sent you a friend request."
+        oneOf:
+          - $ref: '#/components/messages/MatchFoundNotification'
+          - $ref: '#/components/messages/MatchInvitationNotification'
+          - $ref: '#/components/messages/FriendRequestNotification'
 
 components:
 
@@ -190,7 +178,7 @@ components:
                   player2:
                     $ref: '#/components/schemas/score'
 
-    MatchFoundNotification: #effettivo match found notif. -> wss (con match_id nel uri)
+    MatchFoundNotification:
       name: MatchFoundNotification
       contentType: application/json
       payload:

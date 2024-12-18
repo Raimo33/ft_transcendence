@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/12/14 18:22:45 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/18 13:28:24 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,10 +19,12 @@ RUN apk add --no-cache nginx
 COPY ./build/nginx.conf  /etc/nginx/nginx.conf
 COPY ./build/http.d/     /etc/nginx/http.d/
 
+#TODO build quic http3
+
 WORKDIR /var/www/html
 VOLUME ["var/www/html", "/etc/ssl/public", "/etc/ssl/private"]
 USER nginx
-EXPOSE 80 443
+EXPOSE 80 443/tcp 443/udp
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 CMD ["-c", "/etc/nginx/nginx.conf"]
