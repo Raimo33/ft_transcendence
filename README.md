@@ -5,9 +5,9 @@ Pongfumasters is a web-based augmented reality (AR) Pong game powered by a micro
 This is a 42 school project that is part of the common curriculum, **some design choices are forced by the project subject**. Also, only some of the brainstormed features are implemented because of time constraints. In the following documentation everything written in *italic* has to be interpreted as W.I.P.
 
 # System Design
-![system_design](https://github.com/user-attachments/assets/6637f605-c8a8-4263-a370-55e2f9d33c27)
 
 ## Web Server (NGINX)
+![system_design](https://github.com/user-attachments/assets/23a6d3df-481f-4154-8876-e00ed3016933)
 
 ### Reasoning
 NGINX is chosen for its high performance, scalability, ease of integration and lightweight footprint.
@@ -196,7 +196,7 @@ The Blockchain Service is responsible for interacting with the Ethereum blockcha
 ## Database (PostgreSQL)
 
 ### Database ERD
-![DB](https://github.com/user-attachments/assets/dfefa497-fcbc-482e-92ba-b14f322e6ac7)
+![Restored DB](https://github.com/user-attachments/assets/c3245e1f-912a-433b-b18a-9f4fb3f95b47)
 
 ### Reasoning
 PostgreSQL is chosen as the primary relational database for its robust support for ACID transactions, scalability, and advanced features like support for complex queries and indexing. It is used as a central repository for all system data, ensuring consistency, reliability, and high performance.
