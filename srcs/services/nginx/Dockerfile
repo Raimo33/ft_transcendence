@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/12/18 13:28:24 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/18 14:50:24 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ COPY ./build/nginx.conf  /etc/nginx/nginx.conf
 COPY ./build/http.d/     /etc/nginx/http.d/
 
 #TODO build quic http3
+#TODO build brotli
 
 WORKDIR /var/www/html
 VOLUME ["var/www/html", "/etc/ssl/public", "/etc/ssl/private"]

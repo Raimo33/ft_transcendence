@@ -1,0 +1,104 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    notifications_aas.yaml                             :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
+#    Updated: 2024/12/18 16:33:55 by craimond         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+asyncapi: 3.0.0
+info:
+  title: Pongfumasters Notifications API
+  description: API for Pongfumasters notifications.
+  version: 1.0.0
+servers:
+  notifications:
+    description: Server for SSE.
+    host: api.pongfumasters.com
+    protocol: http
+    protocolVersion: "1.1"
+channels:
+  notifications:
+    description: Channel for receiving notifications via SSE.
+    address: /notifications
+    messages:
+      matchFound:
+        $ref: '#/components/messages/MatchFoundNotification'
+      matchInvitation:
+        $ref: '#/components/messages/MatchInvitationNotification'
+      friendRequest:
+        $ref: '#/components/messages/FriendRequestNotification'
+    bindings:
+      sse:
+        $ref: '#/components/bindings/sse'
+operations:
+  #TODO  
+# application ?
+  #TODO
+components:
+  bindings:
+    sse:
+      headers:
+        authorization:
+          $ref: '#/components/schemas/authorization_header'
+  messages:
+    MatchFoundNotification:
+      name: MatchFoundNotification
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            enum: [matchFound]
+          data:
+            type: object
+            properties:
+              match_id:
+                $ref: '#/components/schemas/match_id'
+              opponent:
+                $ref: '#/components/schemas/user_id'
+    MatchInvitationNotification:
+      name: MatchInvitationNotification
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            enum: [matchInvitation]
+          data:
+            type: object
+            properties:
+              from_user:
+                $ref: '#/components/schemas/user_id'
+    FriendRequestNotification:
+      name: FriendRequestNotification
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            enum: [friendRequest]
+          data:
+            type: object
+            properties:
+              from_user:
+                $ref: '#/components/schemas/user_id'
+  schemas:
+    user_id:
+      description: Unique identifier for the user.
+      type: string
+      format: uuid
+    match_id:
+      description: Unique identifier for the match.
+      type: string
+      format: uuid
+    jwt:
+      description: JSON Web Token for authentication.
+      type: string

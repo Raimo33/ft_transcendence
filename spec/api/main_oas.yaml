@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:05:32 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/18 15:21:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,7 +40,6 @@ paths:
               schema:
                 type: string
                 example: "pong...FUMASTERS!"
-
   /users:
     post:
       operationId: registerUser
@@ -200,7 +199,6 @@ paths:
                     $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
-
   /user:
     delete:
       operationId: deleteAccount
@@ -560,9 +558,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-
-      
-#TODO refactor di PROTOS, API GATEWAY, MATCH per riflettere cambiamenti in API matches 
   /matches:
     post:
       operationId: startMatchmaking
@@ -660,13 +655,22 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/{match_id}/invitation:
+  /matches/invitation:
     post:
       operationId: acceptMatchInvitation
       summary: Accept match invitation
-      description: Accept an invitation to join a match by providing the match ID.
-      parameters:
-        - $ref: "#/components/parameters/match_id"
+      description: Accept an invitation to join a match by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friend_id:
+                  $ref: "#/components/schemas/user_id"
+              required: [friend_id]
+              additionalProperties: false
+        required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -682,9 +686,18 @@ paths:
     delete:
       operationId: declineMatchInvitation
       summary: Decline match invitation
-      description: Decline an invitation to join a match by providing the match ID.
-      parameters:
-        - $ref: "#/components/parameters/match_id"
+      description: Decline an invitation to join a match by providing the friend ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                match_id:
+                  $ref: "#/components/schemas/match_id"
+              required: [match_id]
+              additionalProperties: false
+        required: true
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -697,7 +710,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-
   /tournaments:
     post:
       operationId: createTournament
@@ -797,7 +809,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  
   #TODO: Implement admin routes
   # /admin/users/{user_id}/ban: 
   #   post:
@@ -818,10 +829,73 @@ paths:
   #         $ref: "#/components/responses/Forbidden"
   #       "409":
   #         $ref: "#/components/responses/Conflict"
-
 components:
   schemas:
-
+    UserPublicProfile:
+      description: Represents a public user profile with limited information.
+      type: object
+      properties: 
+        id:
+          $ref: "#/components/schemas/user_id"
+        display_name:
+          $ref: "#/components/schemas/user_display_name"
+        avatar:
+          $ref: "#/components/schemas/user_avatar"
+        status:
+          $ref: "#/components/schemas/user_status"
+        created_at:
+          $ref: "#/components/schemas/timestamp"
+      required: [id, display_name, avatar, status, created_at]
+    UserPrivateProfile:
+      description: Represents a private user profile with additional information.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/UserPublicProfile"
+        - properties:
+            email:
+              $ref: "#/components/schemas/user_email"
+            tfa_status:
+              $ref: "#/components/schemas/tfa_status"
+          additionalProperties: false
+      required: [id, display_name, avatar, status, created_at, email, tfa_status]
+    Match:
+      description: Represents a match of Pong between two players.
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/match_id"
+        player_ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/user_id"
+        status:
+          $ref: "#/components/schemas/match_status"
+        started_at:
+          $ref: "#/components/schemas/timestamp"
+        ended_at:
+          $ref: "#/components/schemas/timestamp"
+        tournament_id:
+          $ref: "#/components/schemas/tournament_id"
+      required: [id, player_ids, status, started_at]
+    Tournament:
+      description: Represents a Pong tournament, containing multiple matches and players.
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/tournament_id"
+        creator_id:
+          $ref: "#/components/schemas/user_id"
+        match_ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/match_id"
+        status:
+          $ref: "#/components/schemas/tournament_status"
+        started_at:
+          $ref: "#/components/schemas/timestamp"
+        ended_at:
+          $ref: "#/components/schemas/timestamp"
+      required: [id, creator_id, match_ids, status, started_at]
     user_id:
       description: Unique identifier for the user (or AI bot) (UUID format or similar).
       type: string
@@ -849,7 +923,6 @@ components:
       type: string
       enum: [online, offline]
       example: "online"
-
     match_id:
       description: Unique identifier for the match (UUID format or similar).
       type: string
@@ -860,14 +933,12 @@ components:
       type: string
       enum: [pending, ongoing, ended]
       example: "ongoing"
-
     player_position:
       description: Position of the player in the leaderboard.
       type: integer
       format: int32
       minimum: 1
       example: 3
-
     tournament_id:
       description: Unique identifier for the tournament (UUID format or similar).
       type: string
@@ -883,107 +954,32 @@ components:
       type: integer
       format: int64
       example: 1634265600
-
     tfa_status:
       description: Status of the TFA authentication for the user.
       type: boolean
       example: true
-
     tfa_code:
       description: 2FA code generated by the user for TFA authentication.
       type: string #string because it can contain leading zeros
       example: "123456"
-
     tfa_secret:
       description: 2FA secret key for generating TFA codes.
       type: string
       example: "otpauth://tfa/{issuer}:{account}?secret={secret}&issuer={issuer}"
-
     qr_code:
       description: QR code image in base64 encoding.
       type: string
       format: base64
       example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABjklEQVRIS+2Vv0oDQRDG..."
-  
     jwt:
       description: JWT for session management.
       type: string
       example: "<Header>.<Payload>.<Signature>"
-    
     cursor_token:
       description: Cursor token for pagination.
       type: string
       example: "eyJ0b2tlbiI6ImN1cnNvci10b2tlbiJ9"
-
-    UserPublicProfile:
-      description: Represents a public user profile with limited information.
-      type: object
-      properties: 
-        id:
-          $ref: "#/components/schemas/user_id"
-        display_name:
-          $ref: "#/components/schemas/user_display_name"
-        avatar:
-          $ref: "#/components/schemas/user_avatar"
-        status:
-          $ref: "#/components/schemas/user_status"
-        created_at:
-          $ref: "#/components/schemas/timestamp"
-      required: [id, display_name, avatar, status, created_at]
-
-    UserPrivateProfile:
-      description: Represents a private user profile with additional information.
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/UserPublicProfile"
-        - properties:
-            email:
-              $ref: "#/components/schemas/user_email"
-            tfa_status:
-              $ref: "#/components/schemas/tfa_status"
-          additionalProperties: false
-      required: [id, display_name, avatar, status, created_at, email, tfa_status]
-
-    Match:
-      description: Represents a match of Pong between two players.
-      type: object
-      properties:
-        id:
-          $ref: "#/components/schemas/match_id"
-        player_ids:
-          type: array
-          items:
-            $ref: "#/components/schemas/user_id"
-        status:
-          $ref: "#/components/schemas/match_status"
-        started_at:
-          $ref: "#/components/schemas/timestamp"
-        ended_at:
-          $ref: "#/components/schemas/timestamp"
-      required: [id, player_ids, status, started_at]
-
-    Tournament:
-      description: Represents a Pong tournament, containing multiple matches and players.
-      type: object
-      properties:
-        id:
-          $ref: "#/components/schemas/tournament_id"
-        creator_id:
-          $ref: "#/components/schemas/user_id"
-        match_ids:
-          type: array
-          items:
-            $ref: "#/components/schemas/match_id"
-        status:
-          $ref: "#/components/schemas/tournament_status"
-        started_at:
-          $ref: "#/components/schemas/timestamp"
-        ended_at:
-          $ref: "#/components/schemas/timestamp"
-      required: [id, creator_id, match_ids, status, started_at]
-
   parameters:
-
     user_id:
       description: Unique identifier of the user.
       name: user_id
@@ -1005,7 +1001,6 @@ components:
       schema:
         $ref: "#/components/schemas/tournament_id"
       required: true
-
     token:
       description: verification token for credentials recovery/validation
       name: token
@@ -1013,7 +1008,6 @@ components:
       schema:
         type: string
       required: true
-    
     tfa_code:
       description: 2FA code generated by the user for TFA authentication.
       name: tfa_code
@@ -1021,7 +1015,6 @@ components:
       schema:
         $ref: "#/components/schemas/tfa_code"
       required: true
-
     limit:
       description: Maximum number of items to return.
       name: limit
@@ -1031,7 +1024,6 @@ components:
         format: int32
         minimum: 1
       required: false
-    
     cursor:
       description: Cursor token for pagination.
       name: cursor
@@ -1039,7 +1031,6 @@ components:
       schema:
         $ref: "#/components/schemas/cursor_token"
       required: false
-    
     refresh_token:
       description: Refresh token used to generate a new JWT.
       name: refresh_token
@@ -1047,15 +1038,12 @@ components:
       schema:
         type: string
       required: true
-
   headers:
-
     Content-Type:
       description: The MIME type of the response body.
       schema:
         type: string
       example: application/json
-
     Content-Length:
       description: The length of the response body in octets (8-bit bytes).
       schema:
@@ -1063,66 +1051,17 @@ components:
         format: int32
         minimum: 0
       example: 12345
-
     Set-Cookie:
       description: Set a cookie
       schema:
         type: string
       example: "cookie1=value1; Path=/; Expires=Wed, 09 Jun 2021 10:18:14 GMT"
-
   responses:
-
-    NoContent: #HTTP 204
-      description: No content to return. The request was successful but there is no content to return.
-
-    NotModified: #HTTP 304
-      description: Not modified. The resource has not changed since the last request.
-
-    Unauthorized: #HTTP 401
-      description: Unauthorized. JWT is missing or invalid.
-
-    Forbidden: #HTTP 403
-      description: Forbidden. The user does not have permission to perform the action.
-
-    Conflict: #HTTP 409
-      description: Conflict. The request could not be completed due to a conflict with the current state of the resource.
-  
-    PreconditionFailed: #HTTP 412
-      description: Precondition failed. The server does not meet one of the preconditions that the requester put on the request.
-
-    BadRequest: #HTTP 400
-      description: Bad request. The request was invalid or cannot be served.
-
-    NotFound: #HTTP 404
-      description: Not found. The requested resource could not be found.
-
-    MethodNotAllowed: #HTTP 405
-      description: Method not allowed. The request method is known but not supported by the target resource.
-
-    RequestTimeout: #HTTP 408
-      description: Request timeout. Idle time has passed without any data being sent or received.
-
-    InternalServerError: #HTTP 500
-      description: Internal server error. The server encountered an unexpected condition that prevented it from fulfilling the request.
-
-    NotImplemented: #HTTP 501
-      description: Not implemented. The server does not support the method or functionality required to fulfill the request.
-
-    BadGateway: #HTTP 502
-      description: Bad gateway. The server received an invalid response from an upstream server.
-
-    ServiceUnavailable: #HTTP 503
-      description: Service unavailable. The server is currently unable to handle the request due to a temporary overloading or maintenance of the server.
-
-    GatewayTimeout: #HTTP 504
-      description: Gateway timeout. The server did not receive a timely response from an upstream server it needed to access in order to complete the request.
-
-    ImATeaPot: #HTTP 418
+    ImATeaPot:
       description: I"m a teapot. The server is a teapot, not a coffee machine.
-
   securitySchemes:
     jwtAuth:
-      description: JWT used for authorization. Send the token in the `Authorization` header with the format `Bearer {token}`.
+      description: JWT used for authorization. `Authorization` => `Bearer <JWT>`
       type: http
       scheme: bearer
       bearerFormat: JWT

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:51:18 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/18 15:03:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -121,26 +121,15 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     check_required_fields(user_id, friend_id)
 
     async_context = Async do |task|
-      are_friends_task = task.async do
-        response = @db_client.exec_prepared(:are_friends, [user_id, friend_id])
-        response.first['are_friends'] == 't'
-      end
-    
-      is_playing_task = task.async do
-        response = @db_client.exec_prepared(:is_playing, [friend_id])
-        response.first['is_playing'] == 't'
-      end
+      are_friends = task.async { friends?(user_id, friend_id) }
+      is_playing  = task.async { playing?(friend_id) }
+      is_online   = task.async { online?(friend_id) }
 
-      is_online_task = task.async do
-        response = @db_client.exec_prepared(:get_user_status, [friend_id])
-        response.first['current_status'] == 'online'
-      end
-      
       add_invitation_task = task.async { @grpc_client.add_match_invitation(user_id, friend_id) }
     
-      raise GRPC::FailedPrecondition.new("Users are not friends") unless are_friends_task.wait
-      raise GRPC::FailedPrecondition.new("Friend is already playing a match") if is_playing_task.wait
-      raise GRPC::FailedPrecondition.new("Friend is not online") unless is_online_task.wait
+      raise GRPC::FailedPrecondition.new("Users are not friends") unless are_friends.wait
+      raise GRPC::FailedPrecondition.new("Friend is already playing a match") if is_playing.wait
+      raise GRPC::FailedPrecondition.new("Friend is not online") unless is_online.wait
 
       add_invitation_task.wait
 
@@ -170,45 +159,40 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
       player_ids:  pg_array_to_protobuf_array(row['player_ids']),
       status:      row['current_status'],
       started_at:  time_to_protobuf_timestamp(row['started_at']&.to_i),
-      ended_at: time_to_protobuf_timestamp(row['ended_at']&.to_i)
+      ended_at:    time_to_protobuf_timestamp(row['ended_at']&.to_i)
     )
   end
 
   def accept_match_invitation(request, call)
-    user_id = call.metadata['requester_user_id']
+    user_id   = call.metadata['requester_user_id']
     friend_id = request.friend_id
     check_required_fields(user_id, friend_id)
 
     match_id = SecureRandom.uuid
   
     async_context = Async do |task|
-      begin
-        task.async { @grpc_client.accept_match_invitation(friend_id, user_id) }
+      task.async { @grpc_client.accept_match_invitation(friend_id, user_id) }
 
-        task.async do
-          @db_client.transaction do |tx|
-            tx.exec_prepared(:insert_match, [match_id])
-            tx.exec_prepared(:insert_match_players, [match_id, user_id, friend_id])
-          end
+      task.async do
+        @db_client.transaction do |tx|
+          tx.exec_prepared(:insert_match, [match_id])
+          tx.exec_prepared(:insert_match_players, [match_id, user_id, friend_id])
         end
-
-        task.async { @grpc_client.setup_game_state(match_id) } #TODO fara' il setup del websocket
-      rescue
-        cleanup_barrier = Async::Barrier.new
-        begin
-          cleanup_barrier.async { @grpc_client.delete_match_invitation(friend_id, user_id) }
-          cleanup_barrier.async { @db_client.exec_prepared(:delete_match, [match_id]) }
-          cleanup_barrier.async { @grpc_client.close_game_state(match_id) }
-          cleanup_barrier.wait
-        rescue
-          nil
-        end
-        raise
       end
 
+      task.async { @grpc_client.setup_game_state(match_id) } #TODO fara' il setup del websocket
+      
       @grpc_client.notify_match_found(user_id, friend_id, match_id)
-  
+      
       Empty.new
+    rescue
+      cleanup_tasks = Async do |task|
+        task.async { @grpc_client.delete_match_invitation(friend_id, user_id) }
+        task.async { @db_client.exec_prepared(:delete_match, [match_id]) }
+        task.async { @grpc_client.close_game_state(match_id) }
+      end
+      cleanup_tasks.wait rescue nil
+      raise
     end
 
     async_context.wait
@@ -251,6 +235,21 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
 
   def provided?(field)
     field.respond_to?(:empty?) ? !field.empty? : !field.nil?
+  end
+
+  def friends?(user_id, friend_id)
+    response = @db_client.exec_prepared(:are_friends, [user_id, friend_id])
+    response.first['are_friends'] == 't'
+  end
+
+  def playing?(user_id)
+    response = @db_client.exec_prepared(:is_playing, [user_id])
+    response.first['is_playing'] == 't'
+  end
+
+  def online?(user_id)
+    response = @db_client.exec_prepared(:get_user_status, [user_id])
+    response.first['current_status'] == 'online'
   end
 
   def decode_cursor(cursor)
