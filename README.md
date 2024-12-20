@@ -136,7 +136,7 @@ The Matchmaking Service is responsible for pairing players together in a competi
 
 ### Responsibilities
 - **Matchmaking Pool**: Maintains a pool of waiting players who are seeking to be matched. The service continually monitors this pool and dynamically forms matches based on players' attributes (e.g., skill level, preferences). It ensures efficient resource usage and that players are paired quickly for a smooth gaming experience.
-- **Fallback Logic**: In cases where a perfect match cannot be found (e.g., no other players with similar skill levels), the service implements fallback logic. This allows the system to make trade-offs, such as relaxing skill requirements or allowing the match to proceed with slight imbalances. This ensures that players are not kept waiting too long and maintains a smooth user experience.
+- ***Fallback Logic**: In cases where a perfect match cannot be found (e.g., no other players with similar skill levels), the service implements fallback logic. This allows the system to make trade-offs, such as relaxing skill requirements or allowing the match to proceed with slight imbalances. This ensures that players are not kept waiting too long and maintains a smooth user experience.*
 - **Finds Available Players**: Continuously searches for available players within the matchmaking pool. The service evaluates players' preferences (e.g., mode, team size) and availability to create matches. It ensures that no players are left unmatched for extended periods.
 
 ### Scalability
