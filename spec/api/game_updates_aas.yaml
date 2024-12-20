@@ -38,7 +38,6 @@ operations:
     messages:
       - $ref: '#/channels/game_updates/messages/gameState'
       - $ref: '#/channels/game_updates/messages/gameOver'
-#TODO
 components:
   messages:
     InputMessage:
