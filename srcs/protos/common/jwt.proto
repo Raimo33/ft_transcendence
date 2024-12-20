@@ -6,11 +6,11 @@ import "google/protobuf/struct.proto";
 
 message JWT
 {
-  string token = 1;
+  string jwt = 1;
 }
 
 message DecodedJWT
 {
-  map<string, Google.Protobuf.Struct.Value> headers = 2;
-  map<string, Google.Protobuf.Struct.Value> payload = 1;
+  map<string, Google.Protobuf.Struct.Value> headers = 1;
+  map<string, Google.Protobuf.Struct.Value> payload = 2;
 }

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:53:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/20 12:52:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,7 +66,7 @@ class GrpcClient
   end
 
   def generate_tfa_secret(user_id: nil, metadata = {})
-    request = AuthUser::Identifier(user_id: user_id)
+    request = Common::Identifier(user_id: user_id)
     @stubs[:auth].generate_tfa_secret(request, metadata: metadata)
   end
 
@@ -85,12 +85,12 @@ class GrpcClient
   end
 
   def validate_refresh_token(refresh_token:, metadata = {})
-    request = AuthUser::JWT(jwt: jwt)
+    request = Common::JWT(jwt: jwt)
     @stubs[:auth].validate_refresh_token(request, metadata: metadata)
   end
 
   def extend_jwt(jwt:, ttl:, metadata = {})
-    request = AuthUser::JWT(jwt: jwt)
+    request = Common::JWT(jwt: jwt)
     @stubs[:auth].extend_jwt(request, metadata: metadata)
   end
 

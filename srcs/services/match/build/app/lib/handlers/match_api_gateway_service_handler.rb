@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/18 15:03:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/20 12:51:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -90,7 +90,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     result = @db_client.exec_prepared(:get_user_matches, [request.user_id, started_at, match_id, request.limit])
 
     match_ids = result.map { |row| row['match_id'] }      
-    MatchAPIGateway::Identifiers.new(ids: match_ids)
+    Common::Identifiers.new(ids: match_ids)
   end
 
   def start_matchmaking(request, call)

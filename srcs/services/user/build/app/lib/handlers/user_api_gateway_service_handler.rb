@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:52:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/20 12:59:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -314,7 +314,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       forget_sessions_task.wait
       @db_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
 
-      UserAPIGateway::JWT.new(jwt_generation_task.wait)
+      Common::JWT.new(jwt: jwt_generation_task.wait)
     end
 
     async_context.wait
@@ -372,7 +372,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
       task.async { forget_past_sessions(requester_user_id) }
       new_jwt_task = task.async { @grpc_client.extend_jwt(jwt: session_token) }
 
-      UserAPIGateway::JWT.new(new_jwt_task.wait)
+      Common::JWT.new(jwt: new_jwt_task.wait)
     end
 
     async_context.wait
@@ -440,7 +440,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     raise GRPC::NotFound.new("No friends found") if query_result.ntuples.zero?
 
     friend_ids = query_result.map { |row| row["friend_id"] }
-    UserAPIGateway::Identifiers(friend_ids)
+    Common::Identifiers(friend_ids)
   end
 
   def remove_friend(request, call)

@@ -6,7 +6,7 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 19:06:22 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/20 12:52:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -142,7 +142,7 @@ class AuthUserServiceHandler < AuthUser::Service
       settings.fetch(:algorithm, 'RS256')
     )
 
-    AuthUser::JWT.new(jwt)
+    Common::JWT.new(jwt)
   end
 
   def validate_refresh_token(request, call)
@@ -198,7 +198,7 @@ class AuthUserServiceHandler < AuthUser::Service
       settings.fetch(:algorithm, 'RS256')
     )
 
-    AuthUser::JWT.new(new_jwt)
+    Common::JWT.new(new_jwt)
   end
 
   private
