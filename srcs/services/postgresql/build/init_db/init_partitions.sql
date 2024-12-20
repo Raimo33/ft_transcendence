@@ -9,7 +9,6 @@ SELECT pg_partman.create_parent(
     p_interval := 'monthly',
     p_premake := 3,
     p_use_run_maintenance := true
-    p_inherit
 )
 
 SELECT partman.create_parent(

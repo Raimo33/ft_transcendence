@@ -33,8 +33,8 @@ ORDER BY
   m.started_at DESC,
   um.match_id DESC;
 
-CREATE INDEX idx_usermatchechronologicalmatview_userid                  ON MatchPlayersChronologicalMatView USING HASH (user_id);
-CREATE INDEX idx_usermatchchronologicalmatview_userid_createdat_matchid ON MatchPlayersChronologicalMatView (started_at DESC, match_id DESC);
+CREATE INDEX idx_usermatchechronologicalmatview_userid                  ON MatchPlayersChronologicalMatView(user_id)  USING HASH;
+CREATE INDEX idx_usermatchchronologicalmatview_userid_createdat_matchid ON MatchPlayersChronologicalMatView(started_at DESC, match_id DESC);
 
 CREATE MATERIALIZED VIEW MatchesInfoMatView AS
 SELECT

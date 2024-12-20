@@ -8,7 +8,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_order_friendship_ids
+CREATE TRIGGER trigger_order_friendship_ids_friendships
 BEFORE INSERT OR UPDATE ON Friendships
 FOR EACH ROW
 EXECUTE FUNCTION order_friendship_ids();
@@ -22,7 +22,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_refresh_usermatchchronologicalmatview
+CREATE TRIGGER trigger_refresh_usermatchchronologicalmatview_usermatches
 AFTER INSERT OR DELETE ON UserMatches
 FOR EACH STATEMENT
 EXECUTE FUNCTION refresh_usermatchchronologicalmatview();
@@ -36,12 +36,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_refresh_matchesinfomatview
+CREATE TRIGGER trigger_refresh_matchesinfomatview_matches
 AFTER INSERT OR UPDATE OR DELETE ON Matches
 FOR EACH STATEMENT
 EXECUTE FUNCTION refresh_matchesinfomatview();
 
-CREATE TRIGGER trigger_refresh_matchesinfomatview
+CREATE TRIGGER trigger_refresh_matchesinfomatview_matchplayers
 AFTER INSERT OR UPDATE OR DELETE ON MatchPlayers
 FOR EACH STATEMENT
 EXECUTE FUNCTION refresh_matchesinfomatview();
