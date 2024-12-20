@@ -1,15 +1,3 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    game_updates_aas.yaml                              :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/18 16:34:06 by craimond         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 asyncapi: 3.0.0
 info:
   title: Pongfumasters Game Updates API
@@ -20,42 +8,39 @@ servers:
     description: Server for live WebSocket game updates.
     host: api.pongfumasters.com
     protocol: wss
+    security:
+      - $ref: '#/components/securitySchemes/httpBearerToken'
 channels:
   game_updates:
     description: Channel for real-time game updates via WebSocket.
-    address: /matches/{match_id}/updates #TODO oppure pathname?
+    address: /matches/{match_id}/updates
     parameters:
       match_id:
-        description: Unique identifier for the match.
-        schema:
-          $ref: '#/components/schemas/match_id'
+        $ref: '#/components/parameters/match_id'
     messages:
-      handshake:
-        $ref: '#/components/messages/HandshakeMessage'
       input:
         $ref: '#/components/messages/InputMessage'
       gameState:
         $ref: '#/components/messages/GameStateMessage'
       gameOver:
         $ref: '#/components/messages/GameOverMessage'
-    bindings:
-      wss:
-        $ref: '#/components/bindings/wss'
 operations:
-  #TODO
-# application ?
-  #TODO
+  sendInput:
+    action: send
+    channel:
+      $ref: '#/channels/game_updates'
+    messages:
+      - $ref: '#/channels/game_updates/messages/input'
+  receiveGameState:
+    action: receive
+    channel:
+      $ref: '#/channels/game_updates'
+    messages:
+      - $ref: '#/channels/game_updates/messages/gameState'
+      - $ref: '#/channels/game_updates/messages/gameOver'
+#TODO
 components:
-  bindings:
-    wss:
-      headers:
-        authorization:
-          $ref: '#/components/schemas/authorization_header'
   messages:
-    HandshakeMessage:
-      name: HandshakeMessage
-      contentType: application/json
-      payload: null
     InputMessage:
       name: InputMessage
       contentType: application/json
@@ -85,12 +70,7 @@ components:
               player2:
                 $ref: '#/components/schemas/paddle_position'
           scores:
-            type: object
-            properties:
-              player1:
-                $ref: '#/components/schemas/score'
-              player2:
-                $ref: '#/components/schemas/score'
+            $ref: '#/components/schemas/scores'
           timestamp:
             $ref: '#/components/schemas/timestamp'
     GameOverMessage:
@@ -99,17 +79,10 @@ components:
       payload:
         type: object
         properties:
-          type: object
-          properties:
-            winner:
-              $ref: '#/components/schemas/user_id'
-            scores:
-              type: object
-              properties:
-                player1:
-                  $ref: '#/components/schemas/score'
-                player2:
-                  $ref: '#/components/schemas/score'
+          winner:
+            $ref: '#/components/schemas/user_id'
+          scores:
+            $ref: '#/components/schemas/scores'
   schemas:
     user_id:
       description: Unique identifier for the user.
@@ -125,7 +98,7 @@ components:
     timestamp:
       description: Timestamp in unix timestamp format.
       type: integer
-      format: int64
+      format: uint64
       minimum: 0
     vec2:
       type: object
@@ -140,6 +113,25 @@ components:
       description: Position of the paddle; 0 is top, 1 is bottom.
       type: number
       format: float
-    score:
-      type: integer
       minimum: 0
+      maximum: 1
+    score:
+      description: Score of a player.
+      type: integer
+      format: uint8
+      minimum: 0
+    scores:
+      type: object
+      properties:
+        player1:
+          $ref: '#/components/schemas/score'
+        player2:
+          $ref: '#/components/schemas/score'
+  securitySchemes:
+    httpBearerToken:
+      type: http
+      scheme: bearer
+  parameters:
+    match_id:
+      description: Unique identifier for the match.
+      location: $message.payload#/matches/{match_id}
