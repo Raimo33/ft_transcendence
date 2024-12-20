@@ -92,9 +92,6 @@ components:
       description: Unique identifier for the match.
       type: string
       format: uuid
-    jwt:
-      description: JSON Web Token for authentication.
-      type: string
     timestamp:
       description: Timestamp in unix timestamp format.
       type: integer
@@ -131,6 +128,7 @@ components:
     httpBearerToken:
       type: http
       scheme: bearer
+      bearerFormat: JWT
   parameters:
     match_id:
       description: Unique identifier for the match.

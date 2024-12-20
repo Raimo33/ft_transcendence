@@ -6,9 +6,11 @@
 #    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/18 16:33:55 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/20 16:57:43 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+#TODO add SSE
 
 asyncapi: 3.0.0
 info:
@@ -21,6 +23,11 @@ servers:
     host: api.pongfumasters.com
     protocol: http
     protocolVersion: "1.1"
+    bindings:
+      http:
+        type: sse
+    security:
+      - $ref: '#/components/securitySchemes/httpBearerToken'
 channels:
   notifications:
     description: Channel for receiving notifications via SSE.
@@ -32,19 +39,16 @@ channels:
         $ref: '#/components/messages/MatchInvitationNotification'
       friendRequest:
         $ref: '#/components/messages/FriendRequestNotification'
-    bindings:
-      sse:
-        $ref: '#/components/bindings/sse'
 operations:
-  #TODO  
-# application ?
-  #TODO
+  receiveNotifications:
+    action: receive
+    channel:
+      $ref: '#/channels/notifications'
+    messages:
+      - $ref: '#/channels/notifications/messages/matchFound'
+      - $ref: '#/channels/notifications/messages/matchInvitation'
+      - $ref: '#/channels/notifications/messages/friendRequest'
 components:
-  bindings:
-    sse:
-      headers:
-        authorization:
-          $ref: '#/components/schemas/authorization_header'
   messages:
     MatchFoundNotification:
       name: MatchFoundNotification
@@ -60,7 +64,7 @@ components:
             properties:
               match_id:
                 $ref: '#/components/schemas/match_id'
-              opponent:
+              opponent_id:
                 $ref: '#/components/schemas/user_id'
     MatchInvitationNotification:
       name: MatchInvitationNotification
@@ -74,7 +78,7 @@ components:
           data:
             type: object
             properties:
-              from_user:
+              from_user_id:
                 $ref: '#/components/schemas/user_id'
     FriendRequestNotification:
       name: FriendRequestNotification
@@ -88,7 +92,7 @@ components:
           data:
             type: object
             properties:
-              from_user:
+              from_user_id:
                 $ref: '#/components/schemas/user_id'
   schemas:
     user_id:
@@ -99,6 +103,8 @@ components:
       description: Unique identifier for the match.
       type: string
       format: uuid
-    jwt:
-      description: JSON Web Token for authentication.
-      type: string
+  securitySchemes:
+    httpBearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
