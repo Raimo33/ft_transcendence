@@ -14,7 +14,7 @@ grpc:
 redis:
   host: redis.data
   port: 6379
-  db: 1
+  db: [1, 2]
   username: matchmaking
   password: password
   pool:

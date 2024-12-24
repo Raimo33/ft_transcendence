@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    grpc_client.rb                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:49:46 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/24 18:16:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,7 +59,7 @@ class GrpcClient
 
   def add_match_invitation()
   
-  def delete_match_invitation()
+  def remove_match_invitation()
 
   def accept_match_invitation()
 

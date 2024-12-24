@@ -14,7 +14,7 @@ grpc:
 redis:
   host: redis.data
   port: 6379
-  db: 0
+  db: [0]
   username: auth
   password: password
   pool:

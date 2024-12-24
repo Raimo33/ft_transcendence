@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    redis_client.rb                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:09:37 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/24 18:59:17 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,21 +15,17 @@ require 'singleton'
 require_relative 'CustomLogger'
 require_relative 'ConfigHandler'
 
+#TODO utilizzare le pools (switchando)
 class RedisClient
   include Singleton
 
   def initialize
     @config = ConfigHandler.instance.config
     redis_config = @config[:redis]
-
-    @pool = ConnectionPool.new(size: redis_config[:pool][:size], timeout: redis_config[:pool][:timeout]) do
-      Redis.new(
-        host: redis_config[:host],
-        port: redis_config[:port],
-        db: redis_config[:db],
-        username: redis_config[:username],
-        password: redis_config[:password]
-      )
+    
+    @pools = {}
+    redis_config[:db].each do |db|
+      @pools[db] = create_pool(redis_config, db)
     end
 
     @logger = CustomLogger.instance.logger
@@ -60,6 +56,21 @@ class RedisClient
   end
 
   private
+
+  def create_pool(redis_config, db)
+    ConnectionPool.new(
+      size: redis_config.dig(:pool, :size),
+      timeout: redis_config.dig(:pool, :timeout)
+    ) do
+      Redis.new(
+        host: redis_config[:host],
+        port: redis_config[:port],
+        db: db,
+        username: redis_config[:username],
+        password: redis_config[:password]
+      )
+    end
+  end
 
   def with_logging
     start_time = Time.now

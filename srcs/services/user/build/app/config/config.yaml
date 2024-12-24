@@ -25,7 +25,7 @@ database:
 redis:
   host: redis.data
   port: 6379
-  db: 0
+  db: [0]
   username: user
   password: password
   pool:

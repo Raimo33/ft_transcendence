@@ -160,25 +160,6 @@ The AI Service is responsible for simulating client actions to provide a dynamic
 
 </i>
 
-<i>
-
-## DB Gateway
-
-### Reasoning
-The DB Gateway serves as an intermediary between the gRPC API and the database. It translates gRPC service requests into SQL queries, ensuring that interactions with the database are efficient and secure. By caching common queries and sanitizing inputs, the DB Gateway improves system performance and prevents potential security vulnerabilities such as SQL injection.
-
-### Responsibilities
-- **Translates gRPC to SQL Queries**: The DB Gateway is responsible for converting gRPC API requests into SQL queries that can be executed against the database. It ensures that the proper database schema and logic are used for each request.
-- **Sanitizes to Prevent SQL Injection**: To safeguard against SQL injection attacks, the DB Gateway sanitizes user inputs before generating SQL queries. This ensures that any input passed to the database is safe and does not compromise the integrity of the database or the application.
-- **Caches Common Requests**: Frequently queried data is cached by the DB Gateway to reduce database load and speed up response times. This caching mechanism ensures that repeated queries (e.g., retrieving user data or match information) are served faster, improving the overall performance of the system.
-
-### Scalability Considerations
-- Query Caching
-- Persistent Connection
-
-</i>
-<i>
-
 ## Blockchain Service
 
 ### Reasoning
@@ -225,8 +206,8 @@ Redis is chosen for its in-memory key-value store capabilities, providing extrem
 
 ### Responsibilities
 - **Caches Common Database Queries**: Stores the results of frequently executed database queries, reducing the need for repeated querying of the database. This helps to speed up response times and reduce database load.
+- **Matchmaking Pool Storage**: Mantains the active matchmaking pool, storing player data and preferences for efficient matchmaking. By caching this data, the system can quickly form matches based on player attributes and availability.
 - **Cache for All Services**: Acts as a shared caching layer for all services in the system. By providing a centralized cache, Redis ensures that data used by different services is readily available, improving system-wide performance.
-- **Different Profiles for Each Service**: Each service in the architecture can have its own caching profile, with configurable TTL (Time-To-Live) and expiration policies based on the type of data and access frequency. This allows each service to manage its cache independently, optimizing resource usage and data freshness.
 
 ### Scalability  
 - *Replication*
@@ -388,8 +369,6 @@ Grafana is chosen for its flexibility and power in visualizing time-series data,
   - Column example: `last_login_at`.
 - Prioritize changing names over enclosing it in quotes when not available.
   - Example: `password` in postgres is restricted and becomes `psw` instead of `'password'`
-- Use short but descriptive names for indexes and constraints:
-  - Example: `unq_users_email`, `fk_game_tournament`.
 
 ### 3.6 Logging and Metrics
 - Use a consistent `<service_name>` tag for logs across all services.

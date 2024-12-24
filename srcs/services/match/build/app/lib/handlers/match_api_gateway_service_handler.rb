@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    match_api_gateway_service_handler.rb               :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/20 12:51:25 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/24 18:17:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -137,7 +137,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
       
       Empty.new
     rescue
-      @grpc_client.delete_match_invitation(user_id, friend_id) rescue nil
+      @grpc_client.remove_match_invitation(user_id, friend_id) rescue nil
       raise
     end
 
@@ -187,7 +187,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
       Empty.new
     rescue
       cleanup_tasks = Async do |task|
-        task.async { @grpc_client.delete_match_invitation(friend_id, user_id) }
+        task.async { @grpc_client.remove_match_invitation(friend_id, user_id) }
         task.async { @db_client.exec_prepared(:delete_match, [match_id]) }
         task.async { @grpc_client.close_game_state(match_id) }
       end
@@ -205,7 +205,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     friend_id = request.friend_id
     check_required_fields(user_id, friend_id)
 
-    @grpc_client.delete_match_invitation(friend_id, user_id)
+    @grpc_client.remove_match_invitation(friend_id, user_id)
 
     Empty.new
   end
