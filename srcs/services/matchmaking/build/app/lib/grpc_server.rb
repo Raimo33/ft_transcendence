@@ -6,15 +6,13 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/12/24 18:08:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/24 18:12:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative 'config_handler'
-require_relative '../protos/matchmaking_game_state_services_pb'
 require_relative '../protos/matchmaking_match_services_pb'
-require_relative 'handlers/matchmaking_game_state_handler'
 require_relative 'handlers/matchmaking_match_handler'
 require_relative 'interceptors/logger_interceptor'
 require_relative 'interceptors/exception_interceptor'
@@ -37,8 +35,7 @@ class GrpcServer
     )
 
     @services = {
-      MatchmakingGameState::Service => MatchmakingGameStateHandler.new,
-      MatchmakingMatch::Service     => MatchmakingMatchHandler.new
+      MatchmakingMatch::Service => MatchmakingMatchHandler.new
     }
 
     setup_handlers
