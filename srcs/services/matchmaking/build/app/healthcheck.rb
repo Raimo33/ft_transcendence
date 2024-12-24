@@ -1,11 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'grpc'
-require_relative 'proto/user_api_gateway_services_pb'
+require_relative 'proto/matchmaking_match_services_pb'
+#TODO aggiungere altri stubs
 
 if $PROGRAM_NAME == __FILE__
   stubs = {
-    user_api_gateway: UserAPIGateway::Stub.new('localhost:50051', :this_channel_is_insecure),
+    matchmaking_match: MatchmakingMatch::Stub.new('localhost:50051', :this_channel_is_insecure),
   }
 
   stubs.each do |service, stub|

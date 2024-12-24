@@ -1,14 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'grpc'
-require_relative 'proto/auth_services_pb'
+require_relative 'proto/auth_user_services_pb'
 
 if $PROGRAM_NAME == __FILE__
   stubs = {
-    user: Auth::Stub.new(
-      'localhost:50051',
-      :this_channel_is_insecure
-    )
+    auth_user: AuthUser::Stub.new('localhost:50051', :this_channel_is_insecure),
+    auth_api_gateway: AuthAPIGateway::Stub.new('localhost:50052', :this_channel_is_insecure)
   }
 
   stubs.each do |service, stub|

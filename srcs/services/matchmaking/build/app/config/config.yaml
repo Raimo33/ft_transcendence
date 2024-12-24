@@ -1,0 +1,22 @@
+logging:
+  level: INFO
+  file: /dev/stdout
+
+grpc:
+  server:
+    host: 0.0.0.0
+    port: 50051
+    pool_size: 10
+  client:
+    addresses:
+      #TODO aggiugere
+
+redis:
+  host: redis.data
+  port: 6379
+  db: 1
+  username: matchmaking
+  password: password
+  pool:
+    size: 10
+    timeout: 30
