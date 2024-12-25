@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    auth_user_service_handler.rb                       :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/20 12:52:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:17:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -209,13 +209,6 @@ class AuthUserServiceHandler < AuthUser::Service
   
   def provided?(field)
     field.respond_to?(:empty?) ? !field.empty? : !field.nil?
-  end
-
-  def token_revoked?(user_id, iat)
-    token_invalid_before = @redis_client.get("user:#{user_id}:token_invalid_before")
-    return true if token_invalid_before.nil?
-
-    iat < token_invalid_before.to_i
   end
 
 end

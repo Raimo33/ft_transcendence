@@ -3,15 +3,14 @@
 #                                                         :::      ::::::::    #
 #    exception_middleware.rb                            :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/08 18:26:57 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:00:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
-require 'redis'
 
 class ExceptionMiddleware
 
@@ -47,9 +46,6 @@ class ExceptionMiddleware
     GRPC::DataLoss                    => 500,
     GRPC::Unimplemented               => 501,
     GRPC::Unavailable                 => 503,
-
-    Redis::ConnectionError            => 503,
-    Redis::TimeoutError               => 504,
   }.freeze
 
   def handle_exception(exception)

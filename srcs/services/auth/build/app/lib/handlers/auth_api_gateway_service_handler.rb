@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    auth_api_gateway_service_handler.rb                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 19:06:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:17:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,12 +59,5 @@ class AuthApiGatewayServiceHandler < AuthApiGateway::Service
   end
 
   private
-
-  def token_revoked?(user_id, iat)
-    token_invalid_before = @redis_client.get("user:#{user_id}:token_invalid_before")
-    return true if token_invalid_before.nil?
-
-    iat < token_invalid_before.to_i
-  end
 
 end

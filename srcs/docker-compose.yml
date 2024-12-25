@@ -194,18 +194,18 @@ services:
     depends_on:
     init: true
 
-  redis:
+  memcached:
     build:
-      context: ./services/redis
+      context: ./services/memcached
       dockerfile: Dockerfile
       args:
     
-    container_name: redis
+    container_name: memcached
     environment:
     volumes:
     secrets:
     ports:
-      - "6379:6379"
+      - "11211:11211"
     networks:
       - data
     restart: always

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    auth_middleware.rb                                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:14:03 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 18:24:31 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:16:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,6 @@ class AuthMiddleware
   def initialize(app)
     @app = app
     @grpc_client  = GrpcClient.instance
-    @redis_client = RedisClient.instance
   end
 
   def call(env)

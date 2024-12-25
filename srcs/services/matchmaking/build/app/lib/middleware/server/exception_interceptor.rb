@@ -6,11 +6,12 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/24 18:10:43 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:02:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
+require 'dalli'
 
 class ExceptionInterceptor < GRPC::ServerInterceptor
 
@@ -23,8 +24,8 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
   private
 
   EXCEPTION_MAP = {
-    PG::ConnectionBad             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection error"],
     ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Connection timeout"],
+    Dalli::DalliError             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Cache error"],
   }.freeze
 
   def handle_exception(exception)

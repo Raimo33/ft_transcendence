@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    user_api_gateway_service_handler.rb                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/20 12:59:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:14:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,15 +18,16 @@ require 'rqr_code'
 require_relative '../config_handler'
 require_relative '../grpc_client'
 require_relative '../db_client'
+require_relative '../memcached_client'
 
 class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   include EmailValidator
 
   def initialize
-    @config       = ConfigHandler.instance.config
-    @grpc_client  = GrpcClient.instance
-    @db_client    = DBClient.instance
-    @redis_client = RedisClient.instance
+    @config           = ConfigHandler.instance.config
+    @grpc_client      = GrpcClient.instance
+    @db_client        = DBClient.instance
+    @memcached_client = MemcachedClient.instance
 
     @default_avatar = load_default_avatar
     @prepared_statements = {
@@ -473,12 +474,18 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def forget_past_sessions(user_id)
-    now = Time.now.to_i - @config[:tokens][:invalidation_grace_period]
-    @redis_client.set("sub:#{user_id}:token_invalid_before", now)
+    now = Time.now.to_i - @config.dig(:tokens, :invalidation_grace_period)
+    @memcached_client.set("token_invalid_before:#{user_id}", now)
   end
 
   def erase_user_cache(user_id)
-    @redi_client.unlink("sub:#{user_id}:*")
+    async_context = Async do |task|
+      task.async { @memcached_client.delete("token_invalid_before:#{user_id}") }
+      #TODO other cleanups for keys
+    end
+    async_context.wait
+  ensure
+    async_context&.stop
   end
 
   def load_default_avatar

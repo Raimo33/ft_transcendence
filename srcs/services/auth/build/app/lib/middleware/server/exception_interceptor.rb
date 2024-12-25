@@ -3,14 +3,16 @@
 #                                                         :::      ::::::::    #
 #    exception_interceptor.rb                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/03 13:07:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 22:17:51 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:01:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
+require 'jwt'
+require 'dalli'
 
 class ExceptionInterceptor < GRPC::ServerInterceptor
 
@@ -23,7 +25,8 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
   private
 
   EXCEPTION_MAP = {
-    JWT::DecodeError => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
+    JWT::DecodeError  => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
+    Dalli::DalliError => [GRPC::Core::StatusCodes::UNAVAILABLE, "Cache error"],
   }.freeze
 
   def handle_exception(exception)

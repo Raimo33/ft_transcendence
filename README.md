@@ -199,15 +199,15 @@ PostgreSQL is chosen as the primary relational database for its robust support f
 
 <i>
 
-## Cache (Redis)
+## Cache (Memcached)
 
 ### Reasoning
-Redis is chosen for its in-memory key-value store capabilities, providing extremely fast data retrieval. It is used to cache common database queries and frequently accessed data, which significantly reduces database load and improves the overall system performance.
+Memcached is chosen for its minimal in-memory key-value store capabilities, high performance, and scalability. It is used to cache frequently accessed data, reducing the load on the database and improving response times for read-heavy operations. Memcached is ideal for storing transient data that can be quickly retrieved without the need for complex queries.
 
 ### Responsibilities
 - **Caches Common Database Queries**: Stores the results of frequently executed database queries, reducing the need for repeated querying of the database. This helps to speed up response times and reduce database load.
 - **Matchmaking Pool Storage**: Mantains the active matchmaking pool, storing player data and preferences for efficient matchmaking. By caching this data, the system can quickly form matches based on player attributes and availability.
-- **Cache for All Services**: Acts as a shared caching layer for all services in the system. By providing a centralized cache, Redis ensures that data used by different services is readily available, improving system-wide performance.
+- **Cache for All Services**: Acts as a shared caching layer for all services in the system. By providing a centralized cache, Memcached ensures that data used by different services is readily available, improving system-wide performance.
 
 ### Scalability  
 - *Replication*

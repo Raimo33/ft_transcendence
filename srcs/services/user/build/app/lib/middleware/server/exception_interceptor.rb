@@ -3,16 +3,16 @@
 #                                                         :::      ::::::::    #
 #    exception_interceptor.rb                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/10 18:12:56 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 19:59:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'pg'
-require 'redis'
+require 'dalli'
 require 'jwt'
 
 class ExceptionInterceptor < GRPC::ServerInterceptor
@@ -41,8 +41,7 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
     JWT::DecodeError              => [GRPC::Core::StatusCodes::UNAUTHENTICATED, "Invalid token"],
     PG::ConnectionBad             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection error"],
     ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Connection timeout"],
-    Redis::ConnectionError        => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection error"],
-    Redis::TimeoutError           => [GRPC::Core::StatusCodes::UNAVAILABLE, "Redis connection timeout"],
+    Dalli::DalliError             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Cache error"],
   }.freeze
 
   def handle_exception(exception)

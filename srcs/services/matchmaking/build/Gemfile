@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:11:23 by craimond          #+#    #+#              #
-#    Updated: 2024/12/24 17:57:23 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 19:37:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,4 +16,4 @@ gem "grpc"
 gem "google-protobuf"
 gem "async"
 gem "json"
-gem "redis"
+gem "dalli"

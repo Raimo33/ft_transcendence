@@ -1,3 +1,0 @@
-user default off
-user auth on -@all +get ~* >password
-user user on -@all +unlink +scan ~* >password

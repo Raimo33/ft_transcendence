@@ -22,12 +22,9 @@ database:
     size: 10
     timeout: 30
 
-redis:
-  host: redis.data
-  port: 6379
-  db: [0]
-  username: user
-  password: password
+memcached:
+  host: memcached.data
+  port: 11211
   pool:
     size: 10
     timeout: 30

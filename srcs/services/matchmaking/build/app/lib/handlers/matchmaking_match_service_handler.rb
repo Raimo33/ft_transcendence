@@ -6,22 +6,22 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/24 19:01:07 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:19:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'async'
 require_relative '../config_handler'
-require_relative '../redis_client'
+require_relative '../memcached_client'
 require_relative '../protos/matchmaking_match_services_pb'
 
 class MatchmakingMatchServiceHandler < MatchmakingMatch::Service
   include EmailValidator
 
   def initialize
-    @config       = ConfigHandler.instance.config
-    @grpc_client  = GrpcClient.instance
-    @redis_client = RedisClient.instance
+    @config           = ConfigHandler.instance.config
+    @grpc_client      = GrpcClient.instance
+    @memcached_client = MemcachedClient.instance
   end
 
   def ping(request, call)
