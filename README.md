@@ -5,7 +5,7 @@ Pongfumasters is a web-based augmented reality (AR) Pong game powered by a micro
 This is a 42 school project that is part of the common curriculum, **some design choices are forced by the project subject**. Also, only some of the brainstormed features are implemented because of time constraints. In the following documentation everything written in *italic* has to be interpreted as W.I.P.
 
 # System Design
-![system_design](https://github.com/user-attachments/assets/87e85d5e-8f69-4de8-a99d-0496986227f4)
+![system_design](https://github.com/user-attachments/assets/7df83c0b-69dc-4f4c-a092-573087b99d96)
 
 ## Web Server (NGINX)
 
