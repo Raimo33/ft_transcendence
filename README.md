@@ -1,5 +1,5 @@
 ## Overview
-Pongfumasters is a web-based augmented reality (AR) Pong game powered by a microservices backend and a lightweight frontend. The backend combines pure Ruby microservices and pre-built Docker images, communicating to the frontend via the Pongfumasters API.
+Pongfu is a web-based augmented reality (AR) Pong game powered by a microservices backend and a lightweight frontend. The backend combines pure Ruby microservices and pre-built Docker images, communicating to the frontend via the Pongfu API.
 
 ### Disclaimer
 This is a 42 school project that is part of the common curriculum, **some design choices are forced by the project subject**. Also, only some of the brainstormed features are implemented because of time constraints. In the following documentation everything written in *italic* has to be interpreted as W.I.P.

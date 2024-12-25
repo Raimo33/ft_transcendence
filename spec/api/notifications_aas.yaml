@@ -3,22 +3,22 @@
 #                                                         :::      ::::::::    #
 #    notifications_aas.yaml                             :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/20 17:00:37 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/25 20:41:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 asyncapi: 3.0.0
 info:
-  title: Pongfumasters Notifications API
-  description: API for Pongfumasters notifications.
+  title: Pongfu Notifications API
+  description: API for Pongfu notifications.
   version: 1.0.0
 servers:
   notifications:
     description: Server for SSE.
-    host: api.pongfumasters.com
+    host: api.pongfu.com
     protocol: http
     protocolVersion: "1.1"
     bindings:

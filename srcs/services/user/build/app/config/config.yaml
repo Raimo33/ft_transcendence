@@ -15,7 +15,7 @@ grpc:
 database:
   host: postgresql.data
   port: 5432
-  name: pongfumasters
+  name: pongfu
   user: user
   password: password
   pool:
@@ -39,8 +39,8 @@ tokens:
   invalidation_grace_period: 15
 
 jwt:
-  issuer: pongfumasters.auth
-  audience: pongfumasters_users
+  issuer: pongfu.auth
+  audience: pongfu_users
   leeway: 30
 
 display_name:

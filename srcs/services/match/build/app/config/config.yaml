@@ -16,7 +16,7 @@ grpc:
 database:
   host: postgresql.data
   port: 5432
-  name: pongfumasters
+  name: pongfu
   user: match
   password: password
   pool:

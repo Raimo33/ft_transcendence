@@ -1,12 +1,12 @@
 asyncapi: 3.0.0
 info:
-  title: Pongfumasters Game Updates API
-  description: API for Pongfumasters game updates.
+  title: Pongfu Game Updates API
+  description: API for Pongfu game updates.
   version: 1.0.0
 servers:
   game_updates:
     description: Server for live WebSocket game updates.
-    host: api.pongfumasters.com
+    host: api.pongfu.com
     protocol: wss
     security:
       - $ref: '#/components/securitySchemes/httpBearerToken'
