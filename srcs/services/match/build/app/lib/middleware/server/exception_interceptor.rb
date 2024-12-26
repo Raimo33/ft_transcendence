@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    exception_interceptor.rb                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/16 19:13:07 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 16:54:36 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,8 +28,8 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
     'pk_matches'                      => "Match already exists",
     'fk_matches_creatorid'            => "User not found",
     'fk_matches_tournamentid'         => "Tournament not found",
-    'fk_friendships_user_id_1'        => "Friendship not found",
-    'fk_friendships_user_id_2'        => "Friendship not found",
+    'fk_friendships_userid1'        => "Friendship not found",
+    'fk_friendships_userid2'        => "Friendship not found",
     'unq_matches_tournamentid'        => "Tournament already exists",
     'chk_matches_startedat'           => "Match cannot start in the past",
     'chk_matches_endedat'             => "Match cannot end before it starts",

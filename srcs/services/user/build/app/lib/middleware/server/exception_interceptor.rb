@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/25 19:59:21 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 16:54:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,8 +30,8 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
     'pk_friendships'                  => 'Friendship already exists', 
     'unq_users_email'                 => 'Email already in use',
     'unq_users_displayname'          => 'Display name already in use',
-    'fk_friendships_user1'            => 'User not found',
-    'fk_friendships_user2'            => 'User not found',
+    'fk_friendships_userid1'            => 'User not found',
+    'fk_friendships_userid2'            => 'User not found',
     'chk_friendships_different_users' => 'Cannot be friends with yourself',
     'chk_users_email'                 => 'Invalid email format',
     'chk_users_displayname'          => 'Invalid display name format'

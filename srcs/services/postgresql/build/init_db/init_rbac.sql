@@ -5,12 +5,19 @@ CREATE USER matchmaking WITH PASSWORD 'password';
 
 GRANT SELECT, INSERT, UPDATE  ON Users               TO user;
 GRANT SELECT                  ON UserPublicProfiles  TO user;
-GRANT SELECT, UPDATE          ON UserPrivateProfiles TO user;
+GRANT SELECT,                 ON UserPrivateProfiles TO user;
+GRANT SELECT, INSERT, UPDATE  ON Friendships         TO user;
 
-GRANT SELECT, INSERT, UPDATE ON Matches     TO match;
-GRANT SELECT, INSERT, UPDATE ON UserMatches TO match;
+GRANT SELECT, INSERT, UPDATE ON Matches                          TO match;
+GRANT SELECT,                ON UserPublicProfiles               TO match;
+GRANT SELECT,                ON Friendships                      TO match;
+GRANT SELECT, INSERT, UPDATE ON MatchPlayers                     TO match;
+GRANT SELECT,                ON MatchPlayersChronologicalMatView TO match;
+GRANT SELECT,                ON MatchesInfoMatView               TO match;
 
-GRANT SELECT, INSERT, UPDATE ON Tournaments     TO tournament;
-GRANT SELECT, INSERT, UPDATE ON UserTournaments TO tournament;
+GRANT SELECT, INSERT, UPDATE ON Tournaments       TO tournament;
+GRANT SELECT,                ON TournamentPlayers TO tournament;
 
--- #TODO grand for matchmaking
+GRANT SELECT, INSERT, UPDATE ON MatchmakingPool TO matchmaking;
+
+GRANT 

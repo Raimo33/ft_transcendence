@@ -79,8 +79,8 @@ CREATE TABLE Friendships
   created_at      timestamptz NOT NULL DEFAULT now(),
 
   CONSTRAINT pk_friendships       PRIMARY KEY (user_id_1, user_id_2),
-  CONSTRAINT fk_friendships_user1 FOREIGN KEY (user_id_1) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT fk_friendships_user2 FOREIGN KEY (user_id_2) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_friendships_userid1 FOREIGN KEY (user_id_1) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_friendships_userid2 FOREIGN KEY (user_id_2) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE,
 
   CONSTRAINT chk_friendships_different_users CHECK (user_id_1 < user_id_2)
 );
@@ -91,8 +91,8 @@ CREATE INDEX idx_friendships_user2_status ON Friendships(user_id_2, current_stat
 
 CREATE TABLE MatchPlayers
 (
-  user_id   uuid  NOT NULL,
-  match_id  uuid  NOT NULL,
+  user_id   uuid NOT NULL,
+  match_id  uuid NOT NULL,
   position  smallint,
 
   CONSTRAINT pk_matchplayers         PRIMARY KEY (match_id, user_id),
@@ -105,8 +105,8 @@ CREATE INDEX idx_matchplayers_matchid_position ON MatchPlayers(match_id, positio
 
 CREATE TABLE TournamentPlayers
 (
-  user_id        uuid  NOT NULL,
-  tournament_id  uuid  NOT NULL,
+  user_id        uuid NOT NULL,
+  tournament_id  uuid NOT NULL,
   position       smallint,
 
   CONSTRAINT  pk_tournamentplayers               PRIMARY KEY (tournament_id, user_id),
@@ -116,3 +116,15 @@ CREATE TABLE TournamentPlayers
 
 CREATE INDEX idx_tournamentplayers_userid                ON TournamentPlayers(user_id) USING HASH;
 CREATE INDEX idx_tournamentplayers_tournamentid_position ON TournamentPlayers(tournament_id, position);
+
+CREATE UNLOGGED TABLE MatchmakingPool
+(
+  user_id      uuid NOT NULL,
+  added_at     timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT pk_matchmakingpool          PRIMARY KEY (user_id),
+  CONSTRAINT fk_matchmakingpool_userid   FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED
+  CONSTRAINT chk_matchmakingpool_addedat CHECK (added_at <= NOW())
+)
+
+CREATE INDEX idx_matchmakingpool_addedat ON MatchmakingPool(added_at);

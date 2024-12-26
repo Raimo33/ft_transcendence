@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 13:24:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 17:29:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,8 +53,8 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
       SQL
       get_match_info: <<~SQL
         SELECT *
-        FROM Matches
-        WHERE match_id = $1
+        FROM MatchesInfoMatView
+        WHERE id = $1
       SQL
       insert_match: <<~SQL
         INSERT INTO Matches (id)

@@ -6,16 +6,14 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 17:13:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 17:18:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'singleton'
 require_relative 'ConfigHandler'
-require_relative '../protos/matchmaking_user_services_pb'
-require_relative '../protos/game_state_user_services_pb'
-require_relative '../protos/notification_user_services_pb'
+require_relative #TODO protos
 require_relative 'interceptors/metadata_interceptor'
 require_relative 'interceptors/logger_interceptor'
 
@@ -35,15 +33,11 @@ class GrpcClient
     ]
 
     @channels = {
-      matchmaking: create_channel(@config.dig(:grpc, :client, :addresses, :matchmaking)),
-      game_state: create_channel(@config.dig(:grpc, :client, :addresses, :game_state)),
-      notification: create_channel(@config.dig(:grpc, :client, :addresses, :notification))
+      match
     }
 
     @stubs = {
-      matchmaking: Matchmaking::Stub.new(@channels[:matchmaking], interceptors: interceptors),
-      game_state: GameState::Stub.new(@channels[:game_state], interceptors: interceptors),
-      notification: Notification::Stub.new(@channels[:notification], interceptors: interceptors)
+      match
     }
   ensure
     stop
@@ -53,30 +47,10 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def add_matchmaking_user()
-
-  def remove_matchmaking_user()
-
-  def add_match_invitation()
-  
-  def remove_match_invitation()
-
-  def accept_match_invitation()
-
-  def setup_game_state()
-
-  def close_game_state()
-
-  def notify_match_invitation(from_user_id:, to_user_id:, metadata = {})
-    request = NotificationUser::NotifyMatchInvitationRequest(
-      from_user_id: from,
-      to_user_id:   to
-    )
-
-    @stubs[:notification].notify_match_invitation(request, metadata: metadata)
+  def match_found(user_id_1:, user_id_2:, metadata = {})
+    request = MatchmakingMatch::MatchedPlayers.new(user_id_1: user_id_1, user_id_2: user_id_2)
+    @stubs[:match].match_found(request, metadata: metadata)
   end
-
-  def notify_match_found()
 
   private
 
