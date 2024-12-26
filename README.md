@@ -5,7 +5,7 @@ Pongfu is a web-based augmented reality (AR) Pong game powered by a microservice
 This is a 42 school project that is part of the common curriculum, **some design choices are forced by the project subject**. Also, only some of the brainstormed features are implemented because of time constraints. In the following documentation everything written in *italic* has to be interpreted as W.I.P.
 
 # System Design
-![system_design](https://github.com/user-attachments/assets/7df83c0b-69dc-4f4c-a092-573087b99d96)
+![system_design](https://github.com/user-attachments/assets/56062867-eec0-461c-bc22-acbbc88a7c87)
 
 ## Web Server (NGINX)
 
