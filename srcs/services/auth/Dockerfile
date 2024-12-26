@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:12:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:30:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,15 +23,20 @@ RUN gem install bundler
 RUN bundle install
 
 COPY ./build/app/  /app/
-COPY --from=protos auth_user.proto \
-                   auth_api_gateway.proto \
-                   /app/protos/
+COPY --from=protos \
+  auth_user.proto \
+  auth_api_gateway.proto \
+  /app/protos/
 
 RUN adduser -DHS auth
 RUN chown -R auth:auth /app
 
-RUN protoc --ruby_out=./ /app/protos/auth_user.proto /app/protos/auth_api_gateway.proto
+WORKDIR /app/protos
+RUN grpc_tools_ruby_protoc -I ./ --ruby_out=./ --grpc_out=./ \
+  auth_user.proto \
+  auth_api_gateway.proto
 
+WORKDIR /app
 USER auth
 EXPOSE 50051
 VOLUME ["/etc/ssl/private"]

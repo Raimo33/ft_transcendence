@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 17:13:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:21:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,9 +41,9 @@ class GrpcClient
     }
 
     @stubs = {
-      matchmaking: Matchmaking::Stub.new(@channels[:matchmaking], interceptors: interceptors),
-      game_state: GameState::Stub.new(@channels[:game_state], interceptors: interceptors),
-      notification: Notification::Stub.new(@channels[:notification], interceptors: interceptors)
+      matchmaking: MatchmakingMatch::Stub.new(@channels[:matchmaking], interceptors: interceptors),
+      game_state: GameStateMatch::Stub.new(@channels[:game_state], interceptors: interceptors),
+      notification: NotificationMatch::Stub.new(@channels[:notification], interceptors: interceptors)
     }
   ensure
     stop
@@ -53,19 +53,49 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def add_matchmaking_user()
+  def add_matchmaking_user(user_id:, metadata = {})
+    request = Common::Identifier.new(id: user_id)
+    @stubs[:matchmaking].add_matchmaking_user(request, metadata: metadata)
+  end
 
-  def remove_matchmaking_user()
+  def remove_matchmaking_user(user_id:, metadata = {})
+    request = Common::Identifier.new(id: user_id)
+    @stubs[:matchmaking].remove_matchmaking_user(request, metadata: metadata)
+  end
 
-  def add_match_invitation()
+  def add_match_invitation(from_user_id:, to_user_id:, metadata = {})
+    request = MatchmakingMatch::Invitation(
+      from_user_id: from_user_id,
+      to_user_id:   to_user_id
+    )
+    @stubs[:matchmaking].add_match_invitation(request, metadata: metadata)
+  end
   
-  def remove_match_invitation()
+  def remove_match_invitation(from_user_id:, to_user_id:, metadata = {})
+    request = MatchmakingMatch::Invitation(
+      from_user_id: from_user_id,
+      to_user_id:   to_user_id
+    )
+    @stubs[:matchmaking].remove_match_invitation(request, metadata: metadata)
+  end
 
-  def accept_match_invitation()
+  def accept_match_invitation(from_user_id:, to_user_id:, metadata = {})
+    request = MatchmakingMatch::Invitation(
+      from_user_id: from_user_id,
+      to_user_id:   to_user_id
+    )
+    @stubs[:matchmaking].accept_match_invitation(request, metadata: metadata)
+  end
 
-  def setup_game_state()
+  def setup_game_state(match_id:, metadata = {})
+    request = Common::Identifier.new(id: match_id)
+    @stubs[:game_state].setup_game_state(request, metadata: metadata)
+  end
 
-  def close_game_state()
+  def close_game_state(match_id:, metadata = {})
+    request = Common::Identifier.new(id: match_id)
+    @stubs[:game_state].close_game_state(request, metadata: metadata)
+  end
 
   def notify_match_invitation(from_user_id:, to_user_id:, metadata = {})
     request = NotificationUser::NotifyMatchInvitationRequest(

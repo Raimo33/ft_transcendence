@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/09 21:12:59 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:34:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,14 +22,23 @@ WORKDIR /app
 RUN gem install bundler
 RUN bundle install
 
-COPY ./build/app/                              /app/
-COPY --from=protos user_api_gateway.proto      /app/protos
+COPY ./build/app/   /app/
+COPY --from=protos \
+  auth_user.proto \
+  notification_user.proto \
+  user_api_gateway.proto \
+  /app/protos/
 
 RUN adduser -DHS user
 RUN chown -R user:user /app
 
-RUN protoc --ruby_out=./ /app/protos/user_api_gateway.proto
+WORKDIR /app/protos
+RUN grpc_tools_ruby_protoc -I ./ --ruby_out=./ --grpc_out=./ \
+  user_api_gateway.proto \
+  user_auth.proto \
+  user_notification.proto
 
+WORKDIR /app
 USER user
 EXPOSE 50051
 

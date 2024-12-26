@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    grpc_server.rb                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 15:54:33 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:22:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,9 +22,9 @@ require_relative 'interceptors/request_context_interceptor'
 class GrpcServer
 
   def initialize
-    @config   = ConfigHandler.instance.config
+    @config = ConfigHandler.instance.config
 
-    @server   = GRPC::RpcServer.new(
+    @server = GRPC::RpcServer.new(
       server_host:  @config.dig(:grpc, :server, :host),
       server_port:  @config.dig(:grpc, :server, :port),
       pool_size:    @config.dig(:grpc, :server, :pool_size),

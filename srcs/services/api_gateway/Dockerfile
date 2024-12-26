@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/18 14:31:41 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:36:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,18 +23,22 @@ RUN gem install bundler
 RUN bundle install
 
 COPY ./build/app/   /app/
-COPY --from=protos match_api_gateway.proto \
-                   tournament_api_gateway.proto \
-                   user_api_gateway.proto \
-                   /app/protos/
+COPY --from=protos \
+  match_api_gateway.proto \
+  tournament_api_gateway.proto \
+  user_api_gateway.proto \
+  /app/protos/
 
 RUN adduser -DHS api_gateway
 RUN chown -R api_gateway:api_gateway /app
 
-RUN protoc --ruby_out=./ /app/protos/match_api_gateway.proto \
-                         /app/protos/tournament_api_gateway.proto \
-                         /app/protos/user_api_gateway.proto
+WORKDIR /app/protos
+RUN grpc_tools_ruby_protoc -I ./ --ruby_out=./ --grpc_out=./ \
+  match_api_gateway.proto \
+  tournament_api_gateway.proto \
+  user_api_gateway.proto
 
+WORKDIR /app
 USER api_gateway
 EXPOSE 3000
 VOLUME ["/etc/ssl/public"]
