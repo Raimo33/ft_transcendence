@@ -12,7 +12,7 @@ grpc:
       auth: auth.core:50051
       notification: notification.core:50051
 
-database:
+postgresql:
   host: postgresql.data
   port: 5432
   name: pongfu

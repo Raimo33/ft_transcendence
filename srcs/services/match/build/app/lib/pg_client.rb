@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    db_client.rb                                       :+:      :+:    :+:    #
+#    pg_client.rb                                       :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/12/07 20:24:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 13:28:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,20 +16,20 @@ require 'singleton'
 require_relative 'CustomLogger'
 require_relative 'ConfigHandler'
 
-class DBClient
+class PGClient
   include Singleton
 
   def initialize
     @config = ConfigHandler.instance.config
-    db_config = @config[:database]
+    pg_config = @config[:postgresql]
 
-    @pool = ConnectionPool.new(size: db_config[:pool][:size], timeout: db_config[:pool][:timeout]) do
+    @pool = ConnectionPool.new(size: pg_config[:pool][:size], timeout: pg_config[:pool][:timeout]) do
       PG::Connection.new(
-        host:       db_config[:host],
-        port:       db_config[:port],
-        dbname:     db_config[:dbname],
-        user:       db_config[:user],
-        password:   db_config[:password]
+        host:       pg_config[:host],
+        port:       pg_config[:port],
+        dbname:     pg_config[:dbname],
+        user:       pg_config[:user],
+        password:   pg_config[:password]
       )
     end
 

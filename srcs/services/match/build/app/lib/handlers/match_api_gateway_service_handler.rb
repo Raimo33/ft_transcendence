@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/24 18:17:11 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 13:24:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ require 'async'
 require 'base64'
 require_relative '../config_handler'
 require_relative '../grpc_client'
-require_relative '../db_client'
+require_relative '../pg_client'
 require_relative '../protos/match_api_gateway_services_pb'
 
 class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
@@ -23,7 +23,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
   def initialize
     @config       = ConfigHandler.instance.config
     @grpc_client  = GrpcClient.instance
-    @db_client    = DBClient.instance
+    @pg_client    = PGClient.instance
 
     @prepared_statements = {
       get_user_matches: <<~SQL
@@ -87,7 +87,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     started_at = started_at_str ? Time.parse(started_at_str) : Time.now
     match_id   = match_id_str
 
-    result = @db_client.exec_prepared(:get_user_matches, [request.user_id, started_at, match_id, request.limit])
+    result = @pg_client.exec_prepared(:get_user_matches, [request.user_id, started_at, match_id, request.limit])
 
     match_ids = result.map { |row| row['match_id'] }      
     Common::Identifiers.new(ids: match_ids)
@@ -97,7 +97,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     user_id = call.metadata['requester_user_id']
     check_required_fields(user_id)
 
-    response = @db_client.exec_prepared(:is_playing, [user_id])
+    response = @pg_client.exec_prepared(:is_playing, [user_id])
     is_playing = response.first['is_playing'] == 't'
     raise GRPC::FailedPrecondition.new("User is already playing a match") if is_playing
 
@@ -150,7 +150,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     match_id = request.match_id
     check_required_fields(match_id)
 
-    response = @db_client.exec_prepared(:get_match_info, [match_id])
+    response = @pg_client.exec_prepared(:get_match_info, [match_id])
     raise GRPC::NotFound.new("Match not found") if response.empty?
 
     row = response.first
@@ -174,7 +174,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
       task.async { @grpc_client.accept_match_invitation(friend_id, user_id) }
 
       task.async do
-        @db_client.transaction do |tx|
+        @pg_client.transaction do |tx|
           tx.exec_prepared(:insert_match, [match_id])
           tx.exec_prepared(:insert_match_players, [match_id, user_id, friend_id])
         end
@@ -188,7 +188,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     rescue
       cleanup_tasks = Async do |task|
         task.async { @grpc_client.remove_match_invitation(friend_id, user_id) }
-        task.async { @db_client.exec_prepared(:delete_match, [match_id]) }
+        task.async { @pg_client.exec_prepared(:delete_match, [match_id]) }
         task.async { @grpc_client.close_game_state(match_id) }
       end
       cleanup_tasks.wait rescue nil
@@ -219,7 +219,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
     @prepared_statements.each do |name, sql|
       barrier.async do
         semaphore.acquire do
-          @db_client.prepare(name, sql)
+          @pg_client.prepare(name, sql)
         end
       end
     end
@@ -238,17 +238,17 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
   end
 
   def friends?(user_id, friend_id)
-    response = @db_client.exec_prepared(:are_friends, [user_id, friend_id])
+    response = @pg_client.exec_prepared(:are_friends, [user_id, friend_id])
     response.first['are_friends'] == 't'
   end
 
   def playing?(user_id)
-    response = @db_client.exec_prepared(:is_playing, [user_id])
+    response = @pg_client.exec_prepared(:is_playing, [user_id])
     response.first['is_playing'] == 't'
   end
 
   def online?(user_id)
-    response = @db_client.exec_prepared(:get_user_status, [user_id])
+    response = @pg_client.exec_prepared(:get_user_status, [user_id])
     response.first['current_status'] == 'online'
   end
 

@@ -206,7 +206,6 @@ Memcached is chosen for its minimal in-memory key-value store capabilities, high
 
 ### Responsibilities
 - **Caches Common Database Queries**: Stores the results of frequently executed database queries, reducing the need for repeated querying of the database. This helps to speed up response times and reduce database load.
-- **Matchmaking Pool Storage**: Mantains the active matchmaking pool, storing player data and preferences for efficient matchmaking. By caching this data, the system can quickly form matches based on player attributes and availability.
 - **Cache for All Services**: Acts as a shared caching layer for all services in the system. By providing a centralized cache, Memcached ensures that data used by different services is readily available, improving system-wide performance.
 
 ### Scalability  

@@ -7,9 +7,16 @@ grpc:
     host: 0.0.0.0
     port: 50051
     pool_size: 10
-  client:
-    addresses:
-      #TODO aggiugere
+
+postgresql:
+  host: postgresql.data
+  port: 5432
+  name: pongfu
+  user: matchmaking
+  password: password
+  pool:
+    size: 10
+    timeout: 30
 
 memcached:
   host: memcached.data

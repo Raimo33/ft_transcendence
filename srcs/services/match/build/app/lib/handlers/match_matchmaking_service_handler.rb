@@ -3,17 +3,17 @@
 #                                                         :::      ::::::::    #
 #    match_matchmaking_service_handler.rb               :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/17 19:55:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 13:24:05 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'async'
 require_relative '../config_handler'
 require_relative '../grpc_client'
-require_relative '../db_client'
+require_relative '../pg_client'
 require_relative '../protos/match_matchmaking_services_pb'
 
 class MatchMatchmakingServiceHandler < MatchMatchmaking::Service
@@ -22,7 +22,7 @@ class MatchMatchmakingServiceHandler < MatchMatchmaking::Service
   def initialize
     @config       = ConfigHandler.instance.config
     @grpc_client  = GrpcClient.instance
-    @db_client    = DBClient.instance
+    @pg_client    = PGClient.instance
 
     @prepared_statements = {
       insert_match: <<~SQL
@@ -48,7 +48,7 @@ class MatchMatchmakingServiceHandler < MatchMatchmaking::Service
     check_required_fields(player_1, player_2)
 
     match_id = SecureRandom.uuid
-    @db_client.transaction do |tx|
+    @pg_client.transaction do |tx|
       tx.exec_prepared('insert_match', [request.match_id])
       tx.exec_prepared('insert_match_players', [match_id, user_id_1, user_id_2])
     end
@@ -67,7 +67,7 @@ class MatchMatchmakingServiceHandler < MatchMatchmaking::Service
     @prepared_statements.each do |name, sql|
       barrier.async do
         semaphore.acquire do
-          @db_client.prepare(name, sql)
+          @pg_client.prepare(name, sql)
         end
       end
     end

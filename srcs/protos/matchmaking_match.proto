@@ -8,11 +8,11 @@ import "common/identifier.proto";
 service MatchmakingMatch
 {
   rpc Ping                  (google.protobuf.Empty)  returns (google.protobuf.Empty)  {};
-  rpc AddMatchmakingUser    (common.Identifier)      returns (google.protobuf.Empty)  {};  //TODO will retun Conflict error if user is already in the queue
-  rpc RemoveMatchmakingUser (common.Identifier)      returns (google.protobuf.Empty)  {};  //TODO will return NotFound error if user is not in the queue
-  rpc AddMatchInvitation    (Invitation)             returns (google.protobuf.Empty)  {};  //TODO will return Conflict error if invitation already exists
-  rpc RemoveMatchInvitation (Invitation)             returns (google.protobuf.Empty)  {};  //TODO will raise NotFound error if invitation does not exist
-  rpc AcceptMatchInvitation (Invitation)             returns (google.protobuf.Empty)  {};  //TODO will raise NotFound error if invitation does not exist
+  rpc AddMatchmakingUser    (common.Identifier)      returns (google.protobuf.Empty)  {};
+  rpc RemoveMatchmakingUser (common.Identifier)      returns (google.protobuf.Empty)  {};
+  rpc AddMatchInvitation    (Invitation)             returns (google.protobuf.Empty)  {};
+  rpc RemoveMatchInvitation (Invitation)             returns (google.protobuf.Empty)  {};
+  rpc AcceptMatchInvitation (Invitation)             returns (google.protobuf.Empty)  {};
 }
 
 message Invitation
