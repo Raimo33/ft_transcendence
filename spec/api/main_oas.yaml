@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/25 20:41:03 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 00:37:14 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ info:
   description: REST-ful API to interact with the Pongfu gateway.
   version: 1.0.0
 servers:
-  - url: api.pongfu.com/v1
+  - url: api.pongfu.com
     description: Main API server
 security:
   - jwtAuth: []

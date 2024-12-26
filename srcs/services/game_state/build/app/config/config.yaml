@@ -9,4 +9,8 @@ grpc:
     pool_size: 10
   client:
     addresses:
-      
+      match: match.core:50051
+
+game_server:
+  host: 0.0.0.0
+  port: 8080
