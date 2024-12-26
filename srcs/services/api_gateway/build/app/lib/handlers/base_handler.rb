@@ -3,16 +3,16 @@
 #                                                         :::      ::::::::    #
 #    base_handler.rb                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:38 by craimond          #+#    #+#              #
-#    Updated: 2024/12/20 13:09:38 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:50:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'json'
 require 'openapi_first'
-require_relative 'grpc_client'
+require_relative '../grpc_client'
 require_relative '../request_context'
 
 class BaseHandler

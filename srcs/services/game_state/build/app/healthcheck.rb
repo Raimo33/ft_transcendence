@@ -1,11 +1,13 @@
 #!/usr/bin/env ruby
 
 require 'grpc'
-require_relative 'proto/matchmaking_match_services_pb'
+require_relative 'protos/match_api_gateway_services_pb'
+require_relative 'protos/match_game_state_services_pb'
+require_relative 'protos/match_matchmaking_services_pb'
 
 if $PROGRAM_NAME == __FILE__
   stubs = {
-    matchmaking_match: MatchmakingMatch::Stub.new('localhost:50051', :this_channel_is_insecure),
+    #TODO stubs
   }
 
   stubs.each do |service, stub|

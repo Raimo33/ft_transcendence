@@ -14,7 +14,7 @@ service MatchGameState
 
 message MatchResult
 {
-  string                    match_id    = 1;
-  string                    winner_id   = 2;
-  google.protobuf.Timestamp ended_at    = 3;
+  string                    match_id  = 1;
+  string                    winner_id = 2;
+  google.protobuf.Timestamp ended_at  = 3;
 }

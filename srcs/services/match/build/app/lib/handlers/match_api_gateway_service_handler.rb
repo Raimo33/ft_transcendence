@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 17:29:56 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:47:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -180,7 +180,7 @@ class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
         end
       end
 
-      task.async { @grpc_client.setup_game_state(match_id) } #TODO fara' il setup del websocket
+      task.async { @grpc_client.setup_game_state(match_id) }
       
       @grpc_client.notify_match_found(user_id, friend_id, match_id)
       

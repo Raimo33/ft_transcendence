@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    grpc_client.rb                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/20 12:57:30 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 21:46:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -184,7 +184,7 @@ class GrpcClient
   end
 
   def leave_tournament(tournament_id:, metadata = {})
-    request = Common::Identifier.new(id: tournament_id) #TODO capire se usare COMMON invece che AuthAPIGateway
+    request = Common::Identifier.new(id: tournament_id)
     @stubs[:tournament].leave_tournament(request, metadata: metadata)
   end
 
