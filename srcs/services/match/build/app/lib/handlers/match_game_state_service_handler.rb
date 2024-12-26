@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 13:24:05 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 23:18:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,6 @@ require_relative '../pg_client'
 require_relative '../protos/match_game_state_services_pb'
 
 class MatchGameStateServiceHandler < MatchGameState::Service
-  include EmailValidator
 
   def initialize
     @config       = ConfigHandler.instance.config

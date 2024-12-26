@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:11:23 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:41:04 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 23:43:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,3 +15,4 @@ source "https://rubygems.org"
 gem "grpc"
 gem "google-protobuf"
 gem "async"
+gem "faye-websocket"

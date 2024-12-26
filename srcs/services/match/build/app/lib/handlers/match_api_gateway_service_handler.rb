@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:47:47 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/26 23:18:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,8 +18,6 @@ require_relative '../pg_client'
 require_relative '../protos/match_api_gateway_services_pb'
 
 class MatchAPIGatewayServiceHandler < MatchAPIGateway::Service
-  include EmailValidator
-
   def initialize
     @config       = ConfigHandler.instance.config
     @grpc_client  = GrpcClient.instance

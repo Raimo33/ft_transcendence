@@ -8,7 +8,7 @@ import "common/identifier.proto";
 service GameStateMatch
 {
   rpc Ping            (google.protobuf.Empty)  returns (google.protobuf.Empty)  {};
-  rpc SetupGameState  (common.Identifier)      returns (google.protobuf.Empty)  {}; //TODO will return Conflict if user already playing (websocket already existent)
-  rpc CloseGameState  (common.Identifier)      returns (google.protobuf.Empty)  {}; //TODO will return Conflict if user not playing (websocket not existent)
+  rpc SetupGameState  (common.Identifier)      returns (google.protobuf.Empty)  {};
+  rpc CloseGameState  (common.Identifier)      returns (google.protobuf.Empty)  {};
 }
 
