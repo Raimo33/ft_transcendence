@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/27 00:37:19 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 19:12:43 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -248,7 +248,6 @@ paths:
                   $ref: "#/components/schemas/user_display_name"
                 avatar:
                   $ref: "#/components/schemas/user_avatar"
-              required: []
               additionalProperties: false
         required: true
       security:
@@ -482,21 +481,13 @@ paths:
                     $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /user/friends/{user_id}:
     delete:
       operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                friend_id:
-                  $ref: "#/components/schemas/user_id"
-              required: [friend_id]
-              additionalProperties: false
-        required: true
+      parameters:
+        - $ref: "#/components/parameters/user_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -507,22 +498,13 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-  /user/friends/requests:
+  /user/friends/{user_id}/request:
     post:
       operationId: acceptFriendRequest
       summary: Accept friend request
       description: Accept a friend request by providing the friend ID.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                friend_id:
-                  $ref: "#/components/schemas/user_id"
-              required: [friend_id]
-              additionalProperties: false
-        required: true
+      parameters:
+        - $ref: "#/components/parameters/user_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -537,17 +519,8 @@ paths:
       operationId: rejectFriendRequest
       summary: Reject friend request
       description: Reject a friend request by providing the friend ID.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                friend_id:
-                  $ref: "#/components/schemas/user_id"
-              required: [friend_id]
-              additionalProperties: false
-        required: true
+      parameters:
+        - $ref: "#/components/parameters/user_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -655,22 +628,13 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/invitation:
+  /matches/{match_id}/invitation:
     post:
       operationId: acceptMatchInvitation
       summary: Accept match invitation
       description: Accept an invitation to join a match by providing the friend ID.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                friend_id:
-                  $ref: "#/components/schemas/user_id"
-              required: [friend_id]
-              additionalProperties: false
-        required: true
+      parameters:
+        - $ref: "#/components/parameters/match_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -687,17 +651,8 @@ paths:
       operationId: declineMatchInvitation
       summary: Decline match invitation
       description: Decline an invitation to join a match by providing the friend ID.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                match_id:
-                  $ref: "#/components/schemas/match_id"
-              required: [match_id]
-              additionalProperties: false
-        required: true
+      parameters:
+        - $ref: "#/components/parameters/match_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -1057,6 +1012,18 @@ components:
         type: string
       example: "cookie1=value1; Path=/; Expires=Wed, 09 Jun 2021 10:18:14 GMT"
   responses:
+    NoContent:
+      description: No content to return. The request was successful but there is no content to return.
+    NotModified:
+      description: Not modified. The resource has not changed since the last request.
+    Unauthorized:
+      description: Unauthorized. JWT is missing or invalid.
+    Forbidden:
+      description: Forbidden. The user does not have permission to perform the action.
+    Conflict:
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource.
+    PreconditionFailed:
+      description: Precondition failed. The server does not meet one of the preconditions that the requester put on the request.
     ImATeaPot:
       description: I"m a teapot. The server is a teapot, not a coffee machine.
   securitySchemes:
