@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:36:38 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:50:52 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 18:31:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,9 +36,9 @@ class BaseHandler
   end
 
   def build_refresh_token_cookie_header(refresh_token)
-    decoded_token = @grpc_client.decode_jwt(refresh_token)
-    remember_me = decoded_token&.payload&.dig("remember_me")&.bool_value
-    exp_timestamp = decoded_token&.payload&.dig("exp")&.number_value
+    payload = JWT.decode(refresh_token, nil, false).first
+    remember_me = payload.get("remember_me")
+    exp_timestamp = payload.get("exp")
 
     if remember_me && exp_timestamp
       cookie_expire_after = Time.at(exp_timestamp)

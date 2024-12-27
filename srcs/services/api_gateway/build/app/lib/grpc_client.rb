@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:46:54 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 18:33:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -188,8 +188,8 @@ class GrpcClient
     @stubs[:tournament].leave_tournament(request, metadata: metadata)
   end
 
-  def validate_session_token(jwt:, required_auth_level:, metadata = {})
-    request = AuthAPIGateway::ValidateSessionTokenRequest.new(jwt: jwt, required_auth_level: required_auth_level)
+  def validate_session_token(jwt:, metadata = {})
+    request = Common::JWT.new(jwt: jwt)
     @stubs[:auth].validate_session_token(request, metadata: metadata)
   end
 

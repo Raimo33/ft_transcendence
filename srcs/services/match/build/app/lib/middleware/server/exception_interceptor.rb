@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 16:54:36 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 17:41:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,6 +36,7 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
     'chk_friendships_different_users' => "Cannot be friends with yourself",
   }.freeze
 
+  #TODO modificare logica per lasciare il messaggio di default in caso ci sia
   EXCEPTION_MAP = {
     PG::ConnectionBad             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection error"],
     ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Connection timeout"],

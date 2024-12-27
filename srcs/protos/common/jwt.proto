@@ -8,9 +8,3 @@ message JWT
 {
   string jwt = 1;
 }
-
-message DecodedJWT
-{
-  map<string, Google.Protobuf.Struct.Value> headers = 1;
-  map<string, Google.Protobuf.Struct.Value> payload = 2;
-}

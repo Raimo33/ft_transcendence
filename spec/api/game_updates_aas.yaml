@@ -24,6 +24,8 @@ channels:
         $ref: '#/components/messages/GameStateMessage'
       gameOver:
         $ref: '#/components/messages/GameOverMessage'
+      error:
+        $ref: '#/components/messages/ErrorMessage'
 operations:
   sendInput:
     action: send
@@ -38,6 +40,7 @@ operations:
     messages:
       - $ref: '#/channels/game_updates/messages/gameState'
       - $ref: '#/channels/game_updates/messages/gameOver'
+      - $ref: '#/channels/game_updates/messages/error'
 components:
   messages:
     InputMessage:
@@ -91,6 +94,19 @@ components:
             $ref: '#/components/schemas/user_id'
           health_points:
             $ref: '#/components/schemas/health_points'
+    ErrorMessage:
+        name: ErrorMessage
+        contentType: application/json
+        payload:
+          type: object
+          properties:
+            operation_id:
+              type: string
+              const: error
+            code:
+              $ref: '#/components/schemas/error_code'
+            message:
+              $ref: '#/components/schemas/error_message'
   schemas:
     user_id:
       description: Unique identifier for the user.
@@ -132,6 +148,15 @@ components:
           $ref: '#/components/schemas/hp'
         player2:
           $ref: '#/components/schemas/hp'
+    error_code:
+      description: Error code in http status code format.
+      type: integer
+      format: uint16
+      minimum: 100
+      maximum: 599
+    error_message:
+      description: Human-readable error message.
+      type: string
   securitySchemes:
     httpBearerToken:
       type: http

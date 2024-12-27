@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    auth_api_gateway_service_handler.rb                :+:      :+:    :+:    #
+#    auth_game_state_service_handler.rb                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/27 18:25:14 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 18:24:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,9 +14,9 @@ require 'async'
 require_relative '../config_handler'
 require_relative '../grpc_server'
 require_relative '../jwt_validator'
-require_relative '../protos/auth_api_gateway_pb'
+require_relative '../protos/auth_game_state_services_pb'
 
-class AuthApiGatewayServiceHandler < AuthApiGateway::Service
+class AuthGameStateServiceHandler < AuthGameState::Service
 
   def initialize
     @config = ConfigHandler.instance.config
@@ -53,8 +53,6 @@ class AuthApiGatewayServiceHandler < AuthApiGateway::Service
 
     Empty.new
   end
-
-  def validate
 
   private
 

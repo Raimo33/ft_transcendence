@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:44:09 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 18:36:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,7 +43,10 @@ class GrpcClient
     stop
   end
 
-  #TODO methods
+  def validate_session_token(token, metadata = {})
+    request = Common::JWT.new(jwt: token)
+    @stubs[:auth].validate_session_token(request, metadata: metadata)
+  end
 
   private
 
