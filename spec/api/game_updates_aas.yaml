@@ -46,6 +46,9 @@ components:
       payload:
         type: object
         properties:
+          operation_id:
+            type: string
+            const: input
           direction:
             description: True for up, false for down.
             type: boolean
@@ -57,19 +60,22 @@ components:
       payload:
         type: object
         properties:
-          ballPosition:
+          operation_id:
+            type: string
+            const: gameState
+          ball_position:
             $ref: '#/components/schemas/vec2'
-          ballVelocity:
+          ball_velocity:
             $ref: '#/components/schemas/vec2'
-          paddlePositions:
+          paddle_position:
             type: object
             properties:
               player1:
                 $ref: '#/components/schemas/paddle_position'
               player2:
                 $ref: '#/components/schemas/paddle_position'
-          scores:
-            $ref: '#/components/schemas/scores'
+          health_points:
+            $ref: '#/components/schemas/health_points'
           timestamp:
             $ref: '#/components/schemas/timestamp'
     GameOverMessage:
@@ -78,10 +84,13 @@ components:
       payload:
         type: object
         properties:
+          operation_id:
+            type: string
+            const: gameOver
           winner:
             $ref: '#/components/schemas/user_id'
-          scores:
-            $ref: '#/components/schemas/scores'
+          health_points:
+            $ref: '#/components/schemas/health_points'
   schemas:
     user_id:
       description: Unique identifier for the user.
@@ -111,18 +120,18 @@ components:
       format: float
       minimum: 0
       maximum: 1
-    score:
-      description: Score of a player.
+    hp:
+      description: hp of a player.
       type: integer
       format: uint8
       minimum: 0
-    scores:
+    health_points:
       type: object
       properties:
         player1:
-          $ref: '#/components/schemas/score'
+          $ref: '#/components/schemas/hp'
         player2:
-          $ref: '#/components/schemas/score'
+          $ref: '#/components/schemas/hp'
   securitySchemes:
     httpBearerToken:
       type: http
