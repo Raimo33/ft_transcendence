@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/27 19:08:44 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/27 19:12:43 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -628,22 +628,13 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  /matches/invitation:
+  /matches/{match_id}/invitation:
     post:
       operationId: acceptMatchInvitation
       summary: Accept match invitation
       description: Accept an invitation to join a match by providing the friend ID.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                friend_id:
-                  $ref: "#/components/schemas/user_id"
-              required: [friend_id]
-              additionalProperties: false
-        required: true
+      parameters:
+        - $ref: "#/components/parameters/match_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -660,17 +651,8 @@ paths:
       operationId: declineMatchInvitation
       summary: Decline match invitation
       description: Decline an invitation to join a match by providing the friend ID.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                match_id:
-                  $ref: "#/components/schemas/match_id"
-              required: [match_id]
-              additionalProperties: false
-        required: true
+      parameters:
+        - $ref: "#/components/parameters/match_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
