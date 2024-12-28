@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2024/12/27 18:51:28 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/29 00:53:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,7 +40,7 @@ class Server
         ws.onmessage { |msg| handle_message(ws, msg) }
         ws.onclose { handle_close(ws) }
       rescue StandardError => e
-        handle_error(ws, e)
+        handle_exception(ws, e)
       end
 
       @logger.info("Server started at wss://#{@host}:#{@port}")
@@ -64,7 +64,6 @@ class Server
   private
 
   EXCEPTION_MAP = {
-    GRPC::InvalidArgument => [400, 'Bad request'],
     GRPC::Unauthenticated => [401, 'Unauthorized'],
     GRPC::Unauthorized    => [403, 'Forbidden'],
   }.freeze
@@ -91,16 +90,21 @@ class Server
     end
   end
 
-  def handle_message(ws, msg) #TODO handle wait for both players to connect #TODO handle lag compensation
+  def handle_message(ws, msg)#TODO handle lag compensation
     data = JSON.parse(msg)
-    return unless data.key?('operationId')
+    send_error(ws, 400, 'Invalid message format') unless data.is_a?(Hash)
+    send_error(ws, 400, 'Missing operation_id') unless data['operation_id']
 
-    case data['operationId']
+    case data['operation_id']
     when 'input'
       match_id = ws.instance_variable_get(:@match_id)
-      @matches[match_id].queue_input(data)
+      match = @matches[match_id]
+      if (match.ongoing?)
+        @matches[match_id].queue_input(data)
+      else
+        send_error(ws, 400, 'Match not ongoing')
     else
-      raise GRPC::InvalidArgument.new('Invalid operationId')
+      send_error(ws, 400, 'Invalid operation_id')
     end
   end
 
@@ -111,18 +115,18 @@ class Server
 
     match.remove_player(ws)
     EM.add_timer(@disconnect_grace_period) do
-      match.surrender(ws) unless match.connected?(ws)
+      match.surrender_player(ws) if match.state[:status] == :waiting
     end
   end
 
-  def update_game_states #TODO handle game over (chiamare save_match di match_game_state service grpc)
+  def update_game_states
     @matches.each do |match_id, match|
       match.update
       broadcast_game_state(match)
     end
   end
 
-  def handle_error(ws, exception)
+  def handle_exception(ws, exception)
     status_code, message = EXCEPTION_MAP[exception.class]
 
     if status_code.nil?
@@ -151,7 +155,9 @@ class Server
 
   def broadcast_game_state(match)
     payload = match.state
-    payload[:operationId] = 'gameState'
+    if (payload[:status] == :over)
+      #TODO async call to save_match grpc (extract winner by looking at HP, the one with most hp wins)
+    payload[:operation_id] = 'gameState'
     payload = JSON.generate(payload)
 
     match.players.each do |ws, user_id|
@@ -159,19 +165,9 @@ class Server
     end
   end
 
-  def broadcast_game_over(match)
-    #TODO capire logica di game over, come fa il Game a segnalare il game over
-    payload[:operationId] = 'gameOver'
-    payload = JSON.generate(payload)
-
-    match.players.each do |player|
-      player.send(payload)
-    end
-  end
-
   def send_error(ws, code, message)
     payload = {
-      operationId: 'error',
+      operation_id: 'error',
       code: code,
       message: message
     }

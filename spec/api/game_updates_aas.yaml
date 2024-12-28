@@ -22,8 +22,6 @@ channels:
         $ref: '#/components/messages/InputMessage'
       gameState:
         $ref: '#/components/messages/GameStateMessage'
-      gameOver:
-        $ref: '#/components/messages/GameOverMessage'
       error:
         $ref: '#/components/messages/ErrorMessage'
 operations:
@@ -79,21 +77,10 @@ components:
                 $ref: '#/components/schemas/paddle_position'
           health_points:
             $ref: '#/components/schemas/health_points'
+          status:
+            $ref: '#/components/schemas/status'
           timestamp:
             $ref: '#/components/schemas/timestamp'
-    GameOverMessage:
-      name: GameOverMessage
-      contentType: application/json
-      payload:
-        type: object
-        properties:
-          operation_id:
-            type: string
-            const: gameOver
-          winner:
-            $ref: '#/components/schemas/user_id'
-          health_points:
-            $ref: '#/components/schemas/health_points'
     ErrorMessage:
         name: ErrorMessage
         contentType: application/json
@@ -148,6 +135,13 @@ components:
           $ref: '#/components/schemas/hp'
         player2:
           $ref: '#/components/schemas/hp'
+    status:
+      description: Status of the game.
+      type: string
+      enum:
+        - waiting
+        - ongoing
+        - over
     error_code:
       description: Error code in http status code format.
       type: integer
