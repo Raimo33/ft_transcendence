@@ -15,6 +15,7 @@ service MatchmakingMatch
   rpc AcceptMatchInvitation (Invitation)             returns (google.protobuf.Empty)  {};
 }
 
+//TODO sostituire invitation con array di indenfiers?? pensare che in futuro potrebbero esserci match a piu persone
 message Invitation
 {
   string from_user_id = 1;

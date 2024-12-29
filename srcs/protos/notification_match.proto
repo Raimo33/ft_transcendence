@@ -3,7 +3,6 @@ syntax = "proto3";
 package notification;
 
 import "google/protobuf/empty.proto";
-import "common/identifier.proto";
 import "google/protobuf/struct.proto";
 
 service NotificationMatch

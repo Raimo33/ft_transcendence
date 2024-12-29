@@ -11,6 +11,7 @@ service MatchMatchmaking
   rpc MatchFound (MatchedPlayers)         returns (google.protobuf.Empty)  {};
 }
 
+//TODO sostituire matchedplayers con array di indenfiers
 message MatchedPlayers
 {
   string  user_id_1  = 1;
