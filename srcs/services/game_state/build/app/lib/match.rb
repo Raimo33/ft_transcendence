@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2024/12/31 17:40:50 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/31 17:41:39 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,7 +43,7 @@ class Match
     @paused_players.delete(user_id)
     if @players.size == 2 && @state[:status] == :waiting
       @state[:status] = :ongoing
-      send_initial_state
+      send_players_info
     end
   end
 
@@ -75,7 +75,7 @@ class Match
   
   private
 
-  def send_initial_state
+  def send_players_info
     payload = {
       operation_id: 'players_info',
       player_1_id: @players.keys[0],
