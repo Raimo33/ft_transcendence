@@ -16,3 +16,6 @@ game_server:
   port: 8080
   fps: 15
   disconnect_grace_period: 10
+
+settings:
+  initial_hp: 3

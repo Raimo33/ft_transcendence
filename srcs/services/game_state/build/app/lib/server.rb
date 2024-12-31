@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2024/12/29 00:53:12 by craimond         ###   ########.fr        #
+#    Updated: 2024/12/31 17:33:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -83,7 +83,7 @@ class Server
       match_id = $1
       ws.instance_variable_set(:@match_id, match_id)
       ws.instance_variable_set(:@user_id, user_id)
-      @matches[match_id].add_player(ws, user_id)
+      @matches[match_id].add_player(user_id, ws)
       @logger.info("Player #{user_id} connected to match #{match_id}")
     else
       ws.close_connection
@@ -110,12 +110,14 @@ class Server
 
   def handle_close(ws)
     match_id = ws.instance_variable_get(:@match_id)
+    user_id = ws.instance_variable_get(:@user_id)
     match = @matches[match_id]
     return unless match
 
-    match.remove_player(ws)
+    match.pause_player(user_id)
     EM.add_timer(@disconnect_grace_period) do
-      match.surrender_player(ws) if match.state[:status] == :waiting
+      match.surrender_player(user_id) if (match.state[:status] == :waiting)
+      broadcast_game_state(match)
     end
   end
 
@@ -160,7 +162,7 @@ class Server
     payload[:operation_id] = 'gameState'
     payload = JSON.generate(payload)
 
-    match.players.each do |ws, user_id|
+    match.players.each do |user_id, ws|
       ws.send(payload)
     end
   end

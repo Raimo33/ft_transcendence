@@ -20,6 +20,8 @@ channels:
     messages:
       input:
         $ref: '#/components/messages/InputMessage'
+      playersInfo:
+        $ref: '#/components/messages/PlayersInfoMessage'
       gameState:
         $ref: '#/components/messages/GameStateMessage'
       error:
@@ -36,8 +38,8 @@ operations:
     channel:
       $ref: '#/channels/game_updates'
     messages:
+      - $ref: '#/channels/game_updates/messages/playersInfoMessage'
       - $ref: '#/channels/game_updates/messages/gameState'
-      - $ref: '#/channels/game_updates/messages/gameOver'
       - $ref: '#/channels/game_updates/messages/error'
 components:
   messages:
@@ -55,6 +57,19 @@ components:
             type: boolean
           timestamp:
             $ref: '#/components/schemas/timestamp'
+    PlayersInfoMessage:
+      name: PlayersInfoMessage
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          operation_id:
+            type: string
+            const: players_info
+          player_1_id:
+            $ref: '#/components/schemas/user_id'
+          player_2_id:
+            $ref: '#/components/schemas/user_id'
     GameStateMessage:
       name: GameStateMessage
       contentType: application/json
@@ -63,7 +78,7 @@ components:
         properties:
           operation_id:
             type: string
-            const: gameState
+            const: game_state
           ball_position:
             $ref: '#/components/schemas/vec2'
           ball_velocity:
@@ -76,7 +91,12 @@ components:
               player2:
                 $ref: '#/components/schemas/paddle_position'
           health_points:
-            $ref: '#/components/schemas/health_points'
+            type: object
+            properties:
+              player1:
+                $ref: '#/components/schemas/hp'
+              player2:
+                $ref: '#/components/schemas/hp'
           status:
             $ref: '#/components/schemas/status'
           timestamp:
@@ -128,13 +148,6 @@ components:
       type: integer
       format: uint8
       minimum: 0
-    health_points:
-      type: object
-      properties:
-        player1:
-          $ref: '#/components/schemas/hp'
-        player2:
-          $ref: '#/components/schemas/hp'
     status:
       description: Status of the game.
       type: string
