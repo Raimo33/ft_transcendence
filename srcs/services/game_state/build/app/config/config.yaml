@@ -16,6 +16,8 @@ game_server:
   port: 8080
   fps: 15
   disconnect_grace_period: 10
+  max_lag_compensation: 200
 
 settings:
   initial_hp: 3
+  paddle_speed: 0.1

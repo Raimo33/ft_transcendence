@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/29 00:51:53 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/01 13:32:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,12 +46,12 @@ class GrpcClient
     stop
   end
 
-  def validate_session_token(token, metadata = {})
+  def validate_session_token(token:, metadata = {})
     request = Common::JWT.new(jwt: token)
     @stubs[:auth].validate_session_token(request, metadata: metadata)
   end
 
-  def save_match(match_id, winner_id, ended_at, metadata = {})
+  def save_match(match_id:, winner_id:, ended_at:, metadata = {})
     request = GameStateMatch::MatchResult.new(
       match_id: match_id,
       winner_id: winner_id,

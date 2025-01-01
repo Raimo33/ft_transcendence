@@ -53,8 +53,7 @@ components:
             type: string
             const: input
           direction:
-            description: True for up, false for down.
-            type: boolean
+            $ref: '#/components/schemas/direction'
           timestamp:
             $ref: '#/components/schemas/timestamp'
     PlayersInfoMessage:
@@ -66,9 +65,9 @@ components:
           operation_id:
             type: string
             const: players_info
-          player_1_id:
+          player_0_id:
             $ref: '#/components/schemas/user_id'
-          player_2_id:
+          player_1_id:
             $ref: '#/components/schemas/user_id'
     GameStateMessage:
       name: GameStateMessage
@@ -79,6 +78,8 @@ components:
           operation_id:
             type: string
             const: game_state
+          state_sequence:
+            $ref: '#/components/schemas/state_sequence'
           ball_position:
             $ref: '#/components/schemas/vec2'
           ball_velocity:
@@ -86,16 +87,16 @@ components:
           paddle_position:
             type: object
             properties:
-              player1:
+              player_0:
                 $ref: '#/components/schemas/paddle_position'
-              player2:
+              player_1:
                 $ref: '#/components/schemas/paddle_position'
           health_points:
             type: object
             properties:
-              player1:
+              player_0:
                 $ref: '#/components/schemas/hp'
-              player2:
+              player_1:
                 $ref: '#/components/schemas/hp'
           status:
             $ref: '#/components/schemas/status'
@@ -123,8 +124,19 @@ components:
       description: Unique identifier for the match.
       type: string
       format: uuid
+    direction:
+      description: Direction of the paddle; -1 is up, 1 is down.
+      type: integer
+      format: int8
+      minimum: -1
+      maximum: 1
     timestamp:
       description: Timestamp in unix timestamp format.
+      type: integer
+      format: uint64
+      minimum: 0
+    state_sequence:
+      description: Sequence number of the game state.
       type: integer
       format: uint64
       minimum: 0
@@ -134,9 +146,13 @@ components:
         x:
           type: number
           format: float
+          minimum: 0
+          maximum: 1
         y:
           type: number
           format: float
+          minimum: 0
+          maximum: 1
     paddle_position:
       description: Position of the paddle; 0 is top, 1 is bottom.
       type: number
