@@ -1,17 +1,19 @@
 services:
 
+  #TODO depends_on
+
   api_gateway:
     build:
       context: ./services/api_gateway
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
-      args:
+      # args:
     container_name: api_gateway
     environment:
       - RACK_ENV=production
-    volumes:
-    secrets:
+    # volumes:
+    # secrets:
     ports:
       - "3000:3000"
     networks:
@@ -28,47 +30,46 @@ services:
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
-      args:
-    
+      # args:
     container_name: auth
-    environment:
-    volumes:
+    # environment:
+    # volumes:
     secrets:
       - source: jwt_private_key
-        target: ./etc/ssl/private/jwt.key
-        uid: #TODO uid
-        mode: 0400
+        target: ./etc/ssl/private/jwtRS256.key
     ports:
-      -
+      - "50051:50051"
     networks:
       - core
     restart: always
     depends_on:
+      api_gateway:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
     init: true
   
-  elasticsearch:
-    build:
-      context: ./services/elasticsearch
-      dockerfile: Dockerfile
-      args:
-    
-    container_name: elasticsearch
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - 
-    networks:
-      - monitoring
-    restart: always
-    depends_on:
-    init: true
+  # elasticsearch:
+  #   build:
+  #     context: ./services/elasticsearch
+  #     dockerfile: Dockerfile    
+  #   container_name: elasticsearch
+  #   environment:
+  #   volumes:
+  #   secrets:
+  #   ports:
+  #     - 
+  #   networks:
+  #     - monitoring
+  #   restart: always
+  #   depends_on:
+  #   init: true
 
   frontend:
     build:
       context: ./services/frontend
       dockerfile: Dockerfile
-      args:
+      # args:
     volumes:
       - frontend_data:/var/www/html
   
@@ -78,37 +79,39 @@ services:
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
-      args:
-    
+      # args:
     container_name: game_state
-    environment:
-    volumes:
-    secrets:
+    # environment:
+    # volumes:
+    # secrets:
     ports:
-      - 
+      - "50051:50051"
+      - "8080:8080"
     networks:
       - core
     restart: always
     depends_on:
+      nginx:
+        condition: service_healthy
     init: true
 
-  logstash:
-    build:
-      context: ./services/logstash
-      dockerfile: Dockerfile
-      args:
+  # logstash:
+  #   build:
+  #     context: ./services/logstash
+  #     dockerfile: Dockerfile
+  #     args:
     
-    container_name: logstash
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - 
-    networks:
-      - monitoring
-    restart: always
-    depends_on:
-    init: true
+  #   container_name: logstash
+  #   environment:
+  #   volumes:
+  #   secrets:
+  #   ports:
+  #     - 
+  #   networks:
+  #     - monitoring
+  #   restart: always
+  #   depends_on:
+  #   init: true
   
   match:
     build:
@@ -116,18 +119,27 @@ services:
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
-      args:
-    
+      # args:
     container_name: match
-    environment:
-    volumes:
-    secrets:
+    # environment:
+    # volumes:
+    # secrets:
     ports:
-      - 
+      - "50051:50051"
     networks:
       - core
     restart: always
     depends_on:
+      api_gateway:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      notification:
+        condition: service_healthy
+      game_state:
+        condition: service_healthy
+      matchmaking:
+        condition: service_healthy
     init: true
 
   matchmaking:
@@ -136,118 +148,140 @@ services:
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
-      args:
-    
+      # args:
     container_name: matchmaking
-    environment:
-    volumes:
-    secrets:
+    # environment:
+    # volumes:
+    # secrets:
     ports:
-      - 
+      - "50051:50051"
     networks:
       - core
     restart: always
     depends_on:
+      postgresql:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
     init: true
   
   nginx:
     build:
       context: ./services/nginx
       dockerfile: Dockerfile
-      args:
-    
+      # args:
     container_name: nginx
-    environment:
+    # environment:
     volumes:
       - nginx_cert:/etc/ssl/public/nginx.crt:ro
+      - nginx_ca_bundle:/etc/ssl/public/ca-bundle.crt:ro
+      - frontend_data:/var/www/html:ro
     secrets:
       - source: nginx_key
         target: /etc/ssl/private/nginx.key
-        uid: #TODO uid
-        mode: 0400
     ports:
       - "80:80"
       - "443:443"
     networks:
       - edge
     restart: always
+    # depends_on:
+    init: true
+  
+  notification:
+    build:
+      context: ./services/notification
+      additional_contexts:
+        - protos=./protos
+      dockerfile: Dockerfile
+      # args:
+    container_name: notification
+    # environment:
+    # volumes:
+    # secrets:
+    ports:
+      - "50051:50051"
+      - "3000:3000"
+    networks:
+      - core
+    restart: always
     depends_on:
+      nginx:
+        condition: service_healthy
     init: true
 
   postgresql:
     build:
       context: ./services/postgresql
       dockerfile: Dockerfile
-      args:
+      # args:
     container_name: postgresql
-    environment:
-      - PGDATA=/var/lib/postgresql/data
+    # environment:
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-    secrets:
+    # secrets:
     ports:
       - "5432:5432"
     networks:
       - data
     restart: always
-    depends_on:
+    # depends_on:
     init: true
 
   memcached:
     build:
       context: ./services/memcached
       dockerfile: Dockerfile
-      args:
-    
+      # args:
     container_name: memcached
-    environment:
-    volumes:
-    secrets:
+    # environment:
+    # volumes:
+    # secrets:
     ports:
       - "11211:11211"
     networks:
       - data
     restart: always
-    depends_on:
+    # depends_on:
     init: true
   
-  kibana:
-    build:
-      context: ./services/kibana
-      dockerfile: Dockerfile
-      args:
+  # kibana:
+  #   build:
+  #     context: ./services/kibana
+  #     dockerfile: Dockerfile
+  #     args:
     
-    container_name: kibana
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - "5601:5601"
-    networks:
-      - monitoring
-    restart: always
-    depends_on:
-    init: true
+  #   container_name: kibana
+  #   environment:
+  #   volumes:
+  #   secrets:
+  #   ports:
+  #     - "5601:5601"
+  #   networks:
+  #     - monitoring
+  #   restart: always
+  #   depends_on:
+  #   init: true
 
-  tournament:
-    build:
-      context: ./services/tournament
-      additional_contexts:
-        - protos=./protos
-      dockerfile: Dockerfile
-      args:
+  # tournament:
+  #   build:
+  #     context: ./services/tournament
+  #     additional_contexts:
+  #       - protos=./protos
+  #     dockerfile: Dockerfile
+  #     args:
     
-    container_name: tournament
-    environment:
-    volumes:
-    secrets:
-    ports:
-      - 
-    networks:
-      - core
-    restart: always
-    depends_on:
-    init: true
+  #   container_name: tournament
+  #   environment:
+  #   volumes:
+  #   secrets:
+  #   ports:
+  #     - 
+  #   networks:
+  #     - core
+  #   restart: always
+  #   depends_on:
+  #   init: true
 
   user:
     build:
@@ -255,29 +289,48 @@ services:
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
-      args:
+      # args:
     container_name: user
-    environment:
-    volumes:
-    secrets:
+    # environment:
+    # volumes:
+    # secrets:
     ports:
       - 50051:50051
     networks:
       - core
     restart: always
     depends_on:
+      api_gateway:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      notification:
+        condition: service_healthy
     init: true
 
 volumes:
-  #TODO non volumi effettivi ma docker volumes
   postgresql_data:
+  frontend_data:
   nginx_cert:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./certs/nginx.crt
+      o: bind
+  nginx_ca_bundle:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./certs/nginx_ca-bundle.crt
+      o: bind
 
 secrets:
   jwt_private_key:
-    file: ./secrets/jwt.key
-  jwt_public_key:
-    file: ./secrets/jwt.pub
+    file: ./secrets/jwtRS256.key
   nginx_key:
     file: ./secrets/nginx.key
 

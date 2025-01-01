@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2025/01/01 13:16:23 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/01 13:53:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,9 +86,14 @@ class Match
     @input_queue.clear
   end
 
-  def apply_input(input, current_time) #TODO raise exception if input is invalid
+  def apply_input(input, current_time)
     user_id = input[:user_id]
     client_time = input[:timestamp]
+    direction = input[:direction]
+    check_required_fields(user_id, client_time, direction)
+    raise Grpc::InvalidArgument.new('User not in match') unless @players.keys.include?(user_id)
+    raise Grpc::InvalidArgument.new('Invalid direction format') unless [-1, 0, 1].include?(direction)
+    raise Grpc::InvalidArgument.new('Invalid timestamp format') unless client_time.is_a?(Integer)
 
     server_delay = current_time - client_time
     return if server_delay > @config.dig(:game_server, :max_lag_compensation)
@@ -100,7 +105,7 @@ class Match
     player_key = player_number == 0 ? :player_0 : :player_1
 
     new_paddle_position = temp_state[:paddle_positions][player_key]
-    case input[:direction]
+    case direction
     when -1
       new_paddle_position -= @config.dig(:settings, :paddle_speed)
     when 1
@@ -158,6 +163,14 @@ class Match
     end
     @state[:ball_position] = { x: 0, y: 0 }
     @state[:ball_velocity] = { x: random_velocity, y: random_velocity }
+  end
+
+  def check_required_fields(*fields)
+    raise GRPC::InvalidArgument.new("Missing required fields") unless fields.all?(&method(:provided?))
+  end
+  
+  def provided?(field)
+    field.respond_to?(:empty?) ? !field.empty? : !field.nil?
   end
 
   def current_time_ms

@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:49:49 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/01 13:48:54 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,11 +41,11 @@ RUN grpc_tools_ruby_protoc -I ./ --ruby_out=./ --grpc_out=./ \
 WORKDIR /app
 USER api_gateway
 EXPOSE 3000
-VOLUME []
+# VOLUME []
 
 ENTRYPOINT ["falcon", "serve", \
             "--bind", "http://0.0.0.0:3000", \
-            "--config", "config.ru", \
+            "--config", "config/config.ru", \
             "--environment", "production", \
             "--protocol", "HTTP1", \
             "--reuse-port", \
