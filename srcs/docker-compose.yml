@@ -1,7 +1,5 @@
 services:
 
-  #TODO depends_on
-
   api_gateway:
     build:
       context: ./services/api_gateway
