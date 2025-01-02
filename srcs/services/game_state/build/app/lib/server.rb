@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/01 13:39:12 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 13:58:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,17 +15,18 @@ require 'async'
 require 'jwt'
 require 'json'
 require 'grpc'
+require 'singleton'
 require_relative 'match'
 require_relative 'config_handler'
 require_relative 'custom_logger'
 
 class Server
+  include Singleton
 
   def initialize
     @config = ConfigHandler.instance
     @logger = CustomLogger.instance
     @grpc_client = GrpcClient.instance
-    @disconnect_grace_period = @config.dig(:game_state, :disconnect_grace_period)
     @matches = Hash.new { |hash, key| hash[key] = Match.new(key) }
   end
 
@@ -62,11 +63,23 @@ class Server
     @logger.info("Server stopped")
   end
 
+  def add_match(match_id)
+    return false if @matches.key?(match_id)
+    @matches[match_id]
+  end
+
+  def remove_match(match_id)
+    return false unless @matches.key?(match_id)
+    @matches.delete(match_id)
+  end
+
   private
 
   EXCEPTION_MAP = {
     GRPC::Unauthenticated => [401, 'Unauthorized'],
     GRPC::Unauthorized    => [403, 'Forbidden'],
+    GRPC::NotFound        => [404, 'Not found'],
+    GRPC::AlreadyExists   => [409, 'Conflict'],
   }.freeze
 
   def setup_signal_handlers
@@ -84,6 +97,7 @@ class Server
       match_id = $1
       ws.instance_variable_set(:@match_id, match_id)
       ws.instance_variable_set(:@user_id, user_id)
+      raise GRPC::NotFound.new('Match not found') unless @matches.key?(match_id)
       match = @matches[match_id]
       match.add_player(user_id, ws)
       if match.state[:status] == :ongoing
@@ -91,7 +105,7 @@ class Server
       end
       @logger.info("Player #{user_id} connected to match #{match_id}")
     else
-      ws.close_connection
+      raise GRPC::NotFound.new('Invalid path')
     end
   end
 
@@ -122,8 +136,9 @@ class Server
     match = @matches[match_id]
     return unless match
 
+    grace_period = @config.dig(:game_state, :disconnect_grace_period)
     match.pause_player(user_id)
-    EM.add_timer(@disconnect_grace_period) do
+    EM.add_timer(grace_period) do
       match.surrender_player(user_id) if (match.state[:status] == :waiting)
       broadcast_game_state
     end
@@ -137,6 +152,7 @@ class Server
   end
 
   def handle_exception(ws, exception)
+    #TODO edit to use default message ONLY if it is not provided in the exception
     status_code, message = EXCEPTION_MAP[exception.class]
 
     if status_code.nil?

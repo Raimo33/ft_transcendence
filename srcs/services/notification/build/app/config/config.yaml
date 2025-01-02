@@ -1,0 +1,13 @@
+logging:
+  level: INFO
+  file: /dev/stdout
+
+grpc:
+  server:
+    host: 0.0.0.0
+    port: 50051
+    pool_size: 10
+  client:
+    addresses:
+      match: match.core:50051
+      user: user.core:50051
