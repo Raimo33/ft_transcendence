@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/01 13:48:54 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 00:47:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,7 @@ COPY --from=protos \
   match_api_gateway.proto \
   tournament_api_gateway.proto \
   user_api_gateway.proto \
-  /app/protos/
+  /app/build/srcs/protos/
 
 RUN adduser -DHS api_gateway
 RUN chown -R api_gateway:api_gateway /app

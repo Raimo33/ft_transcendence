@@ -1,15 +1,14 @@
 services:
 
-  api_gateway:
+  app:
     build:
-      context: ./services/api_gateway
+      context: ./services/app
       additional_contexts:
         - protos=./protos
       dockerfile: Dockerfile
       # args:
-    container_name: api_gateway
-    environment:
-      - RACK_ENV=production
+    container_name: app
+    # environment:
     # volumes:
     # secrets:
     ports:
@@ -21,47 +20,6 @@ services:
       nginx:
         condition: service_healthy
     init: true
-
-  auth:
-    build:
-      context: ./services/auth
-      additional_contexts:
-        - protos=./protos
-      dockerfile: Dockerfile
-      # args:
-    container_name: auth
-    # environment:
-    # volumes:
-    secrets:
-      - source: jwt_private_key
-        target: ./etc/ssl/private/jwtRS256.key
-    ports:
-      - "50051:50051"
-    networks:
-      - core
-    restart: always
-    depends_on:
-      api_gateway:
-        condition: service_healthy
-      memcached:
-        condition: service_healthy
-    init: true
-  
-  # elasticsearch:
-  #   build:
-  #     context: ./services/elasticsearch
-  #     dockerfile: Dockerfile    
-  #   container_name: elasticsearch
-  #   environment:
-  #   volumes:
-  #   secrets:
-  #   ports:
-  #     - 
-  #   networks:
-  #     - monitoring
-  #   restart: always
-  #   depends_on:
-  #   init: true
 
   frontend:
     build:
@@ -93,76 +51,6 @@ services:
         condition: service_healthy
     init: true
 
-  # logstash:
-  #   build:
-  #     context: ./services/logstash
-  #     dockerfile: Dockerfile
-  #     args:
-    
-  #   container_name: logstash
-  #   environment:
-  #   volumes:
-  #   secrets:
-  #   ports:
-  #     - 
-  #   networks:
-  #     - monitoring
-  #   restart: always
-  #   depends_on:
-  #   init: true
-  
-  match:
-    build:
-      context: ./services/match
-      additional_contexts:
-        - protos=./protos
-      dockerfile: Dockerfile
-      # args:
-    container_name: match
-    # environment:
-    # volumes:
-    # secrets:
-    ports:
-      - "50051:50051"
-    networks:
-      - core
-    restart: always
-    depends_on:
-      api_gateway:
-        condition: service_healthy
-      postgresql:
-        condition: service_healthy
-      notification:
-        condition: service_healthy
-      game_state:
-        condition: service_healthy
-      matchmaking:
-        condition: service_healthy
-    init: true
-
-  matchmaking:
-    build:
-      context: ./services/matchmaking
-      additional_contexts:
-        - protos=./protos
-      dockerfile: Dockerfile
-      # args:
-    container_name: matchmaking
-    # environment:
-    # volumes:
-    # secrets:
-    ports:
-      - "50051:50051"
-    networks:
-      - core
-    restart: always
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      memcached:
-        condition: service_healthy
-    init: true
-  
   nginx:
     build:
       context: ./services/nginx
@@ -241,73 +129,6 @@ services:
       - data
     restart: always
     # depends_on:
-    init: true
-  
-  # kibana:
-  #   build:
-  #     context: ./services/kibana
-  #     dockerfile: Dockerfile
-  #     args:
-    
-  #   container_name: kibana
-  #   environment:
-  #   volumes:
-  #   secrets:
-  #   ports:
-  #     - "5601:5601"
-  #   networks:
-  #     - monitoring
-  #   restart: always
-  #   depends_on:
-  #   init: true
-
-  # tournament:
-  #   build:
-  #     context: ./services/tournament
-  #     additional_contexts:
-  #       - protos=./protos
-  #     dockerfile: Dockerfile
-  #     args:
-    
-  #   container_name: tournament
-  #   environment:
-  #   volumes:
-  #   secrets:
-  #   ports:
-  #     - 
-  #   networks:
-  #     - core
-  #   restart: always
-  #   depends_on:
-  #   init: true
-
-  user:
-    build:
-      context: ./services/user
-      additional_contexts:
-        - protos=./protos
-      dockerfile: Dockerfile
-      # args:
-    container_name: user
-    # environment:
-    # volumes:
-    # secrets:
-    ports:
-      - 50051:50051
-    networks:
-      - core
-    restart: always
-    depends_on:
-      api_gateway:
-        condition: service_healthy
-      postgresql:
-        condition: service_healthy
-      memcached:
-        condition: service_healthy
-      auth:
-        condition: service_healthy
-      notification:
-        condition: service_healthy
     init: true
 
 volumes:
