@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2025/01/02 14:11:42 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 14:33:37 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,7 @@ class ExceptionMiddleware
 
   private
 
-  GRPC_TO_HTTP_STATUS_CODE = {
+  EXCEPTIONS_TO_STATUS_CODE = {
     OpenapiFirst::RequestInvalidError => 400,
     OpenapiFirst::NotFoundError       => 404,
     GRPC::InvalidArgument             => 400,
@@ -49,6 +49,9 @@ class ExceptionMiddleware
   def handle_exception(exception)
     return internal_server_error(exception) unless known_exception?(exception)
 
+    status = EXCEPTIONS_TO_STATUS_CODE[exception.class]
+    message = exception.message
+
     [status, {}, [JSON.generate({ error: message })]]
   end
 
@@ -59,7 +62,7 @@ class ExceptionMiddleware
   end
 
   def known_exception?(exception)
-    GRPC_TO_HTTP_STATUS_CODE.key?(exception.class)
+    EXCEPTIONS_TO_STATUS_CODE.key?(exception.class)
   end
 
 end

@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/02 13:58:10 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:02:14 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -75,11 +75,21 @@ class Server
 
   private
 
-  EXCEPTION_MAP = {
-    GRPC::Unauthenticated => [401, 'Unauthorized'],
-    GRPC::Unauthorized    => [403, 'Forbidden'],
-    GRPC::NotFound        => [404, 'Not found'],
-    GRPC::AlreadyExists   => [409, 'Conflict'],
+  EXCEPTIONS_TO_STATUS_CODE = {
+    GRPC::InvalidArgument    => 400,
+    GRPC::OutOfRange         => 400,
+    GRPC::Unauthenticated    => 401,
+    GRPC::PermissionDenied   => 403,
+    GRPC::NotFound           => 404,
+    GRPC::AlreadyExists      => 409,
+    GRPC::Aborted            => 409,
+    GRPC::FailedPrecondition => 412,
+    GRPC::ResourceExhausted  => 429,
+    GRPC::Cancelled          => 499,
+    GRPC::Internal           => 500,
+    GRPC::DataLoss           => 500,
+    GRPC::Unimplemented      => 501,
+    GRPC::Unavailable        => 503,
   }.freeze
 
   def setup_signal_handlers
@@ -151,19 +161,19 @@ class Server
     end
   end
 
-  def handle_exception(ws, exception)
-    #TODO edit to use default message ONLY if it is not provided in the exception
-    status_code, message = EXCEPTION_MAP[exception.class]
-
-    if status_code.nil?
+  def handle_exception(ws, exception)    
+    if known_exception?(exception)
+      send_error(ws, EXCEPTIONS_TO_STATUS_CODE[exception.class], exception.message)
+    else
       @logger.error(exception.message)
       @logger.debug(exception.backtrace.join("\n"))
-      status_code = 500
-      message = 'Internal server error'
+      send_error(ws, 500, 'Internal server error')
     end
-
-    send_error(ws, status_code, message)
     ws.close_connection
+  end
+
+  def known_exception?(exception)
+    EXCEPTIONS_TO_STATUS_CODE.key?(exception.class)
   end
 
   def check_authorization(auth_header)
