@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 13:24:05 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:24:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -458,7 +458,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
     
   def prepare_statements
     barrier   = Async::Barrier.new
-    semaphore = Async::Semaphore.new(@config[:database][:pool][:size])
+    semaphore = Async::Semaphore.new(@config.dig(:postgresql, :pool, :size))
 
     @prepared_statements.each do |name, sql|
       barrier.async do
@@ -513,24 +513,24 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
 
   def check_password(password)
-    psw_config = @config[:password]
+    psw_config = @config.fetch(:password)
     @psw_format ||= create_regex_format(
-      psw_config[:min_length],
-      psw_config[:max_length],
-      psw_config[:charset],
-      psw_config[:policy]
+      psw_config.fetch(:min_length),
+      psw_config.fetch(:max_length),
+      psw_config.fetch(:charset),
+      psw_config.fetch(:policy)
     )
 
     raise GRPC::InvalidArgument.new("Invalid password format") unless @psw_format =~ password
   end
 
   def check_display_name(display_name)
-    dn_config = @config[:display_name]
+    dn_config = @config.fetch(:display_name)
     @dn_format ||= create_regex_format(
-      dn_config[:min_length],
-      dn_config[:max_length],
-      dn_config[:charset],
-      dn_config[:policy]
+      dn_config.fetch(:min_length),
+      dn_config.fetch(:max_length),
+      dn_config.fetch(:charset),
+      dn_config.fetch(:policy)
     )
 
     raise GRPC::InvalidArgument.new("Invalid display name format") unless @dn_format =~ display_name
@@ -586,13 +586,13 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   end
   
   def generate_session_jwt(user_id, pending_tfa)
-    settings = @config[:tokens][:session]
+    settings = @config.dig(:tokens, :session)
 
     if pending_tfa
-      ttl = settings[:ttl_pending_tfa]
+      ttl = settings.fetch(:ttl_pending_tfa)
       auth_level = 1
     else
-      ttl = settings[:ttl]
+      ttl = settings.fetch(:ttl)
       auth_level = 2
     end
 
@@ -608,7 +608,7 @@ class UserAPIGatewayServiceHandler < UserAPIGateway::Service
   def generate_refresh_jwt(user_id, remember_me)
     @grpc_client.generate_jwt(
       identifier: user_id,
-      ttl: @config[:tokens][:refresh][:ttl]
+      ttl: @config.dig(:tokens, :refresh, :ttl),
       custom_claims: {
         remember_me: remember_me
       }

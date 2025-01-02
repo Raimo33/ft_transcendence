@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 23:18:56 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:18:59 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -64,7 +64,7 @@ class MatchGameStateServiceHandler < MatchGameState::Service
 
   def prepare_statements
     barrier   = Async::Barrier.new
-    semaphore = Async::Semaphore.new(@config[:database][:pool][:size])
+    semaphore = Async::Semaphore.new(@config.dig(:database, :pool, :size))
 
     @prepared_statements.each do |name, sql|
       barrier.async do

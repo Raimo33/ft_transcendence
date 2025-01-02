@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2024/12/27 18:33:52 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:11:55 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,12 +39,11 @@ class GrpcClient
     }
 
     @stubs = {
-      user:       UserAPIGateway::Stub.new(channels[:user], interceptors: interceptors),
-      match:      MatchAPIGateway::Stub.new(channels[:match], interceptors: interceptors),
-      tournament: TournamentAPIGateway::Stub.new(channels[:tournament], interceptors: interceptors)
-      auth:       AuthAPIGateway::Stub.new(channels[:auth], interceptors: interceptors)
+      user:       UserAPIGateway::Stub.new(channels.fetch(:user), interceptors: interceptors),
+      match:      MatchAPIGateway::Stub.new(channels.fetch(:match), interceptors: interceptors),
+      tournament: TournamentAPIGateway::Stub.new(channels.fetch(:tournament), interceptors: interceptors)
+      auth:       AuthAPIGateway::Stub.new(channels.fetch(:auth), interceptors: interceptors)
     }
-
   end
 
   def stop

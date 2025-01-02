@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 13:27:57 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:24:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,15 +21,15 @@ class PGClient
 
   def initialize
     @config = ConfigHandler.instance.config
-    pg_config = @config[:postgresql]
+    pg_config = @config.fetch(:postgresql)
 
-    @pool = ConnectionPool.new(size: pg_config[:pool][:size], timeout: pg_config[:pool][:timeout]) do
+    @pool = ConnectionPool.new(size: pg_config.dig(:pool, :size), timeout: pg_config.dig(:pool, :timeout)) do
       PG::Connection.new(
-        host:       pg_config[:host],
-        port:       pg_config[:port],
-        dbname:     pg_config[:dbname],
-        user:       pg_config[:user],
-        password:   pg_config[:password]
+        host:       pg_config.fetch(:host),
+        port:       pg_config.fetch(:port),
+        dbname:     pg_config.fetch(:dbname),
+        user:       pg_config.fetch(:user),
+        password:   pg_config.fetch(:password),
       )
     end
 

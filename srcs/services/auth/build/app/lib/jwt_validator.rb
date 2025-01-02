@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/09 19:01:54 by craimond          #+#    #+#              #
-#    Updated: 2024/12/25 20:19:01 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:15:00 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ class JwtValidator
 
   def initialize
     @config = ConfigHandler.instance.config
-    @private_key = OpenSSL::PKey::RSA.new(@config[:jwt][:private_key])
+    @private_key = OpenSSL::PKey::RSA.new(@config.dig(:jwt, :private_key))
     @memcached_client = MemcachedClient.instance
   end
 

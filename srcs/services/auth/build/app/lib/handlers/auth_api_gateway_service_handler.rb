@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2025/01/01 13:53:21 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:15:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,7 @@ class AuthApiGatewayServiceHandler < AuthApiGateway::Service
   def validate_session_token(request, _call)
     check_required_fields(request.jwt)
 
-    settings = @config[:jwt]
+    settings = @config.fetch(:jwt)
     payload, headers = JWT.decode(
       request.jwt,
       @private_key.public_key,

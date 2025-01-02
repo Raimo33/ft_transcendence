@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2024/12/25 20:17:39 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:17:24 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,7 +66,7 @@ class AuthUserServiceHandler < AuthUser::Service
   def generate_tfa_secret(request, call)
     check_required_fields(request.id)
 
-    settings = @config[:tfa]
+    settings = @config.fetch(:tfa)
 
     secret = ROTP::Base32.random(32)
     totp = ROTP::TOTP.new(
@@ -96,7 +96,7 @@ class AuthUserServiceHandler < AuthUser::Service
     check_required_fields(request.tfa_secret, request.tfa_code)
     raise GRPC::InvalidArgument.new("Invalid secret format") unless ROTP::Base32.valid?(request.tfa_secret)
 
-    settings = @config[:tfa]
+    settings = @config.fetch(:tfa)
 
     totp = ROTP::TOTP.new(
       request.tfa_secret,
@@ -123,7 +123,7 @@ class AuthUserServiceHandler < AuthUser::Service
   def generate_jwt(request, call)
     check_required_fields(request.identifier, request.ttl)
 
-    settings = @config[:jwt]
+    settings = @config.fetch(:jwt)
 
     now = Time.now.to_i
     standard_claims = {
@@ -148,23 +148,23 @@ class AuthUserServiceHandler < AuthUser::Service
   def validate_refresh_token(request, call)
     check_required_fields(request.jwt)
 
-    settings = @config[:jwt]
+    settings = @config.fetch(:jwt)
 
     payload, headers = JWT.decode(
       request.jwt,
       @private_key.public_key,
       true,
       {
-        algorithm: settings.fetch(:algorithm, 'RS256'),
+        algorithm: settings.fetch(:algorithm),
         required_claims: %w[sub iat exp iss jti remember_me],
         verify_iss: true,
         verify_aud: true,
         verify_exp: true,
         verify_iat: true,
-        iss: settings.fetch(:issuer, 'AuthService'),
-        aud: settings.fetch(:audience, nil),
+        iss: settings.fetch(:issuer),
+        aud: settings.fetch(:audience),
         iat: Time.now.to_i,
-        leeway: settings.fetch(:leeway, 0),
+        leeway: settings.fetch(:leeway),
       }
     )
 
@@ -176,7 +176,7 @@ class AuthUserServiceHandler < AuthUser::Service
   def extend_jwt(request, call)
     check_required_fields(request.jwt)
 
-    settings = @config[:jwt]
+    settings = @config.fetch(:jwt)
 
     payload, _headers = JWT.decode(
       request.jwt,

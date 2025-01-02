@@ -6,14 +6,14 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 17:18:22 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:10:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'singleton'
 require_relative 'ConfigHandler'
-require_relative #TODO protos
+require_relative '../protos/match_matchmaking_services_pb'
 require_relative 'interceptors/metadata_interceptor'
 require_relative 'interceptors/logger_interceptor'
 
@@ -33,11 +33,11 @@ class GrpcClient
     ]
 
     @channels = {
-      match
+      match: create_channel(@config.dig(:grpc, :client, :addresses, :match))
     }
 
     @stubs = {
-      match
+      match: MatchmakingMatch::Stub.new(@channels[:match], interceptors: interceptors)
     }
   ensure
     stop

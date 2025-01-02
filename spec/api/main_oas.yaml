@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2024/12/27 19:12:43 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:05:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -764,26 +764,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
-  #TODO: Implement admin routes
-  # /admin/users/{user_id}/ban: 
-  #   post:
-  #     operationId: banUser
-  #     summary: Ban a user
-  #     description: Ban a user account from the system.
-  #     parameters:
-  #       - $ref: "#/components/parameters/user_id"
-  #     security:
-  #       - jwtAuth: []
-  #     x-auth-level: 3
-  #     responses:
-  #       "204":
-  #         $ref: "#/components/responses/NoContent"
-  #       "401":
-  #         $ref: "#/components/responses/Unauthorized"
-  #       "403":
-  #         $ref: "#/components/responses/Forbidden"
-  #       "409":
-  #         $ref: "#/components/responses/Conflict"
 components:
   schemas:
     UserPublicProfile:

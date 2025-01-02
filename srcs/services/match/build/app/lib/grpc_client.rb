@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/29 14:29:27 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:21:49 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 23:09:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,9 +41,9 @@ class GrpcClient
     }
 
     @stubs = {
-      matchmaking: MatchmakingMatch::Stub.new(@channels[:matchmaking], interceptors: interceptors),
-      game_state: GameStateMatch::Stub.new(@channels[:game_state], interceptors: interceptors),
-      notification: NotificationMatch::Stub.new(@channels[:notification], interceptors: interceptors)
+      matchmaking: MatchmakingMatch::Stub.new(@channels.fetch(:matchmaking), interceptors: interceptors),
+      game_state: GameStateMatch::Stub.new(@channels.fetch(:game_state), interceptors: interceptors),
+      notification: NotificationMatch::Stub.new(@channels.fetch(:notification), interceptors: interceptors)
     }
   ensure
     stop
