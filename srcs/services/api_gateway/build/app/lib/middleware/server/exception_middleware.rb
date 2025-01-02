@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/25 20:00:18 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 14:11:42 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,6 @@ class ExceptionMiddleware
   GRPC_TO_HTTP_STATUS_CODE = {
     OpenapiFirst::RequestInvalidError => 400,
     OpenapiFirst::NotFoundError       => 404,
-
     GRPC::InvalidArgument             => 400,
     GRPC::OutOfRange                  => 400,
     GRPC::Unauthenticated             => 401,
@@ -41,7 +40,6 @@ class ExceptionMiddleware
     GRPC::FailedPrecondition          => 412,
     GRPC::ResourceExhausted           => 429,
     GRPC::Cancelled                   => 499,
-
     GRPC::Internal                    => 500,
     GRPC::DataLoss                    => 500,
     GRPC::Unimplemented               => 501,
@@ -49,8 +47,19 @@ class ExceptionMiddleware
   }.freeze
 
   def handle_exception(exception)
-    status = GRPC_TO_HTTP_STATUS_CODE[exception.class] || 500
+    return internal_server_error(exception) unless known_exception?(exception)
 
     [status, {}, [JSON.generate({ error: message })]]
   end
+
+  def internal_server_error(exception)
+    @logger.error(exception.message)
+    @logger.debug(exception.backtrace.join("\n"))
+    [500, {}, [JSON.generate({ error: "Internal server error" })]]
+  end
+
+  def known_exception?(exception)
+    GRPC_TO_HTTP_STATUS_CODE.key?(exception.class)
+  end
+
 end

@@ -6,15 +6,20 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/03 13:07:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/25 20:01:18 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 14:23:23 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require 'jwt'
 require 'dalli'
+require_relative '../../custom_logger'
 
 class ExceptionInterceptor < GRPC::ServerInterceptor
+
+  def initialize
+    @logger = CustomLogger.instance.logger
+  end
 
   def request_response(request: nil, call: nil, method: nil)
     yield
@@ -31,16 +36,20 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
 
   def handle_exception(exception)
     raise exception if exception.is_a?(GRPC::BadStatus)
+    return internal_server_error(exception) unless known_exception?(exception)
 
-    status_code, message = EXCEPTION_MAP.fetch(exception.class, nil)
+    status, message = EXCEPTION_MAP[exception.class]
+    GRPC::BadStatus.new(status, message)
+  end
 
-    if status_code.nil?
-      @logger.error(exception.message)
-      @logger.debug(exception.backtrace.join("\n"))
-      status_code, message = GRPC::Core::StatusCodes::INTERNAL, "Internal server error"
-    end
+  def internal_server_error(exception)
+    @logger.error(exception.message)
+    @logger.debug(exception.backtrace.join("\n"))
+    GRPC::BadStatus.new(GRPC::Core::StatusCodes::INTERNAL, "Internal server error")
+  end
 
-    raise GRPC::BadStatus.new(status_code, message)
+  def known_exception?(exception)
+    EXCEPTION_MAP.key?(exception.class)
   end
 
 end

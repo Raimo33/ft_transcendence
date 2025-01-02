@@ -6,13 +6,18 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2024/12/26 21:42:49 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 14:28:25 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
+require_relative '../custom_logger'
 
 class ExceptionInterceptor < GRPC::ServerInterceptor
+
+  def initialize
+    @logger = CustomLogger.instance.logger
+  end
 
   def request_response(request: nil, call: nil, method: nil, &block)
     yield
@@ -23,28 +28,25 @@ class ExceptionInterceptor < GRPC::ServerInterceptor
   private
 
   EXCEPTION_MAP = {
-    PG::ConnectionBad             => [GRPC::Core::StatusCodes::UNAVAILABLE, "Database connection error"],
-    ConnectionPool::TimeoutError  => [GRPC::Core::StatusCodes::UNAVAILABLE, "Connection timeout"],
+
   }.freeze
 
   def handle_exception(exception)
     raise exception if exception.is_a?(GRPC::BadStatus)
+    return internal_server_error(exception) unless known_exception?(exception)
 
     status_code, message = EXCEPTION_MAP[exception.class]
-
-    if status_code.nil?
-      @logger.error(exception.message)
-      @logger.debug(exception.backtrace.join("\n"))
-      status_code = GRPC::Core::StatusCodes::INTERNAL
-      message = "Internal server error"
-    end
-
     raise GRPC::BadStatus.new(status_code, message)
   end
 
-  def map_constraint_violation(result)
-    constraint_name = result.error_field(PG::Result::PG_DIAG_CONSTRAINT_NAME)
-    CONSTRAINT_MESSAGES[constraint_name] || "Validation error"
+  def internal_server_error(exception)
+    @logger.error(exception.message)
+    @logger.debug(exception.backtrace.join("\n"))
+    raise GRPC::BadStatus.new(GRPC::Core::StatusCodes::INTERNAL, "Internal server error")
+  end
+
+  def known_exception?(exception)
+    EXCEPTION_MAP.key?(exception.class)
   end
 
 end

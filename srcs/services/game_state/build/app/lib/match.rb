@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2025/01/01 13:53:46 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/02 14:25:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -91,9 +91,9 @@ class Match
     client_time = input[:timestamp]
     direction = input[:direction]
     check_required_fields(user_id, client_time, direction)
-    raise Grpc::InvalidArgument.new('User not in match') unless @players.keys.include?(user_id)
-    raise Grpc::InvalidArgument.new('Invalid direction format') unless [-1, 0, 1].include?(direction)
-    raise Grpc::InvalidArgument.new('Invalid timestamp format') unless client_time.is_a?(Integer)
+    raise GRPC::InvalidArgument.new('User not in match') unless @players.keys.include?(user_id)
+    raise GRPC::InvalidArgument.new('Invalid direction format') unless [-1, 0, 1].include?(direction)
+    raise GRPC::InvalidArgument.new('Invalid timestamp format') unless client_time.is_a?(Integer)
 
     server_delay = current_time - client_time
     return if server_delay > @config.dig(:game_server, :max_lag_compensation)
