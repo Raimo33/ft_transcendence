@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 16:06:03 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 19:52:58 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -80,7 +80,7 @@ class PGClient
 
   private
 
-  #TODO aggiungere tutti gli altri
+  #TODO aggiungere tutti gli altri e fare double check
   CONSTRAINT_MESSAGES = {
     'pk_users'                        => 'User already exists',
     'pk_friendships'                  => 'Friendship already exists', 

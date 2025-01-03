@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 12:05:39 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 19:52:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,4 +71,9 @@ class MemcachedClient
 
     result
   end
+
+  def with_exception
+    #TODO come pg
+  end
+
 end

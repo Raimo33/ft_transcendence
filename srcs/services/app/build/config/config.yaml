@@ -66,6 +66,8 @@ user:
       ttl_remember_me: 31536000
     invalidation_grace_period: 15
 
+match:
+
 matchmaking:
 
 grpc:

@@ -6,9 +6,14 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 18:08:28 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 19:51:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+  #TODO EXCEPTION HANDLING DI MEMCACHED!!
+  #TODO VIOLATIONS DI PG
+  #TODO EXCEPTION HANDLING DI GRPC LOWER LEVEL
+  #TODO SYMBOLS SOLO PER OGGETTI IMMUTABILI
 
 require 'falcon'
 require 'openapi_first'
@@ -66,10 +71,10 @@ class Server
       hashed_password = @auth_module.hash_password(password)
 
       email_task.wait
-      db_response = @pg_client.exec_prepared(:insert_user, [email, hashed_password, display_name, processed_avatar])
+      query_result = @pg_client.exec_prepared(:insert_user, [email, hashed_password, display_name, processed_avatar])
       
       body = {
-        user_id: db_response.first['id']
+        user_id: query_result.first['id']
       }
       
       [201, {}, [JSON.generate(body)]]
@@ -80,10 +85,10 @@ class Server
     user_id = params[:user_id]
     check_required_fields(user_id)
 
-    db_response = @pg_client.exec_prepared(:get_public_profile, [request.id])
-    raise NotFound.new("User not found") if db_response.ntuples.zero?
+    query_result = @pg_client.exec_prepared(:get_public_profile, [request.id])
+    raise NotFound.new("User not found") if query_result.ntuples.zero?
 
-    row = db_response.first  
+    row = query_result.first  
     body = {
       user_id:      row["id"],
       display_name: row["display_name"],
@@ -99,30 +104,53 @@ class Server
     user_id = params[:user_id]
     check_required_fields(user_id)
 
-    db_response = @pg_client.exec_prepared(:get_status, [user_id])
-    raise NotFound.new("User not found") if db_response.ntuples.zero?
+    query_result = @pg_client.exec_prepared(:get_status, [user_id])
+    raise NotFound.new("User not found") if query_result.ntuples.zero?
   
     body = {
-      status: db_response.first["current_status"]
+      status: query_result.first["current_status"]
     }
 
     [200, {}, [JSON.generate(body)]]
   end
 
   def getUserMatches(params, env)
-    #TODO
+    user_id, cursor, limit = params.values_at(:user_id, :cursor, :limit)
+    check_required_fields(user_id)
+
+    cursor = if provided?(cursor)
+      decode_cursor(cursor)
+    else
+      nil
+    end
+
+    started_at_str, match_id_str = cursor&.split(',')
+    started_at = started_at_str ? Time.parse(started_at_str) : Time.now
+    match_id = match_id_str
+    limit ||= 10
+
+    result = @pg_client.exec_prepared(:get_user_matches, [user_id, started_at, match_id, limit])
+
+    last_row = result.last
+    body = {
+      match_ids: result.map { |row| row['match_id'] },
+      cursor: encode_cursor(last_row['started_at'], last_row['match_id'])
+    }
+
+    [200, {}, [JSON.generate(body)]]
+  end
 
   def getUserTournaments(params, env)
     #TODO
 
   def delete_account(params, env)
     Async do |task|
-      requester_user_id = env[:requester_user_id]
-      check_required_fields(requester_user_id)
+      user_id = env[:requester_user_id]
+      check_required_fields(user_id)
 
-      task.async { @user_module.forget_past_sessions(requester_user_id) }
-      task.async { @user_module.erase_user_cache(requester_user_id) }
-      query_task = task.async { @pg_client.exec_prepared(:delete_user, [requester_user_id]) }
+      task.async { @user_module.forget_past_sessions(user_id) }
+      task.async { @user_module.erase_user_cache(user_id) }
+      query_task = task.async { @pg_client.exec_prepared(:delete_user, [user_id]) }
       
       query_result = query_task.wait
       raise NotFound.new("User not found") if query_result.cmd_tuples.zero?
@@ -132,13 +160,13 @@ class Server
   end
 
   def getUserPrivateProfile(params, env)
-    requester_user_id = env[:requester_user_id]
-    check_required_fields(requester_user_id)
+    user_id = env[:requester_user_id]
+    check_required_fields(user_id)
 
-    db_response = @pg_client.exec_prepared(:get_private_profile, [requester_user_id])
-    raise NotFound.new("User not found") if db_response.ntuples.zero?
+    query_result = @pg_client.exec_prepared(:get_private_profile, [user_id])
+    raise NotFound.new("User not found") if query_result.ntuples.zero?
   
-    row = db_response.first
+    row = query_result.first
     body = {
       id:            row["id"],
       email:         row["email"],
@@ -153,9 +181,9 @@ class Server
   end
 
   def updateProfile(params, env)
-    requester_user_id = env[:requester_user_id]
+    user_id = env[:requester_user_id]
     display_name, avatar = params.values_at(:display_name, :avatar)
-    check_required_fields(requester_user_id)
+    check_required_fields(user_id)
     raise BadRequest.new("No fields to update") if params.compact.empty?
   
     @user_module.check_display_name(display_name) if display_name
@@ -166,24 +194,24 @@ class Server
       nil
     end
 
-    db_response = @pg_client.exec_prepared(:update_profile, [display_name, processed_avatar, requester_user_id])
-    raise NotFound.new("User not found") if db_response.cmd_tuples.zero?
+    query_result = @pg_client.exec_prepared(:update_profile, [display_name, processed_avatar, user_id])
+    raise NotFound.new("User not found") if query_result.cmd_tuples.zero?
 
     [204, {}, []]
   end
 
   def enableTFA(params, env)
     Async do |task|
-      requester_user_id = env[:requester_user_id]
-      check_required_fields(requester_user_id)
+      user_id = env[:requester_user_id]
+      check_required_fields(user_id)
       
-      secret, provisioning_uri = @auth_module.generate_tfa_secret(requester_user_id)
+      secret, provisioning_uri = @auth_module.generate_tfa_secret(user_id)
 
-      db_task = task.async { @pg_client.exec_prepared(:enable_tfa, [requester_user_id, secret]) }
+      db_task = task.async { @pg_client.exec_prepared(:enable_tfa, [user_id, secret]) }
       qr_code = @auth_module.generate_qr_code(provisioning_uri)
       
-      db_response = db_task.wait
-      raise NotFound.new("User not found") if db_response.cmd_tuples.zero?
+      query_result = db_task.wait
+      raise NotFound.new("User not found") if query_result.cmd_tuples.zero?
 
       body = {
         tfa_secret: secret,
@@ -192,47 +220,47 @@ class Server
       
       [200, {}, [JSON.generate(body)]]
     end
-  rescue StandardError => e
+  rescue
     if db_task
       db_task.stop
-      @pg_client.exec_prepared(:disable_tfa, [requester_user_id]) rescue nil
+      @pg_client.exec_prepared(:disable_tfa, [user_id]) rescue nil
     end
-    raise e
+    raise
   end
 
   def disableTFA(params, env)
-    requester_user_id = env[:requester_user_id]
+    user_id = env[:requester_user_id]
     tfa_code = params[:tfa_code]
-    check_required_fields(requester_user_id, tfa_code)
+    check_required_fields(user_id, tfa_code)
 
-    db_response = @pg_client.exec_prepared(:get_tfa, [requester_user_id])
-    row = db_response.first
+    query_result = @pg_client.exec_prepared(:get_tfa, [user_id])
+    row = query_result.first
     tfa_secret = row['tfa_secret']
     tfa_status = row['tfa_status']
     raise BadRequest.new("TFA already disabled") if tfa_status == 'disabled'
 
     @auth_module.check_tfa_code(tfa_secret, tfa_code)
 
-    db_response = @pg_client.exec_prepared(:delete_tfa, [requester_user_id])
-    raise NotFound.new("User not found") if db_response.cmd_tuples.zero?
+    query_result = @pg_client.exec_prepared(:delete_tfa, [user_id])
+    raise NotFound.new("User not found") if query_result.cmd_tuples.zero?
 
     [204, {}, []]
   end
 
   def submitTFACode(params, env)
     Async do |task|
-      requester_user_id = env[:requester_user_id]
+      user_id = env[:requester_user_id]
       tfa_code = params[:tfa_code]
-      check_required_fields(requester_user_id, tfa_code)
+      check_required_fields(user_id, tfa_code)
 
-      query_task = task.async { @pg_client.exec_prepared(:get_tfa, [requester_user_id]) }
-      jwt_generation_task = task.async { @user_module.generate_session_jwt(requester_user_id, false) }
-      forget_sessions_task = task.async { @user_module.forget_past_sessions(requester_user_id) }
+      query_task = task.async { @pg_client.exec_prepared(:get_tfa, [user_id]) }
+      jwt_generation_task = task.async { @user_module.generate_session_jwt(user_id, false) }
+      forget_sessions_task = task.async { @user_module.forget_past_sessions(user_id) }
 
-      db_response = query_task.wait
-      raise NotFound.new("User not found") if db_response.ntuples.zero?
+      query_result = query_task.wait
+      raise NotFound.new("User not found") if query_result.ntuples.zero?
     
-      row = db_response.first
+      row = query_result.first
       tfa_secret = row['tfa_secret']
       tfa_status = row['tfa_status']
       raise BadRequest.new("TFA already disabled") if tfa_status == 'disabled'
@@ -240,7 +268,7 @@ class Server
       @auth_module.check_tfa_code(tfa_secret, tfa_code)
 
       forget_sessions_task.wait
-      @pg_client.exec_prepared(:update_user_status, [requester_user_id, 'online'])
+      @pg_client.exec_prepared(:update_user_status, [user_id, 'online'])
 
       body = {
         session_token: jwt_generation_task.wait
@@ -290,12 +318,12 @@ class Server
 
   def refreshUserSessionToken(params, env)
     Async do |task|
-      session_token, refresh_token, requester_user_id = params.values_at(:session_token, :refresh_token, :requester_user_id)
-      check_required_fields(session_token, refresh_token, requester_user_id)
+      session_token, refresh_token, user_id = params.values_at(:session_token, :refresh_token, :requester_user_id)
+      check_required_fields(session_token, refresh_token, user_id)
 
       @auth_module.validate_refresh_token(refresh_token)
     
-      forget_task = task.async { @user_module.forget_past_sessions(requester_user_id) }
+      forget_task = task.async { @user_module.forget_past_sessions(user_id) }
     
       body = {
         session_token = @auth_module.extend_jwt(session_token)
@@ -309,90 +337,200 @@ class Server
 
   def logoutUser(params, env)
     Async do |task|
-      requester_user_id = env[:requester_user_id]
-      check_required_fields(requester_user_id)
+      user_id = env[:requester_user_id]
+      check_required_fields(user_id)
 
-      task.async { @user_module.forget_past_sessions(requester_user_id) }
-      task.async { @pg_client.exec_prepared(:update_user_status, [requester_user_id, 'offline']) }
+      task.async { @user_module.forget_past_sessions(user_id) }
+      task.async { @pg_client.exec_prepared(:update_user_status, [user_id, 'offline']) }
 
       [204, {}, []]
     end
   end
 
   def addFriend(params, env)
-    requester_user_id = env[:requester_user_id]
-    friend_user_id = params[:friend_user_id]
-    check_required_fields(requester_user_id, friend_user_id)
+    user_id = env[:requester_user_id]
+    friend_user_id = params[:friend_id]
+    check_required_fields(user_id, friend_user_id)
 
     @pg_client.transaction do |tx|
-      existing_request = tx.exec_prepared('check_friendship', [friend_user_id, requester_user_id])
+      existing_request = tx.exec_prepared('check_friendship', [friend_user_id, user_id])
   
       if existing_request.ntuples > 0
         status = existing_request[0]['status']
         case status
         when 'pending'
-          tx.exec_prepared('update_friendship', [friend_user_id, requester_user_id, 'accepted'])
+          tx.exec_prepared('update_friendship', [friend_user_id, user_id, 'accepted'])
         when 'accepted'
           raise BadRequest.new("Friendship already exists")
         when 'blocked'
           break
       else
-        tx.exec_prepared('insert_friend_request', [requester_user_id, friend_user_id])
+        tx.exec_prepared('insert_friend_request', [user_id, friend_user_id])
       end
     end
 
-    @grpc_client.notify_friend_request(requester_user_id, friend_user_id) #TODO implementare il metodo notify_friend_request
+    @grpc_client.notify_friend_request(user_id, friend_user_id)
 
     [204, {}, []]
   end
 
   def getFriends(params, env)
-    requester_user_id = env[:requester_user_id]
-    check_required_fields(requester_user_id)
+    user_id = env[:requester_user_id]
+    limit, cursor = params.values_at(:limit, :cursor)
+    check_required_fields(user_id)
 
-    limit  = params[:limit]  || 10
-    offset = params[:offset] || 0
+    cursor = if provided?(cursor)
+      decode_cursor(cursor)
+    else
+      nil
+    end
+
+    last_created_at_str, last_friend_id_str = cursor&.split(',')
+    last_created_at = last_created_at_str ? Time.parse(last_created_at_str) : Time.now
+    last_friend_id = last_friend_id_str
+    limit ||= 10
     
-    query_result = @pg_client.exec_prepared(:get_friends, [requester_user_id, limit, offset])
+    query_result = @pg_client.exec_prepared(:get_friends, [user_id, last_created_at, last_friend_id, limit])
     raise NotFound.new("User not found") if query_result.ntuples.zero?
 
+    last_row = query_result.last
     body = {
       friend_ids: query_result.map { |row| row['friend_id'] }
+      cursor: encode_cursor(last_row['created_at'], last_row['friend_id'])
     }
 
     [200, {}, [JSON.generate(body)]]
   end
 
   def removeFriend(params, env)
-    requester_user_id = env[:requester_user_id]
-    friend_user_id = params[:friend_user_id]
-    check_required_fields(requester_user_id, friend_user_id)
+    user_id = env[:requester_user_id]
+    friend_user_id = params[:friend_id]
+    check_required_fields(user_id, friend_user_id)
     
-    query_result = @pg_client.exec_prepared(:delete_friendship, [requester_user_id, request.id])
+    query_result = @pg_client.exec_prepared(:delete_friendship, [user_id, request.id])
     raise NotFound.new("Friendship not found") if query_result.cmd_tuples.zero?
 
     [204, {}, []]
   end
 
   def acceptFriendRequest(params, env)
-    #TODO implementare il metodo notify_accepted_friend_request
+    Async do |task|
+      user_id = env[:requester_user_id]
+      friend_user_id = params[:friend_id]
+      check_required_fields(user_id, friend_user_id)
+
+      db_task = task.async { @pg_client.exec_prepared(:update_friendship, [friend_user_id, user_id, 'accepted']) }
+      notification_task = task.async { @grpc_client.notify_accepted_friend_request(user_id, friend_user_id) }
+
+      query_result = db_task.wait
+      raise NotFound.new("Friendship not found") if query_result.cmd_tuples.zero?
+
+      [204, {}, []]
+    end
+  end
 
   def rejectFriendRequest(params, env)
-    #TODO
+    user_id = env[:requester_user_id]
+    friend_user_id = params[:friend_id]
+    check_required_fields(user_id, friend_user_id)
+
+    query_result = @pg_client.exec_prepared(:delete_friendship, [friend_user_id, user_id])
+    raise NotFound.new("Friendship not found") if query_result.cmd_tuples.zero?
+
+    [204, {}, []]
+  end
 
   def startMatchmaking(params, env)
+    user_id = env[:requester_user_id]
+    check_required_fields(user_id)
+
+    response = @pg_client.exec_prepared(:is_playing, [user_id])
+    is_playing = response.first['is_playing'] == 't'
+    raise BadRequest.new("User is already playing") if is_playing
+
+    @matchmaking_module.add_matchmaking_user(user_id)
+
+    [204, {}, []]
+  end
 
   def stopMatchmaking(params, env)
+    user_id = env[:requester_user_id]
+    check_required_fields(user_id)
+
+    @matchmaking_module.remove_matchmaking_user(user_id)
+
+    [204, {}, []]
+  end
 
   def challengeFriend(params, env)
+    user_id = env[:requester_user_id]
+    friend_user_id = params[:friend_id]
+    check_required_fields(user_id, friend_user_id)
+
+    @matchmaking_module.add_match_invitation(user_id, friend_user_id)
+
+    [204, {}, []]
+  end
 
   def getMatch(params, env)
+    match_id = params[:match_id]
+    check_required_fields(match_id)
 
-  def leaveMatch(params, env)
+    query_result = @pg_client.exec_prepared(:get_match_info, [match_id])
+    raise NotFound.new("Match not found") if query_result.ntuples.zero?
+
+    row = query_result.first
+    body = {
+      id:            row['id'],
+      player_ids:    row['player_ids'],
+      status:        row['current_status'],
+      started_at:    row['started_at'],
+      ended_at:      row['ended_at']
+      tournament_id: row['tournament_id']
+    }
+
+    [200, {}, [JSON.generate(body)]]
+  end
 
   def acceptMatchInvitation(params, env)
+    Async do |task|
+      user_id = env[:requester_user_id]
+      friend_id = params[:friend_id]
+      check_required_fields(user_id, friend_id)
+
+      match_id = SecureRandom.uuid
+    
+      task.async { @matchmaking_module.remove_match_invitation(friend_id, user_id) }
+
+      task.async do
+        @pg_client.transaction do |tx|
+          tx.exec_prepared(:insert_match, [match_id])
+          tx.exec_prepared(:insert_match_players, [match_id, user_id, friend_id])
+        end
+      end
+
+      task.async { @grpc_client.setup_game_state(match_id) } #TODO preparazoine websocket
+      
+      @grpc_client.notify_match_found(user_id, friend_id, match_id) #TODO invio notifica match found
+    end
+  rescue
+    Async do |task|
+      task.async { @grpc_client.remove_match_invitation(friend_id, user_id) }
+      task.async { @pg_client.exec_prepared(:delete_match, [match_id]) }
+      task.async { @grpc_client.close_game_state(match_id) }
+    end.wait rescue nil
+    raise
+  end
 
   def declineMatchInvitation(params, env)
+    user_id = env[:requester_user_id]
+    friend_id = params[:friend_id]
+    check_required_fields(user_id, friend_id)
+
+    @matchmaking_module.remove_match_invitation(friend_id, user_id)
+
+    [204, {}, []]
+  end
 
   def createTournament(params, env)
 
@@ -403,6 +541,7 @@ class Server
   def joinTournament(params, env)
 
   def leaveTournament(params, env)
+    #TODO wont work if user is in match (prevenzione di bug)
 
   private
 
@@ -410,6 +549,14 @@ class Server
     fields.each do |field|
       raise BadRequest.new("Missing required field: #{field}") if field.nil? || field.empty?
     end
+  end
+
+  def encode_cursor(*fields)
+    fields.join(',')
+  end
+
+  def decode_cursor(cursor)
+    cursor.split(',')
   end
 
 end

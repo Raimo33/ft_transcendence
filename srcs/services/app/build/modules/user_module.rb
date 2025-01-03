@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/03 12:07:04 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 16:57:05 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 18:53:44 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -261,9 +261,10 @@ class UserModule
     SQL
     get_friends: <<~SQL
       SELECT friend_id
-      FROM Friendships
-      WHERE user_id = $1
-      LIMIT $2 OFFSET $3
+      FROM UserFriendsChronologicalMatView
+      WHERE user_id = $1 AND (created_at, friend_id) < ($2, $3)
+      ORDER BY created_at DESC, friend_id DESC
+      LIMIT $4
     SQL
     delete_friendship: <<~SQL
       DELETE FROM Friendships

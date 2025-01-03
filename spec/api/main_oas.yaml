@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 17:29:11 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 19:35:53 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -141,6 +141,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cusor"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -161,6 +162,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/match_id"
+                  cursor:
+                    $ref: "#/components/schemas/cursor"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /users/{user_id}/tournaments:
@@ -171,6 +174,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -191,6 +195,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/tournament_id"
+                  cursor:
+                    $ref: "#/components/schemas/cursor"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /user:
@@ -450,6 +456,7 @@ paths:
       description: Retrieve the list of friends of the current user.
       parameters:
         - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -470,15 +477,17 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/user_id"
+                  cursor:
+                    $ref: "#/components/schemas/cursor"
         "401":
           $ref: "#/components/responses/Unauthorized"
-  /user/friends/{user_id}:
+  /user/friends/{friend_id}:
     delete:
       operationId: removeFriend
       summary: Remove a friend
       description: Remove a user from the friend list.
       parameters:
-        - $ref: "#/components/parameters/user_id"
+        - $ref: "#/components/parameters/friend_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -489,13 +498,13 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-  /user/friends/{user_id}/request:
+  /user/friends/{friend_id}/request:
     post:
       operationId: acceptFriendRequest
       summary: Accept friend request
       description: Accept a friend request by providing the friend ID.
       parameters:
-        - $ref: "#/components/parameters/user_id"
+        - $ref: "#/components/parameters/friend_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -511,7 +520,7 @@ paths:
       summary: Reject friend request
       description: Reject a friend request by providing the friend ID.
       parameters:
-        - $ref: "#/components/parameters/user_id"
+        - $ref: "#/components/parameters/friend_id"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -601,24 +610,6 @@ paths:
                 $ref: "#/components/schemas/Match"
         "401":
           $ref: "#/components/responses/Unauthorized"
-    delete:
-      operationId: leaveMatch
-      summary: Leave the current match or decline an invitation
-      description: Exit and terminate the ongoing match by providing the match ID.
-      parameters:
-        - $ref: "#/components/parameters/match_id"
-      security:
-        - jwtAuth: []
-      x-auth-level: 2
-      responses:
-        "204":
-          $ref: "#/components/responses/NoContent"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "409":
-          $ref: "#/components/responses/Conflict"
   /matches/{match_id}/invitation:
     post:
       operationId: acceptMatchInvitation
@@ -901,10 +892,21 @@ components:
       description: JWT for session management.
       type: string
       example: "<Header>.<Payload>.<Signature>"
+    cursor:
+      description: Cursor token for pagination.
+      type: string
+      example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNTUwZTg0MDAtZTI5Yi00MWQ0LWE3MTYtNDQ2NjU1NDQwMDAwIn0.
   parameters:
     user_id:
       description: Unique identifier of the user.
       name: user_id
+      in: path
+      schema:
+        $ref: "#/components/schemas/user_id"
+      required: true
+    friend_id:
+      description: Unique identifier of the friend.
+      name: friend_id
       in: path
       schema:
         $ref: "#/components/schemas/user_id"
@@ -945,6 +947,13 @@ components:
         type: integer
         format: int32
         minimum: 1
+      required: false
+    cursor:
+      description: Cursor token for pagination.
+      name: cursor
+      in: query
+      schema:
+        $ref: "#/components/schemas/cursor"
       required: false
     refresh_token:
       description: Refresh token used to generate a new JWT.

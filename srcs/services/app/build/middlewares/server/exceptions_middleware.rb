@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 15:50:36 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 19:48:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,20 +34,6 @@ class ExceptionsMiddleware
   EXCEPTIONS_MAP = {
     OpenapiFirst::RequestInvalidError => [400, "Invalid request data"],
     OpenapiFirst::NotFoundError       => [404, "Resource not found"],
-    GRPC::InvalidArgument             => [400, "Invalid argument"],
-    GRPC::OutOfRange                  => [400, "Value out of range"],
-    GRPC::Unauthenticated             => [401, "Unauthorized request"],
-    GRPC::PermissionDenied            => [403, "Access denied"],
-    GRPC::NotFound                    => [404, "Resource not found"],
-    GRPC::AlreadyExists               => [409, "Resource conflict"],
-    GRPC::Aborted                     => [409, "Operation aborted"],
-    GRPC::FailedPrecondition          => [412, "Precondition failed"],
-    GRPC::ResourceExhausted           => [429, "Rate limit exceeded"],
-    GRPC::Cancelled                   => [499, "Client closed request"],
-    GRPC::Internal                    => [500, "Internal server error"],
-    GRPC::DataLoss                    => [500, "Data loss occurred"],
-    GRPC::Unimplemented               => [501, "Feature not implemented"],
-    GRPC::Unavailable                 => [503, "Service unavailable"],
   }.freeze
 
   def handle_exception(exception)
