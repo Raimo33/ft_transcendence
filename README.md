@@ -23,6 +23,8 @@ NGINX is chosen for its high performance, scalability, ease of integration, and 
 
 ---
 
+<i>
+
 ## Mail Transfer Agent (Postfix)
 
 ### Reasoning
@@ -38,39 +40,64 @@ Postfix is chosen for its reliability, efficiency, and robust security features,
 - **Domain-Based Routing**: Routes emails to the correct destinations based on domain-specific configurations, ensuring accurate delivery.
 - **Email Logging and Monitoring**: Maintains detailed logs for all email activity, enabling easier debugging and tracking of email delivery issues.
 
+</i>
+
 ---
 
 ## App
 
-### API Gateway
+### User
 #### Reasoning
-The API Gateway module is responsible for routing client requests to the appropriate microservices, handling authentication, rate limiting, and other security features. It acts as the central entry point for all client interactions, offering a unified interface to various backend services. It bridges the external REST and internal gRPC APIs.
+The User module manages all user-related functionalities, ensuring data integrity and security. It handles user registration, authentication, profile management, and ensures that user data adheres to defined validation rules.
 
 #### Responsibilities
-- **Fine-Grained Rate Limiter**: Limits the rate of requests to different API endpoints based on predefined thresholds, preventing abuse and ensuring fair resource usage.
-- **JWT Validation**: Verifies the validity of incoming JSON Web Tokens (JWTs) for authentication, bouncing unauthorized requests as soon as possible.
-- **Role Validation**: Ensures that the requesting user has the appropriate role/permissions to access specific API endpoints, preventing unauthorized access to sensitive data or services.
+- **Email Validation**: Ensures that user emails are valid and properly formatted.
+- **Password Management**: Validates password strength and securely hashes passwords before storage.
+- **Display Name Validation**: Ensures that user display names meet the required format and constraints.
+- **Avatar Handling**: Validates, compresses, and decompresses user avatars to optimize storage and display.
+- **QR Code Generation**: Creates QR codes for user-related functionalities, such as two-factor authentication.
+- **Session Management**: Manages user sessions, including generating and validating JWTs for authentication.
+- **Cache Management**: Handles caching of user data to improve performance and reduce database load.
 
 ### Auth
 #### Reasoning
 The Auth module handles user authentication and authorization, providing secure token-based access to the system. It ensures that only authorized users can access the system by issuing JWTs, managing two-factor authentication (2FA) keys, generating Time-based One-Time Passwords (TOTP), verifying user emails, and securely hashing passwords.
 
 #### Responsibilities
-- **JWT Issuer**: Generates JSON Web Tokens (JWTs) upon successful authentication. These tokens are used for secure, stateless authentication in subsequent API requests.
-- **2FA Keys Issuer**: Issues unique keys for users enabling two-factor authentication (2FA). These keys provide an extra layer of security during login attempts.
-- **TOTP Generation**: Generates Time-based One-Time Passwords (TOTP) as part of the 2FA process. These passwords are valid for a short period, ensuring dynamic, time-sensitive security.
-- **JWT Blacklist Management**: Manages a blacklist of revoked JWTs to prevent unauthorized access to the system. When a user logs out or their token is compromised, the JWT is added to the blacklist.
-- **Password Hashing**: Securely hashes user passwords before storing them in the database using industry-standard algorithms (e.g., bcrypt or Argon2) with a salt.
-- **Email Verification**: Sends verification emails to users upon registration to ensure the validity of user-provided email addresses and prevent fraudulent account creation.
+- **JWT Issuer**: Generates JSON Web Tokens (JWTs) upon successful authentication for secure, stateless authentication in API requests.
+- **2FA Keys Issuer**: Issues unique keys for users enabling two-factor authentication (2FA), adding an extra security layer during logins.
+- **TOTP Generation**: Creates Time-based One-Time Passwords (TOTP) as part of the 2FA process for time-sensitive security.
+- **JWT Blacklist Management**: Manages a blacklist of revoked JWTs to prevent unauthorized access.
+- **Password Hashing**: Securely hashes user passwords using algorithms like bcrypt or Argon2 with a salt.
+- **Email Verification**: Sends verification emails to users upon registration to ensure valid email addresses.
+
+### Match
+#### Reasoning
+The Match module manages game matches between users, including creating, updating, and deleting matches. It ensures that matches are properly recorded and that player statuses are accurately tracked.
+
+#### Responsibilities
+- **Match Retrieval**: Fetches user matches from the database with support for pagination and filtering.
+- **Player Status Check**: Determines if a user is currently engaged in an active match.
+- **Friendship Verification**: Checks if users are friends to allow match invitations.
+- **Match Information Retrieval**: Provides detailed information about specific matches.
+- **Match Lifecycle Management**: Handles the creation, updating, and deletion of matches, including setting winners and updating match statuses.
+
+TODO add tournament module documentation
+### Tournament
+#### Reasoning
+#### Responsibilities
 
 ### Matchmaking
 #### Reasoning
 The Matchmaking module pairs players together in a competitive or cooperative environment, ensuring fair and enjoyable matches based on predefined criteria such as skill level and latency.
 
 #### Responsibilities
-- **Matchmaking Pool**: Maintains a pool of waiting players and dynamically forms matches based on players' attributes (e.g., skill level, preferences).
+- **Matchmaking Pool**: Maintains a pool of waiting players and dynamically forms matches based on players' attributes.
 - **Fallback Logic**: Implements fallback logic to relax match criteria if a perfect match is unavailable, ensuring players are not kept waiting too long.
 - **Finds Available Players**: Searches for available players within the matchmaking pool, evaluating preferences and availability to create matches efficiently.
+- **Match Invitations**: Manages sending and receiving match invitations between users, ensuring invitations are unique and valid.
+
+---
 
 <i>
 
@@ -91,6 +118,9 @@ The AI Service simulates client actions to provide dynamic and challenging oppon
 
 ### Reasoning
 The Notification Service delivers real-time notifications and alerts to users, ensuring timely communication about important events such as match invitations, friend requests, and online status changes.
+
+### Responsibilities
+#TODO add more responsibilities
 
 ---
 

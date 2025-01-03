@@ -131,9 +131,26 @@ services:
     # depends_on:
     init: true
 
+  logging:
+    build:
+      context: ./services/logging
+      dockerfile: Dockerfile
+      # args:
+    container_name: logging
+    # environment:
+    # volumes:
+    # secrets:
+    ports:
+    networks:
+      - monitoring
+    restart: always
+    # depends_on:
+    init: true
+
 volumes:
   postgresql_data:
   frontend_data:
+  logs: #TODO: Add logs volume
   nginx_cert:
     driver: local
     driver_opts:
