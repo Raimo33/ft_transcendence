@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 17:17:38 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:32:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ class LoggerMiddleware
     start_time = Time.now
 
     request_id = RequestContext.request_id
-    operation_id = request.operation['operationId']
+    operation_id = parsed_request.operation["operationId"]
     @logger.info("Received request #{request_id} on #{operation_id}")
 
     status, headers, response = @app.call(env)

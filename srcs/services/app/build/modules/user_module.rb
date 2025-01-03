@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/03 12:07:04 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 18:53:44 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:15:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -118,9 +118,9 @@ class UserModule
       bit_depth: 1,
       border_modules: 4,
       color_mode: ChunkyPNG::COLOR_GRAYSCALE,
-      color: 'black',
+      color: "red",
       file: nil,
-      fill: 'white',
+      fill: "white",
       module_px_size: 6,
       resize_exactly_to: false,
       resize_gte_to: false

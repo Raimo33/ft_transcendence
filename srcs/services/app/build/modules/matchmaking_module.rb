@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/03 12:07:04 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 19:25:40 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:15:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,11 +28,11 @@ class MatchmakingModule
   end
 
   def add_matchmaking_user(user_id)
-    @pg_client.exec_prepared('add_matchmaking_user', [user_id])
+    @pg_client.exec_prepared("add_matchmaking_user", [user_id])
   end
   
   def remove_matchmaking_user(user_id)  
-    @pg_client.exec_prepared('remove_matchmaking_user', [user_id])
+    @pg_client.exec_prepared("remove_matchmaking_user", [user_id])
   end
 
   def add_match_invitation(from_user_id, to_user_id)

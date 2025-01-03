@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    config_handler.rb                                  :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <bomboclat@bidol.juis>            +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 16:21:31 by craimond          #+#    #+#              #
-#    Updated: 2024/11/28 06:43:41 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:16:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ class ConfigHandler
 
   attr_reader :config
 
-  CONFIG_PATH  = '../config/config.yaml'
+  CONFIG_PATH  = "../config/config.yaml"
 
   def initialize
     @config = YAML.load_file(CONFIG_PATH)

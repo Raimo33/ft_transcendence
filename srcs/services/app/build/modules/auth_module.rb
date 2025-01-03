@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/03 12:07:04 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 19:08:34 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:15:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,7 +46,7 @@ class AuthModule
         leeway: settings.fetch(:leeway)
       }
     )
-    raise Unauthorized.new("Token revoked") if token_revoked?(payload['sub'], payload['iat'])
+    raise Unauthorized.new("Token revoked") if token_revoked?(payload["sub"], payload["iat"])
     
     payload
   rescue JWT::DecodeError
@@ -157,7 +157,7 @@ class AuthModule
     payload.transform_keys(&:to_sym)
 
     now = Time.now.to_i
-    original_ttl = payload['exp'] - payload['iat']
+    original_ttl = payload["exp"] - payload["iat"]
     payload = payload.except(:exp, :iat, :jti).merge(
       iat: now,
       exp: now + original_ttl,

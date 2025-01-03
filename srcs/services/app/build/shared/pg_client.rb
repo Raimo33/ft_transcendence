@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 20:38:31 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:30:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -114,7 +114,7 @@ class PGClient
   def with_logging
     start_time = Time.now
     
-    request_id = Thread.current[:request_id] || 'no_request_id'
+    request_id = RequestContext.request_id
     @logger.info("Passing request #{request_id} to PostgreSQL")
 
     result = yield

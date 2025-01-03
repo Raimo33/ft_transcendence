@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 20:43:27 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:30:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,7 @@ require 'singleton'
 require_relative 'custom_logger'
 require_relative 'config_handler'
 require_relative 'exceptions'
+require_relative 'request_context'
 
 class MemcachedClient
   include Singleton
@@ -66,7 +67,7 @@ class MemcachedClient
   def with_logging
     start_time = Time.now
     
-    request_id = Thread.current[:request_id] || 'no_request_id'
+    request_id = RequestContext.request_id
     @logger.info("Passing request #{request_id} to Memcached")
 
     result = yield
