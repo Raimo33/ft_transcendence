@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 17:33:42 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 18:08:28 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,7 +37,7 @@ class Server
     params = parsed_request.parsed_params
     operationId = parsed_request.operation['operationId']
     
-    send(operation_id, params, env)
+    Sync { send(operationId, params, env) }
   rescue NoMethodError
     raise NotFound.new("Operation not found")
   end
@@ -49,31 +49,31 @@ class Server
   end
 
   def registerUser(params, env)
-    email, password, display_name, avatar = params.values_at(:email, :password, :display_name, :avatar)
-    check_required_fields(email, password, display_name)
+    Async do |task|
+      email, password, display_name, avatar = params.values_at(:email, :password, :display_name, :avatar)
+      check_required_fields(email, password, display_name)
 
-    email_task = Async { @user_module.check_email(email) }
-    @user_module.check_password(password)
-    @user_module.check_display_name(display_name)
+      email_task = task.async { @user_module.check_email(email) }
+      @user_module.check_password(password)
+      @user_module.check_display_name(display_name)
 
-    processed_avatar = if avatar
-      @user_module.check_avatar(avatar)
-      @user_module.compress_avatar(avatar)
-    else
-      nil
+      processed_avatar = if avatar
+        @user_module.check_avatar(avatar)
+        @user_module.compress_avatar(avatar)
+      else
+        nil
+      end
+      hashed_password = @auth_module.hash_password(password)
+
+      email_task.wait
+      db_response = @pg_client.exec_prepared(:insert_user, [email, hashed_password, display_name, processed_avatar])
+      
+      body = {
+        user_id: db_response.first['id']
+      }
+      
+      [201, {}, [JSON.generate(body)]]
     end
-    hashed_password = @auth_module.hash_password(password)
-
-    email_task.wait
-    db_response = @pg_client.exec_prepared(:insert_user, [email, hashed_password, display_name, processed_avatar])
-    
-    body = {
-      user_id: db_response.first['id']
-    }
-    
-    [201, {}, [JSON.generate(body)]]
-  ensure
-    email_task&.stop
   end
 
   def getUserPublicProfile(params, env)
@@ -116,22 +116,19 @@ class Server
     #TODO
 
   def delete_account(params, env)
-    requester_user_id = env[:requester_user_id]
-    check_required_fields(requester_user_id)
+    Async do |task|
+      requester_user_id = env[:requester_user_id]
+      check_required_fields(requester_user_id)
 
-    async_context = Async do |task|
       task.async { @user_module.forget_past_sessions(requester_user_id) }
       task.async { @user_module.erase_user_cache(requester_user_id) }
       query_task = task.async { @pg_client.exec_prepared(:delete_user, [requester_user_id]) }
       
       query_result = query_task.wait
       raise NotFound.new("User not found") if query_result.cmd_tuples.zero?
-    end
   
-    async_context.wait
-    [204, {}, []]
-  ensure
-    async_context&.stop
+      [204, {}, []]
+    end
   end
 
   def getUserPrivateProfile(params, env)
@@ -176,23 +173,25 @@ class Server
   end
 
   def enableTFA(params, env)
-    requester_user_id = env[:requester_user_id]
-    check_required_fields(requester_user_id)
-    
-    secret, provisioning_uri = @auth_module.generate_tfa_secret(requester_user_id)
+    Async do |task|
+      requester_user_id = env[:requester_user_id]
+      check_required_fields(requester_user_id)
+      
+      secret, provisioning_uri = @auth_module.generate_tfa_secret(requester_user_id)
 
-    db_task = Async { @pg_client.exec_prepared(:enable_tfa, [requester_user_id, secret]) }
-    qr_code = @auth_module.generate_qr_code(provisioning_uri)
-    
-    db_response = db_task.wait
-    raise NotFound.new("User not found") if db_response.cmd_tuples.zero?
+      db_task = task.async { @pg_client.exec_prepared(:enable_tfa, [requester_user_id, secret]) }
+      qr_code = @auth_module.generate_qr_code(provisioning_uri)
+      
+      db_response = db_task.wait
+      raise NotFound.new("User not found") if db_response.cmd_tuples.zero?
 
-    body = {
-      tfa_secret: secret,
-      tfa_qr_code: qr_code
-    }
-    
-    [200, {}, [JSON.generate(body)]]
+      body = {
+        tfa_secret: secret,
+        tfa_qr_code: qr_code
+      }
+      
+      [200, {}, [JSON.generate(body)]]
+    end
   rescue StandardError => e
     if db_task
       db_task.stop
@@ -221,11 +220,11 @@ class Server
   end
 
   def submitTFACode(params, env)
-    requester_user_id = env[:requester_user_id]
-    tfa_code = params[:tfa_code]
-    check_required_fields(requester_user_id, tfa_code)
-  
-    async_context = Async do |task|
+    Async do |task|
+      requester_user_id = env[:requester_user_id]
+      tfa_code = params[:tfa_code]
+      check_required_fields(requester_user_id, tfa_code)
+
       query_task = task.async { @pg_client.exec_prepared(:get_tfa, [requester_user_id]) }
       jwt_generation_task = task.async { @user_module.generate_session_jwt(requester_user_id, false) }
       forget_sessions_task = task.async { @user_module.forget_past_sessions(requester_user_id) }
@@ -249,17 +248,13 @@ class Server
 
       [200, {}, [JSON.generate(body)]]
     end
-
-    async_context.wait
-  ensure
-    async_context&.stop
   end
 
-  def loginUser(params, env)
-    email, password, remember_me = params.values_at(:email, :password, :remember_me)
-    check_required_fields(email, password)
+  def loginUser(params, env) 
+    Async do |task|
+      email, password, remember_me = params.values_at(:email, :password, :remember_me)
+      check_required_fields(email, password)
 
-    async_context = Async do |task|
       query_result = @pg_client.exec_prepared(:get_login_data, [email])
       raise NotFound.new("User not found") if query_result.ntuples.zero?
 
@@ -291,45 +286,37 @@ class Server
 
       [200, headers, [JSON.generate(body)]]
     end
-  
-    async_context.wait
-  ensure
-    async_context&.stop
   end
 
   def refreshUserSessionToken(params, env)
-    session_token, refresh_token, requester_user_id = params.values_at(:session_token, :refresh_token, :requester_user_id)
-    check_required_fields(session_token, refresh_token, requester_user_id)
+    Async do |task|
+      session_token, refresh_token, requester_user_id = params.values_at(:session_token, :refresh_token, :requester_user_id)
+      check_required_fields(session_token, refresh_token, requester_user_id)
 
-    @auth_module.validate_refresh_token(refresh_token)
-  
-    forget_task = Async { @user_module.forget_past_sessions(requester_user_id) }
-  
-    body = {
-      session_token = @auth_module.extend_jwt(session_token)
-    }
+      @auth_module.validate_refresh_token(refresh_token)
+    
+      forget_task = task.async { @user_module.forget_past_sessions(requester_user_id) }
+    
+      body = {
+        session_token = @auth_module.extend_jwt(session_token)
+      }
 
-    forget_task.wait
+      forget_task.wait
 
-    [200, {}, [JSON.generate(body)]]
-  ensure
-    forget_task&.stop
+      [200, {}, [JSON.generate(body)]]
+    end
   end
 
   def logoutUser(params, env)
-    requester_user_id = env[:requester_user_id]
-    check_required_fields(requester_user_id)
+    Async do |task|
+      requester_user_id = env[:requester_user_id]
+      check_required_fields(requester_user_id)
 
-    async_context = Async do |task|
       task.async { @user_module.forget_past_sessions(requester_user_id) }
       task.async { @pg_client.exec_prepared(:update_user_status, [requester_user_id, 'offline']) }
+
+      [204, {}, []]
     end
-
-    async_context.wait
-
-    [204, {}, []]
-  ensure
-    async_context&.stop
   end
 
   def addFriend(params, env)
