@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 11:43:09 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 17:29:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -141,7 +141,6 @@ paths:
       parameters:
         - $ref: "#/components/parameters/user_id"
         - $ref: "#/components/parameters/limit"
-        - $ref: "#/components/parameters/cursor"
       security:
         - jwtAuth: []
       x-auth-level: 2
@@ -162,8 +161,6 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/match_id"
-                  next_cursor:
-                    $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /users/{user_id}/tournaments:
@@ -173,7 +170,6 @@ paths:
       description: Returns the list of tournaments a user has ever participated in.
       parameters:
         - $ref: "#/components/parameters/user_id"
-        - $ref: "#/components/parameters/cursor"
         - $ref: "#/components/parameters/limit"
       security:
         - jwtAuth: []
@@ -195,8 +191,6 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/tournament_id"
-                  next_cursor:
-                    $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /user:
@@ -455,7 +449,6 @@ paths:
       summary: Get list of friends
       description: Retrieve the list of friends of the current user.
       parameters:
-        - $ref: "#/components/parameters/cursor"
         - $ref: "#/components/parameters/limit"
       security:
         - jwtAuth: []
@@ -477,8 +470,6 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/user_id"
-                  next_cursor:
-                    $ref: "#/components/schemas/cursor_token"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /user/friends/{user_id}:
@@ -910,10 +901,6 @@ components:
       description: JWT for session management.
       type: string
       example: "<Header>.<Payload>.<Signature>"
-    cursor_token:
-      description: Cursor token for pagination.
-      type: string
-      example: "eyJ0b2tlbiI6ImN1cnNvci10b2tlbiJ9"
   parameters:
     user_id:
       description: Unique identifier of the user.
@@ -958,13 +945,6 @@ components:
         type: integer
         format: int32
         minimum: 1
-      required: false
-    cursor:
-      description: Cursor token for pagination.
-      name: cursor
-      in: query
-      schema:
-        $ref: "#/components/schemas/cursor_token"
       required: false
     refresh_token:
       description: Refresh token used to generate a new JWT.

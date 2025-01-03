@@ -6,13 +6,12 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 11:23:17 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 17:17:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'openapi_first'
 require_relative '../../custom_logger'
-require_relative '../request_context'
 
 class LoggerMiddleware
 

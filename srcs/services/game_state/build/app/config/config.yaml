@@ -7,9 +7,6 @@ grpc:
     host: 0.0.0.0
     port: 50051
     pool_size: 10
-  client:
-    addresses:
-      match: match.core:50051
 
 game_server:
   host: 0.0.0.0
@@ -17,6 +14,15 @@ game_server:
   fps: 15
   disconnect_grace_period: 10
   max_lag_compensation: 200
+
+postgresql:
+  host: postgres.data
+  port: 5432
+  user: app
+  password: password
+  dbname: pongfu
+  pool:
+    size: 10
 
 settings:
   initial_hp: 3

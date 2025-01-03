@@ -23,6 +23,49 @@ auth:
     bcrypt:
       cost: 10
 
+user:
+  display_name:
+  min_length: 3
+  max_length: 25
+  charset:
+    lowercase: "abcdefghijklmnopqrstuvwxyz"
+    uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    digits: "0123456789"
+    special: "!@#$%&*-_=+,.<>?"
+  password:
+    min_length: 8
+    max_length: 64
+    charset:
+      lowercase: "abcdefghijklmnopqrstuvwxyz"
+      uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      digits: "0123456789"
+      special: "!@#$%&*-_=+,.<>?"
+    policy:
+      min_uppercase: 1
+      min_lowercase: 1
+      min_digits: 1
+      min_special: 0
+  avatar:
+    max_size: 5242880
+    max_dimensions:
+      width: 512
+      height: 512
+    allowed_types:
+      - image/jpeg
+      - image/png
+      - image/webp
+    compression_quality: 80
+    format: jpeg
+    default: /etc/default_avatar.jpg
+  tokens:
+    session:
+      ttl: 3600
+      ttl_pending_tfa: 300
+    refresh:
+      ttl: 604800
+      ttl_remember_me: 31536000
+    invalidation_grace_period: 15
+
 matchmaking:
 
 grpc:
@@ -32,11 +75,11 @@ grpc:
       notification: notification.core:50051
 
 postgresql:
-  host: postgres
+  host: postgres.data
   port: 5432
   user: app
-  password: app
-  dbname: app
+  password: password
+  dbname: pongfu
   pool:
     size: 10
     timeout: 30

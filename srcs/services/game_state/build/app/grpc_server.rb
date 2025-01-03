@@ -6,19 +6,16 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2025/01/02 13:24:44 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 17:38:41 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative 'config_handler'
-require_relative '../protos/notification_user_service_pb'
-require_relative '../protos/notification_match_service_pb'
-require_relative 'handlers/notification_match_service_handler'
-require_relative 'handlers/notification_user_service_handler'
+require_relative '../protos/game_state_match_services_pb'
+require_relative 'handlers/game_state_match_handler'
 require_relative 'interceptors/logger_interceptor'
 require_relative 'interceptors/exception_interceptor'
-require_relative 'interceptors/request_context_interceptor'
 
 class GrpcServer
 
@@ -32,13 +29,11 @@ class GrpcServer
       interceptors:  [
         LoggerInterceptor.new,
         ExceptionInterceptor.new,
-        RequestContextInterceptor.new
       ]
     )
 
     @services = {
-      NotificationUserService => NotificationUserServiceHandler.new,
-      NotificationMatchService => NotificationMatchServiceHandler.new
+      GameStateMatch::Service => GameStateMatchHandler.new
     }
 
     setup_handlers

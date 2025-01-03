@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 12:06:03 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 17:39:30 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,6 +46,7 @@ class GrpcClient
   end
 
   #TODO add methods to call the gRPC services
+  #TODO aggiungere request_id nel metadata di ogni chiamata (prenderlo da rack env)
 
   private
 
