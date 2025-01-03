@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2025/01/02 23:05:20 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 11:43:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -450,7 +450,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "409":
           $ref: "#/components/responses/Conflict"
-    get: #TODO filter by status (pending, accepted, blocked)
+    get:
       operationId: getFriends
       summary: Get list of friends
       description: Retrieve the list of friends of the current user.

@@ -1,0 +1,49 @@
+logging:
+  level: DEBUG
+  file: /dev/stdout
+  
+auth:
+  jwt:
+    issuer: pongfu
+    audience: pongfu_users
+    algorithm: RS256
+    leeway: 30
+    private_key: /etc/ssl/private/jwtRS256.key
+  tfa:
+    tfa:
+    issuer: pongfu.auth
+    digits: 6
+    interval: 30
+    algorithm: SHA1
+    drift_ahead: 1
+    drift_behind: 1
+    verify_issuer: true
+    image_url: https://yourapp.com/logo.png
+  password:
+    bcrypt:
+      cost: 10
+
+matchmaking:
+
+grpc:
+  client:
+    addresses:
+      game_state: game_state.core:50051
+      notification: notification.core:50051
+
+postgresql:
+  host: postgres
+  port: 5432
+  user: app
+  password: app
+  dbname: app
+  pool:
+    size: 10
+    timeout: 30
+
+memcached:
+  host: memcached
+  port: 11211
+  pool:
+    size: 10
+    timeout: 30
