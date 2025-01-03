@@ -6,15 +6,16 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 19:52:33 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 20:43:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'connection_pool'
 require 'dalli'
 require 'singleton'
-require_relative 'CustomLogger'
-require_relative 'ConfigHandler'
+require_relative 'custom_logger'
+require_relative 'config_handler'
+require_relative 'exceptions'
 
 class MemcachedClient
   include Singleton
@@ -33,20 +34,24 @@ class MemcachedClient
   end
 
   def method_missing(method, *args, &block)
-    with_logging do
-      @pool.with do |conn|
-        if conn.respond_to?(method)
-          conn.public_send(method, *args, &block)
-        else
-          super
+    with_exceptions do
+      with_logging do
+        @pool.with do |conn|
+          if conn.respond_to?(method)
+            conn.public_send(method, *args, &block)
+          else
+            super
+          end
         end
       end
     end
   end
 
   def respond_to_missing?(method, include_private = false)
-    @pool.with do |conn|
-      conn.respond_to?(method) || super
+    with_exception do
+      @pool.with do |conn|
+        conn.respond_to?(method) || super
+      end
     end
   end
 
@@ -72,8 +77,12 @@ class MemcachedClient
     result
   end
 
-  def with_exception
-    #TODO come pg
+  def with_exceptions
+    yield
+  rescue Dalli::NetworkError 
+    raise ServiceUnavailable.new("Cache not available")
+  rescue Dalli::Error
+    raise InternalServerError.new("Cache error")
   end
 
 end

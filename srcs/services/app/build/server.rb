@@ -6,12 +6,10 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 19:51:47 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 20:43:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-  #TODO EXCEPTION HANDLING DI MEMCACHED!!
-  #TODO VIOLATIONS DI PG
   #TODO EXCEPTION HANDLING DI GRPC LOWER LEVEL
   #TODO SYMBOLS SOLO PER OGGETTI IMMUTABILI
 

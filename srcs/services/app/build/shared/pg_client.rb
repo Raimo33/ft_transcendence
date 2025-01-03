@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 19:52:58 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 20:38:31 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -80,17 +80,35 @@ class PGClient
 
   private
 
-  #TODO aggiungere tutti gli altri e fare double check
   CONSTRAINT_MESSAGES = {
-    'pk_users'                        => 'User already exists',
-    'pk_friendships'                  => 'Friendship already exists', 
-    'unq_users_email'                 => 'Email already in use',
-    'unq_users_displayname'           => 'Display name already in use',
-    'fk_friendships_userid1'          => 'User not found',
-    'fk_friendships_userid2'          => 'User not found',
-    'chk_friendships_different_users' => 'Cannot be friends with yourself',
-    'chk_users_email'                 => 'Invalid email format',
-    'chk_users_displayname'           => 'Invalid display name format'
+    'pk_users'                          => 'User already exists',
+    'unq_users_email'                   => 'Email already in use',
+    'unq_users_displayname'             => 'Display name already in use',
+    'chk_users_email'                   => 'Invalid email format',
+    'chk_users_displayname'             => 'Invalid display name format',
+    'chk_users_avatar'                  => 'Invalid avatar format',
+    'pk_matches'                        => 'Match already exists',
+    'fk_matches_tournamentid'           => 'Tournament not found',
+    'unq_matches_tournamentid'          => 'Tournament already has a match',
+    'chk_matches_startedat'             => 'Invalid start time',
+    'chk_matches_endedat'               => 'Invalid end time',
+    'pk_tournaments'                    => 'Tournament already exists',
+    'fk_tournaments_creatorid'          => 'Creator not found',
+    'chk_tournaments_startedat'         => 'Invalid start time',
+    'chk_tournaments_endedat'           => 'Invalid end time',
+    'pk_friendships'                    => 'Friendship already exists',
+    'fk_friendships_userid1'            => 'User not found',
+    'fk_friendships_userid2'            => 'User not found',
+    'chk_friendships_different_users'   => 'Cannot be friends with yourself',
+    'pk_matchplayers'                   => 'Player already in match',
+    'fk_matchplayers_matchid'           => 'Match not found',
+    'fk_matchplayers_userid'            => 'User not found',
+    'pk_tournamentplayers'              => 'Player already in tournament',
+    'fk_tournamentplayers_tournamentid' => 'Tournament not found',
+    'fk_tournamentplayers_userid'       => 'User not found',
+    'pk_matchmakingpool'                => 'Player already in matchmaking pool',
+    'fk_matchmakingpool_userid'         => 'User not found',
+    'chk_matchmakingpool_addedat'       => 'Invalid add time',
   }.freeze
 
   def with_logging
