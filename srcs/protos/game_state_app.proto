@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package game_state;
+
+import "google/protobuf/empty.proto";
+
+service GameStateApp
+{
+  rpc setupGameState (MatchId) returns (google.protobuf.Empty) {}
+  rpc closeGameState (MatchId) returns (google.protobuf.Empty) {}
+}
+
+message MatchId
+{
+  string match_id = 1;
+}

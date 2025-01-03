@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 21:29:49 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:58:18 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,18 +19,24 @@ require 'async'
 require_relative 'shared/config_handler'
 require_relative 'shared/exceptions'
 require_relative 'shared/pg_client'
+require_relative 'shared/grpc_client'
 require_relative 'shared/request_context'
 require_relative 'modules/user_module'
 require_relative 'modules/auth_module'
+require_relative 'modules/match_module'
+require_relative 'modules/matchmaking_module'
 
 class Server
 
   def initialize
     @config = ConfigHandler.instance.config
     @pg_client = PGClient.instance
+    @grpc_client = GrpcClient.instance
 
     @user_module = UserModule.instance
     @auth_module = AuthModule.instance
+    @match_module = MatchModule.instance
+    @matchmaking_module = MatchmakingModule.instance
 
     prepare_statements
   end
@@ -141,7 +147,7 @@ class Server
   def getUserTournaments(params, env)
     #TODO
 
-  def delete_account(params, env)
+  def deleteUser(params, env)
     Async do |task|
       user_id = RequestContext.requester_user_id
       check_required_fields(user_id)
@@ -349,27 +355,27 @@ class Server
 
   def addFriend(params, env)
     user_id = RequestContext.requester_user_id
-    friend_user_id = params["friend_id"]
-    check_required_fields(user_id, friend_user_id)
+    friend_id = params["friend_id"]
+    check_required_fields(user_id, friend_id)
 
     @pg_client.transaction do |tx|
-      existing_request = tx.exec_prepared("check_friendship", [friend_user_id, user_id])
+      existing_request = tx.exec_prepared("check_friendship", [friend_id, user_id])
   
       if existing_request.ntuples > 0
         status = existing_request[0]["status"]
         case status
         when "pending"
-          tx.exec_prepared("update_friendship", [friend_user_id, user_id, "accepted"])
+          tx.exec_prepared("update_friendship", [friend_id, user_id, "accepted"])
         when "accepted"
           raise BadRequest.new("Friendship already exists")
         when "blocked"
           break
       else
-        tx.exec_prepared("insert_friend_request", [user_id, friend_user_id])
+        tx.exec_prepared("insert_friend_request", [user_id, friend_id])
       end
     end
 
-    @grpc_client.notify_friend_request(user_id, friend_user_id)
+    @grpc_client.notify_friend_request(user_id, friend_id)
 
     [204, {}, []]
   end
@@ -404,8 +410,8 @@ class Server
 
   def removeFriend(params, env)
     user_id = RequestContext.requester_user_id
-    friend_user_id = params["friend_id"]
-    check_required_fields(user_id, friend_user_id)
+    friend_id = params["friend_id"]
+    check_required_fields(user_id, friend_id)
     
     query_result = @pg_client.exec_prepared(:delete_friendship, [user_id, request.id])
     raise NotFound.new("Friendship not found") if query_result.cmd_tuples.zero?
@@ -416,11 +422,11 @@ class Server
   def acceptFriendRequest(params, env)
     Async do |task|
       user_id = RequestContext.requester_user_id
-      friend_user_id = params["friend_id"]
-      check_required_fields(user_id, friend_user_id)
+      friend_id = params["friend_id"]
+      check_required_fields(user_id, friend_id)
 
-      db_task = task.async { @pg_client.exec_prepared(:update_friendship, [friend_user_id, user_id, 'accepted']) }
-      notification_task = task.async { @grpc_client.notify_accepted_friend_request(user_id, friend_user_id) }
+      db_task = task.async { @pg_client.exec_prepared(:update_friendship, [friend_id, user_id, 'accepted']) }
+      notification_task = task.async { @grpc_client.notify_friend_request_accepted(user_id, friend_id) }
 
       query_result = db_task.wait
       raise NotFound.new("Friendship not found") if query_result.cmd_tuples.zero?
@@ -431,10 +437,10 @@ class Server
 
   def rejectFriendRequest(params, env)
     user_id = RequestContext.requester_user_id
-    friend_user_id = params["friend_id"]
-    check_required_fields(user_id, friend_user_id)
+    friend_id = params["friend_id"]
+    check_required_fields(user_id, friend_id)
 
-    query_result = @pg_client.exec_prepared(:delete_friendship, [friend_user_id, user_id])
+    query_result = @pg_client.exec_prepared(:delete_friendship, [friend_id, user_id])
     raise NotFound.new("Friendship not found") if query_result.cmd_tuples.zero?
 
     [204, {}, []]
@@ -464,10 +470,10 @@ class Server
 
   def challengeFriend(params, env)
     user_id = RequestContext.requester_user_id
-    friend_user_id = params["friend_id"]
-    check_required_fields(user_id, friend_user_id)
+    friend_id = params["friend_id"]
+    check_required_fields(user_id, friend_id)
 
-    @matchmaking_module.add_match_invitation(user_id, friend_user_id)
+    @matchmaking_module.add_match_invitation(user_id, friend_id)
 
     [204, {}, []]
   end
@@ -509,13 +515,13 @@ class Server
         end
       end
 
-      task.async { @grpc_client.setup_game_state(match_id) } #TODO preparazoine websocket
+      task.async { @grpc_client.setup_game_state(match_id) }
       
-      @grpc_client.notify_match_found(user_id, friend_id, match_id) #TODO invio notifica match found
+      @grpc_client.notify_match_found(match_id, user_id, friend_id)
     end
   rescue
     Async do |task|
-      task.async { @grpc_client.remove_match_invitation(friend_id, user_id) }
+      task.async { @matchmaking_module.remove_match_invitation(friend_id, user_id) }
       task.async { @pg_client.exec_prepared(:delete_match, [match_id]) }
       task.async { @grpc_client.close_game_state(match_id) }
     end.wait rescue nil

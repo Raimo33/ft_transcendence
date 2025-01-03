@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 17:39:30 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 22:12:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,9 +14,11 @@ require 'grpc'
 require 'yaml'
 require 'singleton'
 require_relative 'ConfigHandler'
-require_relative 'protos/app_notification_services_pb'
-require_relative 'protos/app_game_state_services_pb'
-require_relative 'middlewares/client/logger_interceptor'
+require_relative 'protos/notification_app_services_pb'
+require_relative 'protos/game_state_app_services_pb'
+require_relative '../middlewares/client/logger_interceptor'
+require_relative '../middlewares/client/exceptions_interceptor'
+require_relative '../middlewares/client/metadata_interceptor'
 
 class GrpcClient
   include Singleton
@@ -28,7 +30,11 @@ class GrpcClient
       "grpc.compression_algorithm" => "gzip"
     }
 
-    interceptors = [LoggerInterceptor.new]
+    interceptors = [
+      LoggerInterceptor.new
+      ExceptionsInterceptor.new
+      MetadataInterceptor.new
+    ]
 
     channels = {
       game_state: create_channel(@config.dig(:grpc, :client, :addresses, :game_state)),
@@ -45,8 +51,30 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  #TODO add methods to call the gRPC services
-  #TODO aggiungere request_id nel metadata di ogni chiamata (prenderlo da rack env)
+  def setup_game_state(match_id)
+    request = GameStateApp::MatchId.new(match_id)
+    @stubs[:game_state].setup_game_state(request)
+  end
+
+  def close_game_state(match_id)
+    request = GameStateApp::MatchId.new(match_id)
+    @stubs[:game_state].close_game_state(request)
+  end
+
+  def notify_friend_request(sender_id, recipient_id)
+    request = NotificationApp::FriendRequest.new(sender_id, recipient_id)
+    @stubs[:notification].notify_friend_request(request)
+  end
+
+  def notify_friend_request_accepted(sender_id, recipient_id)
+    request = NotificationApp::FriendRequest.new(sender_id, recipient_id)
+    @stubs[:notification].notify_friend_request_accepted(request)
+  end
+
+  def notify_match_found(match_id, user_id_1, user_id_2)
+    request = NotificationApp::MatchFound.new(match_id, user_id_1, user_id_2)
+    @stubs[:notification].notify_match_found(request)
+  end
 
   private
 

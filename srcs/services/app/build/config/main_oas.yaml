@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 19:46:00 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 21:41:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -201,7 +201,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
   /user:
     delete:
-      operationId: deleteAccount
+      operationId: deleteUser
       summary: Delete a user account
       description: Permanently delete the account of the current user.
       security:

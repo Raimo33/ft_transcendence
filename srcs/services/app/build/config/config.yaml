@@ -56,7 +56,7 @@ user:
       - image/webp
     compression_quality: 80
     format: jpeg
-    default: /etc/default_avatar.jpg
+    default: default_avatar.jpg
   tokens:
     session:
       ttl: 3600
