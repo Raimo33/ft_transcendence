@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 01:21:37 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 01:23:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -245,11 +245,10 @@ class Server
   end
 
   def save_match(match)
-    @grpc_client.save_match(
+    #TODO postgres client
       match_id: match.id,
       winner_id: extract_winner_id(match),
       ended_at: Time.now.to_i
-    )
   end
 
   def extract_winner_id(match)
