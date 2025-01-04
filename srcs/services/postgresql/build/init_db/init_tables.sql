@@ -41,7 +41,7 @@ CREATE TABLE Matches
   CONSTRAINT  unq_matches_tournamentid  UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
 
   CONSTRAINT  chk_matches_startedat   CHECK (started_at <= NOW()),
-  CONSTRAINT  chk_matches_endedat  CHECK (ended_at <= NOW())
+  CONSTRAINT  chk_matches_endedat     CHECK (ended_at <= NOW())
 );
 
 CREATE INDEX idx_matches_id         ON Matches(id) USING HASH;

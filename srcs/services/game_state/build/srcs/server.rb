@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 01:23:15 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 17:13:22 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,18 +16,26 @@ require 'jwt'
 require 'json'
 require 'singleton'
 require_relative 'match'
-require_relative 'config_handler'
-require_relative 'custom_logger'
-require_relative 'exceptions'
+require_relative 'shared/config_handler'
+require_relative 'shared/custom_logger'
+require_relative 'shared/exceptions'
+require_relative 'shared/pg_client'
+require_relative 'modules/auth_module'
+require_relative 'modules/connection_module'
 
 class Server
   include Singleton
 
   def initialize
-    @config = ConfigHandler.instance
+    @config = ConfigHandler.instance.config
     @logger = CustomLogger.instance
-    @jwt_public_key = init_public_key(@config.dig(:jwt, :public_key))
+    @pg_client = PGClient.instance
+    @auth_module = AuthModule.instance
+    @connection_module = ConnectionModule.instance
+
+    @jwt_public_key = @auth_module.init_public_key(@config.dig(:jwt, :public_key))
     @matches = Hash.new { |hash, key| hash[key] = Match.new(key) }
+    @pg_client.prepare_statements(PREPARED_STATEMENTS)
   end
 
   def run
@@ -68,7 +76,7 @@ class Server
     match = Match.new(match_id, user_id1, user_id2)
     @matches[match_id] = match
 
-    timer = EventMachine::Timer.new(@config.dig(:game_state, :disconnect_grace_period)) do
+    EM.add_timer(@config.dig(:game_server, :match_timeout)) do
       return false unless @matches.key?(match_id)
       loser_id = match.player_connected?(user_id1) ? user_id2 : user_id1
       match.surrender_player(loser_id)
@@ -81,6 +89,22 @@ class Server
   end
 
   private
+
+  PREPARED_STATEMENTS = {
+    update_match: <<~SQL
+      UPDATE Matches
+      SET status = $2, ended_at = $3
+      WHERE id = $1
+    SQL
+    set_winner: <<~SQL
+      UPDATE MatchPlayers
+      SET position = CASE
+        WHEN user_id = $2 THEN 1
+        ELSE 2
+      END
+      WHERE match_id = $1
+    SQL
+  }.freeze
 
   EXCEPTIONS_TO_STATUS_CODE = {
     GRPC::InvalidArgument    => 400,
@@ -107,7 +131,7 @@ class Server
   def handle_open(ws, handshake)
     path = handshake.path
     auth_header = handshake.headers["Authorization"]
-    user_id = check_authorization(auth_header)
+    user_id = @auth_module.check_authorization(auth_header)
 
     if path =~ %r{^/matches/(\w+)/updates$}
       match_id = $1
@@ -152,7 +176,7 @@ class Server
     match = @matches[match_id]
     return unless match
 
-    grace_period = @config.dig(:game_server, :disconnect_grace_period)
+    grace_period = @config.dig(:game_server, :match_timeout)
     match.pause_player(user_id)
     EM.add_timer(grace_period) do
       match.surrender_player(user_id) if (match.state[:status] == :waiting)
@@ -176,21 +200,6 @@ class Server
       send_error(ws, 500, "Internal server error")
     end
     ws.close_connection
-  end
-
-  def check_authorization(auth_header)
-    session_token = auth_header&.split("Bearer ")&.last
-    raise Unauthorized.new("Unauthorized") unless session_token
-    
-    payload, _ = JWT.decode(
-      session_token,
-      @jwt_public_key,
-      true,
-      { algorithm: @config.dig(:jwt, :algorithm) }
-    )
-    payload["sub"]
-  rescue JWT::DecodeError
-    raise Unauthorized.new("Unauthorized")
   end
 
   def broadcast_players_info(match)
@@ -221,7 +230,7 @@ class Server
         end
       end
 
-      if (payload[:status] == :over)
+      if (payload[:status] == :ended)
         task.async do { handle_game_over(match) }
       end
     end
@@ -245,10 +254,11 @@ class Server
   end
 
   def save_match(match)
-    #TODO postgres client
-      match_id: match.id,
-      winner_id: extract_winner_id(match),
-      ended_at: Time.now.to_i
+    winner_id = extract_winner_id(match)
+    @pg_client.transaction do |tx|
+      tx.exec_prepared("update_match", [match.id, match.status, Time.now])
+      tx.exec_prepared("set_winner", [match.id, winner_id])
+    end
   end
 
   def extract_winner_id(match)
@@ -266,11 +276,6 @@ class Server
     payload = JSON.generate(payload)
 
     ws.send(payload)
-  end
-
-  def init_public_key(public_key_path)
-    public_key = File.read(public_key_path)
-    OpenSSL::PKey::RSA.new(public_key)
   end
   
 end

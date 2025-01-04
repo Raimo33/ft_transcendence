@@ -170,7 +170,7 @@ components:
       enum:
         - waiting
         - ongoing
-        - over
+        - ended
     error_code:
       description: Error code in http status code format.
       type: integer

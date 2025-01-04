@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    auth_module.rb                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/03 12:07:04 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 21:15:11 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 17:02:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ require_relative '../shared/exceptions'
 
 class AuthModule
   include Singleton
-  
+
   def initialize
     @config = ConfigHandler.instance.config.fetch(:auth)
     @private_key = OpenSSL::PKey::RSA.new(File.read(@config..dig(:jwt, :private_key)))

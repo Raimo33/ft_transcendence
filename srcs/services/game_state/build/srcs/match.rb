@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 01:18:07 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 16:49:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,7 +60,7 @@ class Match
   def surrender_player(user_id)
     player_role = user_id == @players[0] ? :player_0 : :player_1
     @status[:health_points][player_role] = 0
-    @state[:status] = :over
+    @state[:status] = :ended
   end
 
   def queue_input(input)
@@ -166,7 +166,7 @@ class Match
   def lose_point(player_key)
     @state[:health_points][player_key] -= 1
     if @state[:health_points][player_key] == 0
-      @state[:status] = :over
+      @state[:status] = :ended
     end
     @state[:ball_position] = { x: 0, y: 0 }
     @state[:ball_velocity] = { x: random_velocity, y: random_velocity }
