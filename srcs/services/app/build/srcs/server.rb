@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    server.rb                                          :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 21:58:18 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 00:31:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -515,7 +515,7 @@ class Server
         end
       end
 
-      task.async { @grpc_client.setup_game_state(match_id) }
+      task.async { @grpc_client.setup_game_state(match_id, user_id, friend_id) }
       
       @grpc_client.notify_match_found(match_id, user_id, friend_id)
     end

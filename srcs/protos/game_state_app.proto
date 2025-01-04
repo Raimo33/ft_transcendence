@@ -6,8 +6,15 @@ import "google/protobuf/empty.proto";
 
 service GameStateApp
 {
-  rpc setupGameState (MatchId) returns (google.protobuf.Empty) {}
-  rpc closeGameState (MatchId) returns (google.protobuf.Empty) {}
+  rpc setupGameState (SetupGameStateRequest)  returns (google.protobuf.Empty) {}
+  rpc closeGameState (MatchId)                returns (google.protobuf.Empty) {}
+}
+
+message SetupGameStateRequest
+{
+  string match_id  = 1;
+  string user_id1  = 2;
+  string user_id2  = 3;
 }
 
 message MatchId

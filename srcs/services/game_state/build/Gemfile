@@ -3,15 +3,16 @@
 #                                                         :::      ::::::::    #
 #    Gemfile                                            :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/24 20:11:23 by craimond          #+#    #+#              #
-#    Updated: 2024/12/27 00:13:41 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 00:00:52 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 source "https://rubygems.org"
 
+gem "em-websocket"
 gem "grpc"
 gem "google-protobuf"
 gem "async"

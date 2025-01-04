@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    grpc_client.rb                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 22:12:56 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 00:30:07 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,8 +51,8 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def setup_game_state(match_id)
-    request = GameStateApp::MatchId.new(match_id)
+  def setup_game_state(match_id, user_id1, user_id2)
+    request = GameStateApp::SetupGameStateRequest.new(match_id, user_id1, user_id2)
     @stubs[:game_state].setup_game_state(request)
   end
 

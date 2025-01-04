@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2024/12/24 17:50:07 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 00:45:35 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,11 +16,13 @@ SHELL ["/bin/ash", "-c"]
 
 RUN apk add --no-cache nginx nginx-mod-http-brotli nginx-mod-http-v3 openssl-quictls 
 
-COPY ./build/nginx.conf  /etc/nginx/nginx.conf
-COPY ./build/http.d/     /etc/nginx/http.d/
+COPY ./build/nginx.conf               /etc/nginx/nginx.conf
+COPY ./build/http.d/                  /etc/nginx/http.d/
+COPY --from=certs nginx.crt           /etc/ssl/public/nginx.crt
+COPY --from=certs nginx_ca-bundle.crt /etc/ssl/public/nginx_ca-bundle.crt
 
 WORKDIR /var/www/html
-VOLUME ["var/www/html", "/etc/ssl/public", "/etc/ssl/private"]
+VOLUME ["var/www/html", "/etc/ssl/private"]
 USER nginx
 EXPOSE 80 443/tcp 443/udp
 

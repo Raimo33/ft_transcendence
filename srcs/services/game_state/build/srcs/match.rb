@@ -3,14 +3,15 @@
 #                                                         :::      ::::::::    #
 #    match.rb                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2025/01/02 14:25:45 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 01:18:07 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require_relative 'config_handler'
+require_relative 'exceptions'
 
 class Match
   attr_reader :players, :state
@@ -18,8 +19,9 @@ class Match
 
   @config = ConfigHandler.instance.config
 
-  def initialize(id)
+  def initialize(id, user_id1, user_id2)
     @id = id
+    @allowed_players = [user_id1, user_id2].freeze
     @players = {}
     @paused_players = {}
     @state = {
@@ -42,6 +44,7 @@ class Match
   end
 
   def add_player(user_id, ws)
+    raise Unauthorized.new("User not allowed to join match") unless @allowed_players.include?(user_id)
     @players[user_id] = ws
     @paused_players.delete(user_id)
     if @players.size == 2 && @state[:status] == :waiting
@@ -74,6 +77,10 @@ class Match
     @state_history.reject! { |s| current_time - s[:timestamp] > @config.dig(:game_server, :max_lag_compensation) }
   
     @state[:timestamp] = current_time
+  end
+
+  def player_connected?(user_id)
+    @players.keys.include?(user_id) && !@paused_players.keys.include?(user_id)
   end
 
   private

@@ -3,19 +3,19 @@
 #                                                         :::      ::::::::    #
 #    grpc_server.rb                                     :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 17:38:41 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/04 00:04:40 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative 'config_handler'
-require_relative '../protos/game_state_match_services_pb'
-require_relative 'handlers/game_state_match_handler'
-require_relative 'interceptors/logger_interceptor'
-require_relative 'interceptors/exception_interceptor'
+require_relative '../protos/game_state_app_services_pb'
+require_relative 'handlers/game_state_app_handler'
+require_relative 'middlewares/server/logger_interceptor'
+require_relative 'middlewares/server/exception_interceptor'
 
 class GrpcServer
 
@@ -23,9 +23,9 @@ class GrpcServer
     @config = ConfigHandler.instance.config
 
     @server = GRPC::RpcServer.new(
-      server_host:   @config.dig(:grpc, :server, :host),
-      server_port:   @config.dig(:grpc, :server, :port),
-      pool_size:     @config.dig(:grpc, :server, :pool_size),
+      server_host: @config.dig(:grpc, :server, :host),
+      server_port: @config.dig(:grpc, :server, :port),
+      pool_size:   @config.dig(:grpc, :server, :pool_size),
       interceptors:  [
         LoggerInterceptor.new,
         ExceptionInterceptor.new,
@@ -33,7 +33,7 @@ class GrpcServer
     )
 
     @services = {
-      GameStateMatch::Service => GameStateMatchHandler.new
+      GameStateApp::Service => GameStateAppHandler.new
     }
 
     setup_handlers

@@ -12,7 +12,7 @@ game_server:
   host: 0.0.0.0
   port: 8080
   fps: 15
-  disconnect_grace_period: 10
+  disconnect_grace_period: 30
   max_lag_compensation: 200
 
 postgresql:
@@ -27,3 +27,7 @@ postgresql:
 settings:
   initial_hp: 3
   paddle_speed: 0.1
+
+jwt:
+  public_key_path: /etc/ssl/public/jwtRS256.key.pub
+  algorithm: RS256

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 00:47:56 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 23:47:06 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,24 +22,16 @@ WORKDIR /app
 RUN gem install bundler
 RUN bundle install
 
-COPY ./build/app/   /app/
-COPY --from=protos \
-  match_api_gateway.proto \
-  tournament_api_gateway.proto \
-  user_api_gateway.proto \
-  /app/build/srcs/protos/
+COPY ./build/srcs/ /app/srcs/
+COPY --from=protos game_state_app.proto notification_app.proto /app/srcs/protos/
 
-RUN adduser -DHS api_gateway
-RUN chown -R api_gateway:api_gateway /app
+RUN adduser -DHS app
+RUN chown -R app:app /app
 
-WORKDIR /app/protos
-RUN grpc_tools_ruby_protoc -I ./ --ruby_out=./ --grpc_out=./ \
-  match_api_gateway.proto \
-  tournament_api_gateway.proto \
-  user_api_gateway.proto
+WORKDIR /app/srcs/
+RUN grpc_tools_ruby_protoc -I ./protos --ruby_out=./protos --grpc_out=./protos game_state_app.proto notification_app.proto
 
-WORKDIR /app
-USER api_gateway
+USER app
 EXPOSE 3000
 # VOLUME []
 

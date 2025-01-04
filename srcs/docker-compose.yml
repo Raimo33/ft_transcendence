@@ -34,6 +34,7 @@ services:
       context: ./services/game_state
       additional_contexts:
         - protos=./protos
+        - certs=./certs
       dockerfile: Dockerfile
       # args:
     container_name: game_state
@@ -54,13 +55,13 @@ services:
   nginx:
     build:
       context: ./services/nginx
+      additional_contexts:
+        - certs=./certs
       dockerfile: Dockerfile
       # args:
     container_name: nginx
     # environment:
     volumes:
-      - nginx_cert:/etc/ssl/public/nginx.crt:ro
-      - nginx_ca_bundle:/etc/ssl/public/ca-bundle.crt:ro
       - frontend_data:/var/www/html:ro
     secrets:
       - source: nginx_key
@@ -151,18 +152,6 @@ volumes:
   postgresql_data:
   frontend_data:
   logs: #TODO: Add logs volume
-  nginx_cert:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./certs/nginx.crt
-      o: bind
-  nginx_ca_bundle:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./certs/nginx_ca-bundle.crt
-      o: bind
 
 secrets:
   jwt_private_key:
