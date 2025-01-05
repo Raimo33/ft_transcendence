@@ -3,12 +3,14 @@
 #                                                         :::      ::::::::    #
 #    notifications_aas.yaml                             :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2024/12/25 20:41:03 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/03 23:26:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+#TODO ogni user online avra' il suo notification endpoint in base a user_id
 
 asyncapi: 3.0.0
 info:

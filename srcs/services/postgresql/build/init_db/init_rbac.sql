@@ -1,23 +1,7 @@
-CREATE USER user        WITH PASSWORD 'password';
-CREATE USER match       WITH PASSWORD 'password';
-CREATE USER tournament  WITH PASSWORD 'password';
-CREATE USER matchmaking WITH PASSWORD 'password';
+CREATE USER app WITH PASSWORD 'password';
+CREATE USER match_state WITH PASSWORD 'password'
 
-GRANT SELECT, INSERT, UPDATE  ON Users                             TO user;
-GRANT SELECT                  ON UserPublicProfiles                TO user;
-GRANT SELECT,                 ON UserPrivateProfiles               TO user;
-GRANT SELECT, INSERT, UPDATE  ON Friendships                       TO user;
+GRANT SELECT INSERT UPDATE DELETE ON ALL TABLES IN SCHEMA public TO app;
 
-GRANT SELECT, INSERT, UPDATE  ON Matches                           TO match;
-GRANT SELECT,                 ON UserPublicProfiles                TO match;
-GRANT SELECT,                 ON Friendships                       TO match;
-GRANT SELECT, INSERT, UPDATE  ON MatchPlayers                      TO match;
-GRANT SELECT,                 ON MatchPlayersChronologicalMatView  TO match;
-GRANT SELECT,                 ON MatchesInfoMatView                TO match;
-
-GRANT SELECT, INSERT, UPDATE  ON Tournaments                       TO tournament;
-GRANT SELECT,                 ON TournamentPlayers                 TO tournament;
-
-GRANT SELECT, INSERT, UPDATE  ON MatchmakingPool                   TO matchmaking;
-
-GRANT 
+GRANT SELECT INSERT UPDATE DELETE ON Matches      TO match_state;
+GRANT SELECT INSERT UPDATE DELETE ON Tournaments  TO match_state;

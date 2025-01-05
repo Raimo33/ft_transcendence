@@ -41,12 +41,12 @@ CREATE TABLE Matches
   CONSTRAINT  unq_matches_tournamentid  UNIQUE (tournament_id) DEFERRABLE INITIALLY DEFERRED,
 
   CONSTRAINT  chk_matches_startedat   CHECK (started_at <= NOW()),
-  CONSTRAINT  chk_matches_finishedat  CHECK (ended_at <= NOW())
+  CONSTRAINT  chk_matches_endedat     CHECK (ended_at <= NOW())
 );
 
 CREATE INDEX idx_matches_id         ON Matches(id) USING HASH;
 CREATE INDEX idx_matches_startedat  ON Matches(started_at DESC);
-CREATE INDEX idx_matches_finishedat ON Matches(ended_at);
+CREATE INDEX idx_matches_endedat ON Matches(ended_at);
 
 CREATE TYPE tournament_status AS ENUM ('pending', 'ongoing', 'ended', 'cancelled');
 
@@ -58,16 +58,16 @@ CREATE TABLE Tournaments
   started_at      timestamptz NOT NULL DEFAULT now(),
   ended_at        timestamptz,
 
-  CONSTRAINT  pk_tournaments          PRIMARY KEY (id),
-  CONSTRAINT  fk_tournaments_creator  FOREIGN KEY (creator_id) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT  pk_tournaments            PRIMARY KEY (id),
+  CONSTRAINT  fk_tournaments_creatorid  FOREIGN KEY (creator_id) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
   
   CONSTRAINT  chk_tournaments_startedat   CHECK (started_at  <= NOW()),
-  CONSTRAINT  chk_tournaments_finishedat  CHECK (ended_at <= NOW())
+  CONSTRAINT  chk_tournaments_endedat  CHECK (ended_at <= NOW())
 );
 
 CREATE INDEX idx_tournaments_id         ON Tournaments(id) USING HASH;
 CREATE INDEX idx_tournaments_startedat  ON Tournaments(started_at DESC);
-CREATE INDEX idx_tournaments_finishedat ON Tournaments(ended_at);
+CREATE INDEX idx_tournaments_endedat ON Tournaments(ended_at);
 
 CREATE TYPE friendship_status AS ENUM ('pending', 'accepted', 'blocked');
 

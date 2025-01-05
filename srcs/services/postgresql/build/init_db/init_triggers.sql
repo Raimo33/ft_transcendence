@@ -1,17 +1,16 @@
-CREATE OR REPLACE FUNCTION order_friendship_ids()
+
+CREATE FUNCTION refresh_userfriendschronologicalmatview()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.user_id_1 > NEW.user_id_2 THEN
-    RETURN ROW(NEW.user_id_2, NEW.user_id_1);
-  END IF;
-  RETURN NEW;
+  REFRESH MATERIALIZED VIEW UserFriendsChronologicalMatView;
+  RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_order_friendship_ids_friendships
-BEFORE INSERT OR UPDATE ON Friendships
-FOR EACH ROW
-EXECUTE FUNCTION order_friendship_ids();
+CREATE TRIGGER trigger_refresh_userfriendschronologicalmatview_userfriends
+AFTER INSERT OR DELETE ON UserMatches
+FOR EACH STATEMENT
+EXECUTE FUNCTION refresh_userfriendschronologicalmatview();
 
 
 CREATE FUNCTION refresh_usermatchchronologicalmatview()

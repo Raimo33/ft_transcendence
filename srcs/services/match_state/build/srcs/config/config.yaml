@@ -1,0 +1,36 @@
+logging:
+  level: INFO
+  file: /dev/stdout
+
+grpc:
+  server:
+    host: 0.0.0.0
+    port: 50051
+    pool_size: 10
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  fps: 15
+  max_lag_compensation: 200
+
+match:
+  grace_period: 30
+
+postgresql:
+  host: postgres.data
+  port: 5432
+  user: match_state
+  password: password
+  dbname: pongfu
+  pool:
+    size: 10
+
+settings:
+  max_hp: 3
+  paddle_speed: 0.1
+  ball_speed: 0.1
+
+jwt:
+  public_key_path: /etc/ssl/public/jwtRS256.key.pub
+  algorithm: RS256

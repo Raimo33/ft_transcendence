@@ -1,0 +1,94 @@
+logging:
+  level: DEBUG
+  file: /dev/stdout
+  
+auth:
+  jwt:
+    issuer: pongfu
+    audience: pongfu_users
+    algorithm: RS256
+    leeway: 30
+    private_key: /etc/ssl/private/jwtRS256.key
+  tfa:
+    tfa:
+    issuer: pongfu.auth
+    digits: 6
+    interval: 30
+    algorithm: SHA1
+    drift_ahead: 1
+    drift_behind: 1
+    verify_issuer: true
+    image_url: https://yourapp.com/logo.png
+  password:
+    bcrypt:
+      cost: 10
+
+user:
+  display_name:
+  min_length: 3
+  max_length: 25
+  charset:
+    lowercase: "abcdefghijklmnopqrstuvwxyz"
+    uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    digits: "0123456789"
+    special: "!@#$%&*-_=+,.<>?"
+  password:
+    min_length: 8
+    max_length: 64
+    charset:
+      lowercase: "abcdefghijklmnopqrstuvwxyz"
+      uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      digits: "0123456789"
+      special: "!@#$%&*-_=+,.<>?"
+    policy:
+      min_uppercase: 1
+      min_lowercase: 1
+      min_digits: 1
+      min_special: 0
+  avatar:
+    max_size: 5242880
+    max_dimensions:
+      width: 512
+      height: 512
+    allowed_types:
+      - image/jpeg
+      - image/png
+      - image/webp
+    compression_quality: 80
+    format: jpeg
+    default: default_avatar.jpg
+  tokens:
+    session:
+      ttl: 3600
+      ttl_pending_tfa: 300
+    refresh:
+      ttl: 604800
+      ttl_remember_me: 31536000
+    invalidation_grace_period: 15
+
+match:
+
+matchmaking:
+
+grpc:
+  client:
+    addresses:
+      match_state: match_state.core:50051
+      notification: notification.core:50051
+
+postgresql:
+  host: postgres.data
+  port: 5432
+  user: app
+  password: password
+  dbname: pongfu
+  pool:
+    size: 10
+    timeout: 30
+
+memcached:
+  host: memcached
+  port: 11211
+  pool:
+    size: 10
+    timeout: 30
