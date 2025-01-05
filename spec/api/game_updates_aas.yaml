@@ -78,8 +78,6 @@ components:
           operation_id:
             type: string
             const: game_state
-          state_sequence:
-            $ref: '#/components/schemas/state_sequence'
           ball_position:
             $ref: '#/components/schemas/vec2'
           ball_velocity:
@@ -132,11 +130,6 @@ components:
       maximum: 1
     timestamp:
       description: Timestamp in unix timestamp format.
-      type: integer
-      format: uint64
-      minimum: 0
-    state_sequence:
-      description: Sequence number of the game state.
       type: integer
       format: uint64
       minimum: 0

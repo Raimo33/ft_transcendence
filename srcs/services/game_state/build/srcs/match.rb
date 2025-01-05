@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 16:49:45 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 01:02:20 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,12 +15,10 @@ require_relative 'exceptions'
 
 class Match
   attr_reader :players, :state
-  attr_accessor :state_sequence
 
   @config = ConfigHandler.instance.config
 
-  def initialize(id, user_id1, user_id2)
-    @id = id
+  def initialize(user_id1, user_id2)
     @allowed_players = [user_id1, user_id2].freeze
     @players = {}
     @paused_players = {}
@@ -40,7 +38,6 @@ class Match
     }
     @input_queue = []
     @state_history = []
-    @state_sequence = 0
   end
 
   def add_player(user_id, ws)
@@ -74,7 +71,7 @@ class Match
     process_inputs(current_time)
     
     @state_history << deep_copy(@state)
-    @state_history.reject! { |s| current_time - s[:timestamp] > @config.dig(:game_server, :max_lag_compensation) }
+    @state_history.reject! { |s| current_time - s[:timestamp] > @config.dig(:server, :max_lag_compensation) }
   
     @state[:timestamp] = current_time
   end
@@ -103,7 +100,7 @@ class Match
     raise GRPC::InvalidArgument.new('Invalid timestamp format') unless client_time.is_a?(Integer)
 
     server_delay = current_time - client_time
-    return if server_delay > @config.dig(:game_server, :max_lag_compensation)
+    return if server_delay > @config.dig(:server, :max_lag_compensation)
    
     closest_state = find_closest_state(client_time)
     temp_state = deep_copy(closest_state)
