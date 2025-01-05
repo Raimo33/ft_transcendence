@@ -6,11 +6,9 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 17:27:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
-
-  #TODO EXCEPTION HANDLING DI GRPC LOWER LEVEL
 
 require 'falcon'
 require 'openapi_first'

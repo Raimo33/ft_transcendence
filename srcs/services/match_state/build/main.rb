@@ -6,10 +6,10 @@ require_relative 'srcs/server'
 
 if $PROGRAM_NAME == __FILE__
   EM.run do
-    match_server = Server.new
+    server = Server.instance
     grpc_server = GrpcServer.new
 
-    EM.defer { match_server.run }
+    EM.defer { server.run }
     EM.defer { grpc_server.run }
   end
 rescue StandardError => e

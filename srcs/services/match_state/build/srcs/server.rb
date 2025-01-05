@@ -6,10 +6,11 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:21:04 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 17:33:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
+require 'singleton'
 require 'em-websocket'
 require_relative 'shared/config_handler'
 require_relative 'shared/custom_logger'
@@ -17,6 +18,7 @@ require_relative 'modules/connection_module'
 require_relative 'modules/match_handler_module'
 
 class Server
+  include Singleton
 
   def initialize
     @config = ConfigHandler.instance.config

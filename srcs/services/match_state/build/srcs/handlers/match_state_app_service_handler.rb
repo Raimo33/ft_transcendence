@@ -1,21 +1,22 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    match_state_match_service_handler.rb                :+:      :+:    :+:    #
+#    match_state_app_service_handler.rb                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/26 18:38:09 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 01:18:55 by craimond         ###   ########.fr        #
+#    Created: 2025/01/05 17:29:28 by craimond          #+#    #+#              #
+#    Updated: 2025/01/05 17:33:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'async'
+require 'grpc'
+require 'eventmachine'
 require_relative '../config_handler'
 require_relative '../server.rb'
 require_relative '../protos/match_state_app_services_pb'
 
-class MatchStateMatchServiceHandler < MatchStateMatch::Service
+class MatchStateAppServiceHandler < MatchStateApp::Service
   def initialize
     @config = ConfigHandler.instance.config
     @server = Server.instance
