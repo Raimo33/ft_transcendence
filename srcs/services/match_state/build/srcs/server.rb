@@ -6,36 +6,24 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:21:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'em-websocket'
-require 'async'
-require 'jwt'
-require 'json'
-require 'singleton'
-require_relative 'match'
 require_relative 'shared/config_handler'
 require_relative 'shared/custom_logger'
-require_relative 'shared/exceptions'
-require_relative 'shared/pg_client'
-require_relative 'modules/auth_module'
 require_relative 'modules/connection_module'
 require_relative 'modules/match_handler_module'
 
 class Server
-  include Singleton
 
   def initialize
     @config = ConfigHandler.instance.config
     @logger = CustomLogger.instance
 
-    @auth_module = AuthModule.instance
     @connection_module = ConnectionModule.instance
     @match_handler_module = MatchHandlerModule.instance
-
-    @jwt_public_key = @auth_module.init_public_key(@config.dig(:jwt, :public_key))
   end
 
   def run

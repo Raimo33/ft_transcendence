@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 00:25:52 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:10:15 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:20:38 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,6 +33,7 @@ class ConnectionModule
     @match_handler_module = MatchHandlerModule.instance
 
     @pg_client.prepare_statements(PREPARED_STATEMENTS)
+    @auth_module.load_public_key(@config.dig(:auth, :public_key))
   end
 
   def handle_open(ws, handshake)

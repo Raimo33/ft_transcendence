@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/04 16:58:53 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 17:03:52 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:20:49 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,7 @@ class AuthModule
     raise Unauthorized.new("Unauthorized")
   end
 
-  def init_public_key(public_key_path)
+  def load_public_key(public_key_path)
     public_key = File.read(public_key_path)
     OpenSSL::PKey::RSA.new(public_key)
   end

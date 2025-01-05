@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'eventmachine'
-require_relative 'lib/grpc_server'
-require_relative 'lib/server'
+require_relative 'srcs/grpc_server'
+require_relative 'srcs/server'
 
 if $PROGRAM_NAME == __FILE__
   EM.run do
