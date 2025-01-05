@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 00:25:52 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 01:09:56 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 14:28:03 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,7 @@ require_relative 'auth_module'
 require_relative 'match_handler_module'
 require_relative '../shared/config_handler'
 require_relative '../shared/custom_logger'
+require_relative '../shared/pg_client'
 require_relative '../shared/exceptions'
 
 class ConnectionModule
@@ -26,9 +27,12 @@ class ConnectionModule
   def initialize
     @config = ConfigHandler.instance.config
     @logger = CustomLogger.instance
+    @pg_client = PGClient.instance
 
     @auth_module = AuthModule.instance
     @match_handler_module = MatchHandlerModule.instance
+
+    @pg_client.prepare_statements(PREPARED_STATEMENTS)
   end
 
   def handle_open(ws, handshake)
@@ -81,28 +85,22 @@ class ConnectionModule
     ws.close_connection
   end
 
-  def broadcast_game_states #TODO scorre tutti i match e invia lo stato a tutti i giocatori
-  #   payload = match.state
-  #   payload[:operation_id] = "game_state"
-  #   payload = JSON.generate(payload)
+  def broadcast_game_states
+    @match_handler_module.matches.each do |_, match|
+      payload = match.state
+      ended = payload[:status] == :ended 
+      payload[:operation_id] = "game_state"
+      payload = JSON.generate(payload)
 
-  #   async_context = Async do |task|
-  #     task.async do
-  #       match.players.each do |_, ws|
-  #         ws.send(payload)
-  #       end
-  #     end
+      match.players.each do |_, ws|
+        ws.send(payload)
+      end
 
-  #     if (payload[:status] == :ended)
-  #       task.async do { handle_game_over(match) }
-  #     end
-  #   end
-  #   async_context.wait
-  # ensure
-  #   async_context&.stop
-  # end
+      handle_game_over(match) if ended
+    end
+  end
 
-  def broadcast_players_info(match_id) #TODO invia a tutti i giocatori del match le informazioni sui giocatori
+  def broadcast_players_info(match_id) #TODO invia a tutti i giocatori del match le informazioni sui giocatori (ricontrollare AAS array invece che x, y)
     # players = match.players
     # payload = {
     #   operation_id: "players_info",
@@ -115,41 +113,76 @@ class ConnectionModule
     #   ws.send(payload)
     # end
 
-    # def handle_game_over(match)
-    #   Async do |task|
-    #     task.async { close_connections(match) }
-    #     task.async { save_match(match) }
-    #   end
-    #   @matches.delete(match.id)
-    # end
+      # def send_error(ws, code, message)
+  #   payload = {
+  #     operation_id: "error",
+  #     code: code,
+  #     message: message
+  #   }
+  #   payload = JSON.generate(payload)
+
+  #   ws.send(payload)
+  # end
+
+  private
+
+  PREPARED_STATEMENTS = {
+    update_match: <<~SQL
+      UPDATE Matches
+      SET status = $2, ended_at = $3
+      WHERE id = $1
+    SQL
+    set_winner: <<~SQL
+      UPDATE MatchPlayers
+      SET position = CASE
+        WHEN user_id = $2 THEN 1
+        ELSE 2
+      END
+      WHERE match_id = $1
+    SQL
+  }.freeze
+
+  def handle_game_over(match)
+    operations = [
+      -> { close_connections(match) },
+      -> { save_match(match) }
+    ]
   
-    # def close_connections(match)
-    #   match.players.each do |_, ws|
-    #     ws.close_connection
-    #   end
-    # end
+    cleanup = EM::MultipleCallback.new(operations.size)
+    cleanup.callback do
+      EM.next_tick { @matches.delete(match.id) }
+    end
   
-    # def save_match(match)
-    #   winner_id = extract_winner_id(match)
-    #   @pg_client.transaction do |tx|
-    #     tx.exec_prepared("update_match", [match.id, match.status, Time.now])
-    #     tx.exec_prepared("set_winner", [match.id, winner_id])
-    #   end
-    # end
-  
-    # def extract_winner_id(match)
-    #   match.players.each do |user_id, _|
-    #     return user_id if match.status[:health_points][user_id] > 0
-    #   end
-    # end
-  
-    # def send_error(ws, code, message)
-    #   payload = {
-    #     operation_id: "error",
-    #     code: code,
-    #     message: message
-    #   }
-    #   payload = JSON.generate(payload)
-  
-    #   ws.send(payload)
-    # end
+    operations.each do |op|
+      EM.defer do
+        op.call
+        cleanup.call
+      end
+    end
+  end
+
+  def close_connections(match)
+    match.players.each do |_, ws|
+      ws.close_connection
+    end
+  end
+
+  def save_match(match)
+    state = match.state
+    ended_at = state[:timestamp]
+    winner_id = extract_winner_id(state)
+
+    @pg_client.transaction do |tx|
+      tx.exec_prepared("update_match", [match.id, :ended, ended_at])
+      tx.exec_prepared("set_winner", [match.id, winner_id])
+    end
+  end
+
+  def extract_winner_id(state)
+    health_points = state[:health_points]
+    health_points.each_with_index do |hp, idx|
+      return state[:players][idx] if hp > 0
+    end
+  end
+
+end

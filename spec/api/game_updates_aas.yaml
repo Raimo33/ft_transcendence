@@ -79,23 +79,13 @@ components:
             type: string
             const: game_state
           ball_position:
-            $ref: '#/components/schemas/vec2'
+            $ref: '#/components/schemas/ball_position'
           ball_velocity:
-            $ref: '#/components/schemas/vec2'
-          paddle_position:
-            type: object
-            properties:
-              player_1:
-                $ref: '#/components/schemas/paddle_position'
-              player_2:
-                $ref: '#/components/schemas/paddle_position'
+            $ref: '#/components/schemas/ball_velocity'
+          paddle_positions:
+            $ref: '#/components/schemas/paddle_positions'
           health_points:
-            type: object
-            properties:
-              player_1:
-                $ref: '#/components/schemas/hp'
-              player_2:
-                $ref: '#/components/schemas/hp'
+            $ref: '#/components/schemas/health_points'
           status:
             $ref: '#/components/schemas/status'
           timestamp:
@@ -122,41 +112,56 @@ components:
       description: Unique identifier for the match.
       type: string
       format: uuid
+    coordinate:
+      description: Coordinate as a float between 0 and 1.
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
     direction:
       description: Direction of the paddle; -1 is up, 1 is down.
       type: integer
       format: int8
       minimum: -1
       maximum: 1
+    hp:
+      description: Health points of the player.
+      type: integer
+      format: uint8
+      minimum: 0
     timestamp:
       description: Timestamp in unix timestamp format.
       type: integer
       format: uint64
       minimum: 0
-    vec2:
-      type: object
-      properties:
-        x:
-          type: number
-          format: float
-          minimum: 0
-          maximum: 1
-        y:
-          type: number
-          format: float
-          minimum: 0
-          maximum: 1
-    paddle_position:
-      description: Position of the paddle; 0 is top, 1 is bottom.
-      type: number
-      format: float
-      minimum: 0
-      maximum: 1
-    hp:
-      description: hp of a player.
-      type: integer
-      format: uint8
-      minimum: 0
+    ball_position:
+      description: Position of the ball as [x, y].
+      type: array
+      minItems: 2
+      maxItems: 2
+      items:
+        $ref: '#/components/schemas/coordinate'
+    ball_velocity:
+      description: Velocity of the ball as [x, y].
+      type: array
+      minItems: 2
+      maxItems: 2
+      items:
+        $ref: '#/components/schemas/direction'
+    paddle_positions:
+      description: Positions of the paddles as [player_1, player_2].
+      type: array
+      minItems: 2
+      maxItems: 2
+      items:
+        $ref: '#/components/schemas/coordinate'
+    health_points:
+      description: Health points of the players as [player_1, player_2].
+      type: array
+      minItems: 2
+      maxItems: 2
+      items:
+        $ref: '#/components/schemas/hp'
     status:
       description: Status of the game.
       type: string

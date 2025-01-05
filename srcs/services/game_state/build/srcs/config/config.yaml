@@ -28,7 +28,7 @@ postgresql:
     size: 10
 
 settings:
-  initial_hp: 3
+  max_hp: 3
   paddle_speed: 0.1
 
 jwt:
