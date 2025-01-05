@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 00:25:52 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 01:00:19 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 01:09:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -106,8 +106,8 @@ class ConnectionModule
     # players = match.players
     # payload = {
     #   operation_id: "players_info",
-    #   player_0_id: players.keys[0],
-    #   player_1_id: players.keys[1],
+    #   player_1_id: players.keys[0],
+    #   player_2_id: players.keys[1],
     # }
     # payload = JSON.generate(payload)
 

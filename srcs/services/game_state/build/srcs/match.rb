@@ -6,9 +6,12 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 01:02:20 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 01:27:57 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+#TODO rinominare match into game ovunque
+#TODO refactor generale, controllo se tutti i metodi sono necessari
 
 require_relative 'config_handler'
 require_relative 'exceptions'
@@ -21,17 +24,16 @@ class Match
   def initialize(user_id1, user_id2)
     @allowed_players = [user_id1, user_id2].freeze
     @players = {}
-    @paused_players = {}
     @state = {
       ball_position: { x: 0, y: 0 },
       ball_velocity: { x: 0, y: 0 },
       paddle_positions: {
-        player_0: 0.5,
         player_1: 0.5,
+        player_2: 0.5,
       },
       health_points: {
-        player_0: @config.dig(:settings, :max_health_points),
         player_1: @config.dig(:settings, :max_health_points),
+        player_2: @config.dig(:settings, :max_health_points),
       },
       status: :waiting,
       timestamp: current_time_ms,
@@ -43,19 +45,18 @@ class Match
   def add_player(user_id, ws)
     raise Unauthorized.new("User not allowed to join match") unless @allowed_players.include?(user_id)
     @players[user_id] = ws
-    @paused_players.delete(user_id)
-    if @players.size == 2 && @state[:status] == :waiting
+    if @players.size == 2
       @state[:status] = :ongoing
     end
   end
 
   def pause_player(user_id)
-    @paused_players[user_id] = @players[user_id]
+    @players.delete(user_id)
     @state[:status] = :waiting
   end
 
   def surrender_player(user_id)
-    player_role = user_id == @players[0] ? :player_0 : :player_1
+    player_role = map_id_to_role(user_id)
     @status[:health_points][player_role] = 0
     @state[:status] = :ended
   end
@@ -106,7 +107,7 @@ class Match
     temp_state = deep_copy(closest_state)
 
     player_number = @players.keys.index(user_id)
-    player_key = player_number == 0 ? :player_0 : :player_1
+    player_key = player_number == 0 ? :player_1 : :player_2
 
     new_paddle_position = temp_state[:paddle_positions][player_key]
     case direction
@@ -145,17 +146,17 @@ class Match
 
   def check_paddle_collisions(state)
     if state[:ball_position][:x] <= -0.9
-      if (state[:ball_position][:y] - state[:paddle_positions][:player_0]).abs < 0.1
-        state[:ball_velocity][:x] *= -1
-      else
-        lose_point(:player_0)
-    end
-    
-    elsif state[:ball_position][:x] >= 0.9
       if (state[:ball_position][:y] - state[:paddle_positions][:player_1]).abs < 0.1
         state[:ball_velocity][:x] *= -1
       else
         lose_point(:player_1)
+    end
+    
+    elsif state[:ball_position][:x] >= 0.9
+      if (state[:ball_position][:y] - state[:paddle_positions][:player_2]).abs < 0.1
+        state[:ball_velocity][:x] *= -1
+      else
+        lose_point(:player_2)
       end
     end
   end
@@ -169,12 +170,15 @@ class Match
     @state[:ball_velocity] = { x: random_velocity, y: random_velocity }
   end
 
-  def check_required_fields(*fields)
-    raise GRPC::InvalidArgument.new("Missing required fields") unless fields.all?(&method(:provided?))
+  def map_id_to_role(user_id)
+    player_number = @players.keys.index(user_id)
+    player_number == 0 ? :player_1 : :player_2
   end
-  
-  def provided?(field)
-    field.respond_to?(:empty?) ? !field.empty? : !field.nil?
+
+  def check_required_fields(*fields)
+    fields.each do |field|
+      raise BadRequest.new("Missing required field: #{field}") if field.nil? || field.empty?
+    end
   end
 
   def current_time_ms

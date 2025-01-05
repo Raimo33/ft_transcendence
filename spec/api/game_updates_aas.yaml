@@ -65,9 +65,9 @@ components:
           operation_id:
             type: string
             const: players_info
-          player_0_id:
-            $ref: '#/components/schemas/user_id'
           player_1_id:
+            $ref: '#/components/schemas/user_id'
+          player_2_id:
             $ref: '#/components/schemas/user_id'
     GameStateMessage:
       name: GameStateMessage
@@ -85,16 +85,16 @@ components:
           paddle_position:
             type: object
             properties:
-              player_0:
-                $ref: '#/components/schemas/paddle_position'
               player_1:
+                $ref: '#/components/schemas/paddle_position'
+              player_2:
                 $ref: '#/components/schemas/paddle_position'
           health_points:
             type: object
             properties:
-              player_0:
-                $ref: '#/components/schemas/hp'
               player_1:
+                $ref: '#/components/schemas/hp'
+              player_2:
                 $ref: '#/components/schemas/hp'
           status:
             $ref: '#/components/schemas/status'
