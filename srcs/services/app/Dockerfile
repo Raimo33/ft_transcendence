@@ -35,7 +35,7 @@ USER app
 EXPOSE 3000
 # VOLUME []
 
-ENTRYPOINT ["falcon", "server", \
+ENTRYPOINT ["falcon", "serve", \
             "--bind", "http://0.0.0.0:3000", \
             "--config", "config/config.ru", \
             "--environment", "production", \
