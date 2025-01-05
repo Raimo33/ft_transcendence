@@ -29,6 +29,7 @@ postgresql:
 settings:
   max_hp: 3
   paddle_speed: 0.1
+  ball_speed: 0.1
 
 jwt:
   public_key_path: /etc/ssl/public/jwtRS256.key.pub
