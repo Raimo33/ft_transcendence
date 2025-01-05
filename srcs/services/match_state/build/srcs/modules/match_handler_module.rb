@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 00:04:43 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 18:04:13 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,8 +29,8 @@ class MatchHandlerModule
     @matches = Hash.new { |hash, key| hash[key] = Match.new(key) }
   end
 
-  def stop_all
-    @matches.each_value(&:stop) #TODO aggiungere e implementare il metodo stop con chiusura websocket
+  def clear_matches
+    @matches.clear
   end
 
   def add_match(match_id, user_id1, user_id2)

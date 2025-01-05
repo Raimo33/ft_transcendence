@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 00:25:52 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:20:38 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 18:05:12 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -126,6 +126,12 @@ class ConnectionModule
     ws.send(payload)
   end
 
+  def close_all_connections
+    @match_handler_module.matches.each do |_, match|
+      disconnect_players(match)
+    end
+  end
+
   private
 
   PREPARED_STATEMENTS = {
@@ -146,7 +152,7 @@ class ConnectionModule
 
   def handle_match_over(match)
     operations = [
-      -> { close_connections(match) },
+      -> { disconnect_players(match) },
       -> { save_match(match) }
     ]
   
@@ -163,7 +169,7 @@ class ConnectionModule
     end
   end
 
-  def close_connections(match)
+  def disconnect_players(match)
     match.players.each do |_, ws|
       ws.close_connection
     end

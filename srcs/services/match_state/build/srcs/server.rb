@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 17:33:27 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 18:12:14 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,7 @@ require_relative 'shared/config_handler'
 require_relative 'shared/custom_logger'
 require_relative 'modules/connection_module'
 require_relative 'modules/match_handler_module'
+require_relative 'shared/pg_client'
 
 class Server
   include Singleton
@@ -23,6 +24,7 @@ class Server
   def initialize
     @config = ConfigHandler.instance.config
     @logger = CustomLogger.instance
+    @pg_client = PGClient.instance
 
     @connection_module = ConnectionModule.instance
     @match_handler_module = MatchHandlerModule.instance
@@ -53,9 +55,10 @@ class Server
   end
 
   def stop
-    @match_handler_module.stop_all
-    EM.stop
-    @logger.info("Server stopped")
+    @connection_module.close_all_connections
+    @pg_client.stop
+    @match_handler_module.clear_matches
+    @logger.info('Server stopped')
   end
 
   def add_match(match_id, user_id1, user_id2)
@@ -64,13 +67,6 @@ class Server
 
   def remove_match(match_id)
     @match_handler_module.remove_match(match_id)
-  end
-
-  private
-
-  def setup_signal_handlers
-    Signal.trap("INT")  { stop }
-    Signal.trap("TERM") { stop }
   end
   
 end

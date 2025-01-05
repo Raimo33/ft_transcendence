@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 16:44:55 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 18:08:26 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -76,6 +76,16 @@ class PGClient
         conn.respond_to?(method) || super
       end
     end
+  end
+
+  def stop
+    @pool.shutdown do |conn|
+      conn.cancel if conn.status == PG::CONNECTION_BUSY
+      conn.block if conn.is_busy
+      conn.finish
+    end rescue nil
+
+    @logger.info('PostgreSQL connection pool stopped')
   end
 
   private

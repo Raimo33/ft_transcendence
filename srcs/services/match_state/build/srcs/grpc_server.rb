@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:09:21 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 18:10:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,7 @@ class GrpcServer
 
   def initialize
     @config = ConfigHandler.instance.config
+    @logger = CustomLogger.instance.logger
 
     @server = GRPC::RpcServer.new(
       server_host: @config.dig(:grpc, :server, :host),
@@ -30,6 +31,7 @@ class GrpcServer
         LoggerInterceptor.new,
         ExceptionInterceptor.new,
       ]
+      logger: @logger
     )
 
     @services = {
@@ -41,6 +43,11 @@ class GrpcServer
 
   def run
     @server.run_till_terminated_or_interrupted([1, "int", "TERM"])
+  end
+
+  def stop
+    @server.stop
+    @logger.info('gRPC server stopped')
   end
 
   private

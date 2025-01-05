@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    memcached_client.rb                                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/18 15:46:21 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 21:30:32 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 18:09:33 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,12 +53,6 @@ class MemcachedClient
       @pool.with do |conn|
         conn.respond_to?(method) || super
       end
-    end
-  end
-
-  def stop
-    @pool.shutdown do |conn|
-      conn.close
     end
   end
 

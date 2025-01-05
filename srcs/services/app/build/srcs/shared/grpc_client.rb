@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:09:21 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 17:55:02 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,10 +45,6 @@ class GrpcClient
       match_state: MatchStateApp::Stub.new(channels[:match_state], interceptors: interceptors),
       notification: NotificationApp::Stub.new(channels[:notification], interceptors: interceptors)
     }
-  end
-
-  def stop
-    @channels.each_value(&:close)
   end
 
   def setup_match_state(match_id, user_id1, user_id2)

@@ -11,6 +11,9 @@ if $PROGRAM_NAME == __FILE__
 
     EM.defer { server.run }
     EM.defer { grpc_server.run }
+
+    Signal.trap('INT')  { server.stop; grpc_server.stop; EM.stop }
+    Signal.trap('TERM') { server.stop; grpc_server.stop; EM.stop }
   end
 rescue StandardError => e
   puts "Uknown error: #{e}"

@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 17:48:56 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,12 +35,6 @@ USER app
 EXPOSE 3000
 # VOLUME []
 
-ENTRYPOINT ["falcon", "serve", \
-            "--bind", "http://0.0.0.0:3000", \
-            "--config", "config/config.ru", \
-            "--environment", "production", \
-            "--protocol", "HTTP1", \
-            "--reuse-port", \
-            "--quiet"]
+ENTRYPOINT ["ruby", "main.rb"]
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-fks", "http://localhost:3000/ping"]
