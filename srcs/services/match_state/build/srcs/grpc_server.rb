@@ -6,14 +6,14 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/08 19:30:45 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 00:04:40 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:09:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
 require_relative 'config_handler'
-require_relative '../protos/game_state_app_services_pb'
-require_relative 'handlers/game_state_app_handler'
+require_relative '../protos/match_state_app_services_pb'
+require_relative 'handlers/match_state_app_handler'
 require_relative 'middlewares/server/logger_interceptor'
 require_relative 'middlewares/server/exception_interceptor'
 
@@ -33,7 +33,7 @@ class GrpcServer
     )
 
     @services = {
-      GameStateApp::Service => GameStateAppHandler.new
+      MatchStateApp::Service => MatchStateAppHandler.new
     }
 
     setup_handlers

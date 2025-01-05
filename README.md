@@ -1,5 +1,5 @@
 ## Overview
-Pongfu is a web-based augmented reality (AR) Pong game powered by a microservices backend and a lightweight frontend. The backend combines pure Ruby microservices and pre-built Docker images, communicating to the frontend via the Pongfu API.
+Pongfu is a web-based augmented reality (AR) Pong match powered by a microservices backend and a lightweight frontend. The backend combines pure Ruby microservices and pre-built Docker images, communicating to the frontend via the Pongfu API.
 
 ### Disclaimer
 This is a 42 school project that is part of the common curriculum, **some design choices are forced by the project subject**. Also, only some of the brainstormed features are implemented because of time constraints. In the following documentation everything written in *italic* has to be interpreted as W.I.P.
@@ -14,7 +14,7 @@ NGINX is chosen for its high performance, scalability, ease of integration, and 
 
 ### Responsibilities
 - **Reverse Proxy**: Routes incoming requests to the appropriate backend services, reducing backend exposure. By acting as a reverse proxy, it is the only service exposed to the outside, minimizing the overall attack surface and enhancing system security.
-- **WebSocket Handling**: Manages persistent connections for real-time data exchange, such as game state updates or player interactions.
+- **WebSocket Handling**: Manages persistent connections for real-time data exchange, such as match state updates or player interactions.
 - **SSL Termination**: Offloads the overhead of encrypting and decrypting HTTPS traffic from backend services, improving overall performance and security.
 - **General Rate Limiter**: Protects the system from abuse or denial-of-service attacks by controlling the overall rate of incoming requests, rather than applying limits on a per-resource or per-user basis.
 - **API Calls Caching**: Temporarily stores responses for frequently accessed API endpoints, reducing the load on backend services and improving response times for users.
@@ -73,7 +73,7 @@ The Auth module handles user authentication and authorization, providing secure 
 
 ### Match
 #### Reasoning
-The Match module manages game matches between users, including creating, updating, and deleting matches. It ensures that matches are properly recorded and that player statuses are accurately tracked.
+The Match module manages match matches between users, including creating, updating, and deleting matches. It ensures that matches are properly recorded and that player statuses are accurately tracked.
 
 #### Responsibilities
 - **Match Retrieval**: Fetches user matches from the database with support for pagination and filtering.
@@ -103,10 +103,10 @@ The Matchmaking module pairs players together in a competitive or cooperative en
 
 ### AI
 #### Reasoning
-The AI Service simulates client actions to provide dynamic and challenging opponents for players. It offers different difficulty levels to cater to various player skills, ensuring the game remains engaging.
+The AI Service simulates client actions to provide dynamic and challenging opponents for players. It offers different difficulty levels to cater to various player skills, ensuring the match remains engaging.
 
 #### Responsibilities
-- **Simulates Client Actions**: Simulates player actions like movements and responses to game events to create realistic interactions.
+- **Simulates Client Actions**: Simulates player actions like movements and responses to match events to create realistic interactions.
 - **Different Difficulty Levels**: Provides varying difficulty levels, adjusting its response time, accuracy, and strategy.
 - **Dynamic Difficulty Adjustment**: Adjusts difficulty levels dynamically based on the player's performance to maintain engagement.
 
@@ -124,16 +124,16 @@ The Notification Service delivers real-time notifications and alerts to users, e
 
 ---
 
-## Game State
+## Match State
 
 ### Reasoning
-The Game State Service manages the real-time state of ongoing games, ensuring smooth communication between players and game logic through WebSockets for continuous updates.
+The Match State Service manages the real-time state of ongoing matchs, ensuring smooth communication between players and match logic through WebSockets for continuous updates.
 
 ### Responsibilities
-- **Manages WebSockets**: Maintains WebSocket connections for real-time game updates.
-- **Game State Updates**: Tracks and updates game variables like player scores, ball position, and game duration.
+- **Manages WebSockets**: Maintains WebSocket connections for real-time match updates.
+- **Match State Updates**: Tracks and updates match variables like player scores, ball position, and match duration.
 - **Synchronizes Players**: Ensures all players receive updates simultaneously for a fair gaming experience.
-- **Game Event Handling**: Processes in-game events and sends relevant updates to clients.
+- **Match Event Handling**: Processes in-match events and sends relevant updates to clients.
 
 ---
 

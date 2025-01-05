@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 00:25:52 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 14:28:03 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:10:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -85,44 +85,45 @@ class ConnectionModule
     ws.close_connection
   end
 
-  def broadcast_game_states
+  def broadcast_match_states
     @match_handler_module.matches.each do |_, match|
       payload = match.state
       ended = payload[:status] == :ended 
-      payload[:operation_id] = "game_state"
+      payload[:operation_id] = "match_state"
       payload = JSON.generate(payload)
 
       match.players.each do |_, ws|
         ws.send(payload)
       end
 
-      handle_game_over(match) if ended
+      handle_match_over(match) if ended
     end
   end
 
-  def broadcast_players_info(match_id) #TODO invia a tutti i giocatori del match le informazioni sui giocatori (ricontrollare AAS array invece che x, y)
-    # players = match.players
-    # payload = {
-    #   operation_id: "players_info",
-    #   player_1_id: players.keys[0],
-    #   player_2_id: players.keys[1],
-    # }
-    # payload = JSON.generate(payload)
+  def broadcast_players_info(match_id)
+    match = @match_handler_module.matches[match_id]
+    players = match.players
+    payload = {
+      operation_id: "players_info",
+      players: players.keys
+    }
+    payload = JSON.generate(payload)
 
-    # players.each do |_, ws|
-    #   ws.send(payload)
-    # end
+    players.each do |_, ws|
+      ws.send(payload)
+    end
+  end
 
-      # def send_error(ws, code, message)
-  #   payload = {
-  #     operation_id: "error",
-  #     code: code,
-  #     message: message
-  #   }
-  #   payload = JSON.generate(payload)
+  def send_error(ws, code, message)
+    payload = {
+      operation_id: "error",
+      code: code,
+      message: message
+    }
+    payload = JSON.generate(payload)
 
-  #   ws.send(payload)
-  # end
+    ws.send(payload)
+  end
 
   private
 
@@ -142,7 +143,7 @@ class ConnectionModule
     SQL
   }.freeze
 
-  def handle_game_over(match)
+  def handle_match_over(match)
     operations = [
       -> { close_connections(match) },
       -> { save_match(match) }

@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/26 23:51:20 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 13:21:40 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -56,8 +56,8 @@ class Server
       @logger.info("Server started at wss://#{host}:#{port}")
 
       EM.add_periodic_timer(1.0 / fps) do
-        @match_handler_module.update_game_states
-        @connection_module.broadcast_game_states
+        @match_handler_module.update_match_states
+        @connection_module.broadcast_match_states
       end
     end
   end

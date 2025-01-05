@@ -17,11 +17,10 @@ server:
 match:
   grace_period: 30
 
-
 postgresql:
   host: postgres.data
   port: 5432
-  user: game_state
+  user: match_state
   password: password
   dbname: pongfu
   pool:

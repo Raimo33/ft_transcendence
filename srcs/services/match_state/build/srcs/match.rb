@@ -6,11 +6,11 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/27 15:26:33 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 14:27:35 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:10:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-#TODO rinominare match into game ovunque
+#TODO rinominare match into match
 
 require_relative 'config_handler'
 require_relative 'exceptions'
@@ -24,7 +24,7 @@ class Match
     @max_hp ||= @config.dig(:settings, :max_hp)
   end
 
-  STARTING_GAME_STATE = {
+  STARTING_match_state = {
     ball_position: Array.new(2, 0),
     ball_velocity: Array.new(2, 0),
     paddle_positions: Array.new(2, 0.5),
@@ -37,7 +37,7 @@ class Match
     @id = id
     @allowed_players = [user_id1, user_id2].freeze
     @players = {}
-    @state = deep_copy(STARTING_GAME_STATE)
+    @state = deep_copy(STARTING_match_state)
     @input_queue = []
     @state_history = []
   end

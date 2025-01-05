@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 00:04:43 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 14:07:16 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,7 +51,7 @@ class MatchHandlerModule
     @matches.delete(match_id)
   end
 
-  def update_game_states
+  def update_match_states
     @matches.each_value(&:update)
   end
 

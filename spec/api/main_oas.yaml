@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    main_oas.yaml                                      :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 21:40:05 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:10:15 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -828,7 +828,7 @@ components:
       format: email
       example: "example@example.com"
     user_display_name:
-      description: Display name of the user, visible to other players during gameplay.
+      description: Display name of the user, visible to other players during matchplay.
       type: string
       example: "PongMaster123"
     user_avatar:

@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 17:02:59 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -515,7 +515,7 @@ class Server
         end
       end
 
-      task.async { @grpc_client.setup_game_state(match_id, user_id, friend_id) }
+      task.async { @grpc_client.setup_match_state(match_id, user_id, friend_id) }
       
       @grpc_client.notify_match_found(match_id, user_id, friend_id)
     end
@@ -523,7 +523,7 @@ class Server
     Async do |task|
       task.async { @matchmaking_module.remove_match_invitation(friend_id, user_id) }
       task.async { @pg_client.exec_prepared(:delete_match, [match_id]) }
-      task.async { @grpc_client.close_game_state(match_id) }
+      task.async { @grpc_client.close_match_state(match_id) }
     end.wait rescue nil
     raise
   end

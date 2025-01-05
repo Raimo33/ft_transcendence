@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package match_state;
+
+import "google/protobuf/empty.proto";
+
+service MatchStateApp
+{
+  rpc setupMatchState (SetupMatchStateRequest)  returns (google.protobuf.Empty) {}
+  rpc closeMatchState (MatchId)                 returns (google.protobuf.Empty) {}
+}
+
+message SetupMatchStateRequest
+{
+  string match_id  = 1;
+  string user_id1  = 2;
+  string user_id2  = 3;
+}
+
+message MatchId
+{
+  string match_id = 1;
+}

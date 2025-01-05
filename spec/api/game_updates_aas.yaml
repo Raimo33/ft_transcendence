@@ -1,18 +1,18 @@
 asyncapi: 3.0.0
 info:
-  title: Pongfu Game Updates API
-  description: API for Pongfu game updates.
+  title: Pongfu Match Updates API
+  description: API for Pongfu match updates.
   version: 1.0.0
 servers:
-  game_updates:
-    description: Server for live WebSocket game updates.
+  match_updates:
+    description: Server for live WebSocket match updates.
     host: api.pongfu.com
     protocol: wss
     security:
       - $ref: '#/components/securitySchemes/httpBearerToken'
 channels:
-  game_updates:
-    description: Channel for real-time game updates via WebSocket.
+  match_updates:
+    description: Channel for real-time match updates via WebSocket.
     address: /matches/{match_id}/updates
     parameters:
       match_id:
@@ -22,25 +22,25 @@ channels:
         $ref: '#/components/messages/InputMessage'
       playersInfo:
         $ref: '#/components/messages/PlayersInfoMessage'
-      gameState:
-        $ref: '#/components/messages/GameStateMessage'
+      MatchState:
+        $ref: '#/components/messages/MatchStateMessage'
       error:
         $ref: '#/components/messages/ErrorMessage'
 operations:
   sendInput:
     action: send
     channel:
-      $ref: '#/channels/game_updates'
+      $ref: '#/channels/match_updates'
     messages:
-      - $ref: '#/channels/game_updates/messages/input'
-  receiveGameState:
+      - $ref: '#/channels/match_updates/messages/input'
+  receiveMatchState:
     action: receive
     channel:
-      $ref: '#/channels/game_updates'
+      $ref: '#/channels/match_updates'
     messages:
-      - $ref: '#/channels/game_updates/messages/playersInfoMessage'
-      - $ref: '#/channels/game_updates/messages/gameState'
-      - $ref: '#/channels/game_updates/messages/error'
+      - $ref: '#/channels/match_updates/messages/playersInfoMessage'
+      - $ref: '#/channels/match_updates/messages/MatchState'
+      - $ref: '#/channels/match_updates/messages/error'
 components:
   messages:
     InputMessage:
@@ -69,15 +69,15 @@ components:
             $ref: '#/components/schemas/user_id'
           player_2_id:
             $ref: '#/components/schemas/user_id'
-    GameStateMessage:
-      name: GameStateMessage
+    MatchStateMessage:
+      name: MatchStateMessage
       contentType: application/json
       payload:
         type: object
         properties:
           operation_id:
             type: string
-            const: game_state
+            const: match_state
           ball_position:
             $ref: '#/components/schemas/ball_position'
           ball_velocity:
@@ -163,7 +163,7 @@ components:
       items:
         $ref: '#/components/schemas/hp'
     status:
-      description: Status of the game.
+      description: Status of the match.
       type: string
       enum:
         - waiting

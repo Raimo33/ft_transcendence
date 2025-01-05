@@ -1,7 +1,7 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    game_state_match_service_handler.rb                :+:      :+:    :+:    #
+#    match_state_match_service_handler.rb                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
@@ -13,9 +13,9 @@
 require 'async'
 require_relative '../config_handler'
 require_relative '../server.rb'
-require_relative '../protos/game_state_app_services_pb'
+require_relative '../protos/match_state_app_services_pb'
 
-class GameStateMatchServiceHandler < GameStateMatch::Service
+class MatchStateMatchServiceHandler < MatchStateMatch::Service
   def initialize
     @config = ConfigHandler.instance.config
     @server = Server.instance
@@ -25,7 +25,7 @@ class GameStateMatchServiceHandler < GameStateMatch::Service
     Empty.new
   end
 
-  def setup_game_state(request, call)
+  def setup_match_state(request, call)
     match_id, user_id1, user_id2 = request.match_id, request.user_id1, request.user_id2
     check_required_fields(match_id, user_id1, user_id2)
 
@@ -34,7 +34,7 @@ class GameStateMatchServiceHandler < GameStateMatch::Service
     Empty.new
   end
 
-  def close_game_state(request, call)
+  def close_match_state(request, call)
     match_id = request.match_id
     check_required_fields(match_id)
 

@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 15:37:07 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 00:30:07 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/05 16:09:21 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ require 'yaml'
 require 'singleton'
 require_relative 'ConfigHandler'
 require_relative 'protos/notification_app_services_pb'
-require_relative 'protos/game_state_app_services_pb'
+require_relative 'protos/match_state_app_services_pb'
 require_relative '../middlewares/client/logger_interceptor'
 require_relative '../middlewares/client/exceptions_interceptor'
 require_relative '../middlewares/client/metadata_interceptor'
@@ -37,12 +37,12 @@ class GrpcClient
     ]
 
     channels = {
-      game_state: create_channel(@config.dig(:grpc, :client, :addresses, :game_state)),
+      match_state: create_channel(@config.dig(:grpc, :client, :addresses, :match_state)),
       notification: create_channel(@config.dig(:grpc, :client, :addresses, :notification))
     }
 
     @stubs = {
-      game_state: GameStateApp::Stub.new(channels[:game_state], interceptors: interceptors),
+      match_state: MatchStateApp::Stub.new(channels[:match_state], interceptors: interceptors),
       notification: NotificationApp::Stub.new(channels[:notification], interceptors: interceptors)
     }
   end
@@ -51,14 +51,14 @@ class GrpcClient
     @channels.each_value(&:close)
   end
 
-  def setup_game_state(match_id, user_id1, user_id2)
-    request = GameStateApp::SetupGameStateRequest.new(match_id, user_id1, user_id2)
-    @stubs[:game_state].setup_game_state(request)
+  def setup_match_state(match_id, user_id1, user_id2)
+    request = MatchStateApp::SetupMatchStateRequest.new(match_id, user_id1, user_id2)
+    @stubs[:match_state].setup_match_state(request)
   end
 
-  def close_game_state(match_id)
-    request = GameStateApp::MatchId.new(match_id)
-    @stubs[:game_state].close_game_state(request)
+  def close_match_state(match_id)
+    request = MatchStateApp::MatchId.new(match_id)
+    @stubs[:match_state].close_match_state(request)
   end
 
   def notify_friend_request(sender_id, recipient_id)

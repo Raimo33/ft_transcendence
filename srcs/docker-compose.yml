@@ -29,15 +29,15 @@ services:
     volumes:
       - frontend_data:/var/www/html
   
-  game_state:
+  match_state:
     build:
-      context: ./services/game_state
+      context: ./services/match_state
       additional_contexts:
         - protos=./protos
         - certs=./certs
       dockerfile: Dockerfile
       # args:
-    container_name: game_state
+    container_name: match_state
     # environment:
     # volumes:
     # secrets:

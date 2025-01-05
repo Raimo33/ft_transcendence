@@ -4,7 +4,7 @@ package notification;
 
 import "google/protobuf/empty.proto";
 
-service GameStateApp
+service MatchStateApp
 {
   rpc notifyFriendRequest         (FriendRequest)  returns (google.protobuf.Empty) {}
   rpc notifyFriendRequestAccepted (FriendRequest)  returns (google.protobuf.Empty) {}

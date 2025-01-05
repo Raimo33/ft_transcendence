@@ -6,10 +6,10 @@ require_relative 'lib/server'
 
 if $PROGRAM_NAME == __FILE__
   EM.run do
-    game_server = Server.new
+    match_server = Server.new
     grpc_server = GrpcServer.new
 
-    EM.defer { game_server.run }
+    EM.defer { match_server.run }
     EM.defer { grpc_server.run }
   end
 rescue StandardError => e
