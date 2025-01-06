@@ -11,13 +11,13 @@ service MatchStateApp
 
 message FriendRequest
 {
-  string sender_id  = 1;
-  string recipient_id  = 2;
+  string sender_id    = 1;
+  string recipient_id = 2;
 }
 
 message MatchFound
 {
-  string match_id   = 1;
-  string user_id_1  = 2;
-  string user_id_2  = 3;
+  string match_id  = 1;
+  string user_id_1 = 2;
+  string user_id_2 = 3;
 }

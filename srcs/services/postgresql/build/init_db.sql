@@ -1,7 +1,5 @@
 CREATE DATABASE pongfu WITH OWNER = postgresql;
 
---#TODO pg_cachetools
-
 \c pongfu
 
 \cd /tmp/init_db

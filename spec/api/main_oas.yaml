@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/05 19:23:58 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:10:15 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 15:01:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -926,7 +926,7 @@ components:
         $ref: "#/components/schemas/tournament_id"
       required: true
     token:
-      description: verification token for credentials recovery/validation
+      description: verification token for credentials recovery validation
       name: token
       in: header
       schema:

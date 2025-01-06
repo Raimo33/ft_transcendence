@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 17:48:56 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 13:22:02 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,5 +36,3 @@ EXPOSE 3000
 # VOLUME []
 
 ENTRYPOINT ["ruby", "main.rb"]
-
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-fks", "http://localhost:3000/ping"]

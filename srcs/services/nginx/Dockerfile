@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/13 18:07:59 by craimond          #+#    #+#              #
-#    Updated: 2025/01/04 00:45:35 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 13:22:08 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,5 +28,3 @@ EXPOSE 80 443/tcp 443/udp
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 CMD ["-c", "/etc/nginx/nginx.conf"]
-
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD ["curl", "-fks", "--http3", "https://nginx.edge:443"]

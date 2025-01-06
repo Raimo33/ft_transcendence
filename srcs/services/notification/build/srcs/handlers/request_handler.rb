@@ -1,46 +1,41 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    match_state_app_service_handler.rb                 :+:      :+:    :+:    #
+#    request_handler.rb                                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/01/05 17:29:28 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 13:40:12 by craimond         ###   ########.fr        #
+#    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
+#    Updated: 2025/01/06 14:31:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'grpc'
-require 'eventmachine'
-require_relative '../config_handler'
-require_relative '../server.rb'
-require_relative '../protos/match_state_app_services_pb'
+require 'json'
+require 'async'
+require_relative 'shared/config_handler'
+require_relative 'shared/exceptions'
+require_relative 'shared/request_context'
+require_relative 'modules/connection_handler_module'
 
-class MatchStateAppServiceHandler < MatchStateApp::Service
+class RequestHandler
+
   def initialize
     @config = ConfigHandler.instance.config
-    @server = Server.instance
+
+    @connection_handler_module = ConnectionHandlerModule.instance
   end
 
-  def setup_match_state(request, call)
-    match_id, user_id1, user_id2 = request.match_id, request.user_id1, request.user_id2
-    check_required_fields(match_id, user_id1, user_id2)
+  def call(env)
+    
+    #TODO parsing? collgearsi a connection_handler_module
 
-    @server.add_match(match_id, user_id1, user_id2)
-
-    Empty.new
-  end
-
-  def close_match_state(request, call)
-    match_id = request.match_id
-    check_required_fields(match_id)
-
-    @server.remove_match(match_id)
-
-    Empty.new
+  rescue NoMethodError
+    raise NotFound.new("Operation not found")
   end
 
   private
+
+  def subscribe
 
   def check_required_fields(*fields)
     fields.each do |field|

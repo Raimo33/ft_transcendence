@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 16:08:50 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 13:21:48 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,5 +37,3 @@ EXPOSE 8080 50051
 # VOLUME []
 
 ENTRYPOINT ["ruby", "main.rb"]
-
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [#TODO websocket ping]

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    request_context.rb                                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/03 21:22:14 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 21:38:08 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 15:03:09 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,14 @@ class RequestContext
 
   def self.request_id=(id)
     Thread.current[:request_id] = id
+  end
+
+  def self.requester_user_id
+    Thread.current[:requester_user_id]
+  end
+
+  def self.requester_user_id=(id)
+    Thread.current[:requester_user_id] = id
   end
 
   def self.session_token
@@ -46,6 +54,6 @@ class RequestContext
 
   private
 
-  CONTEXT_KEYS = %i[request_id session_token refresh_token]
+  CONTEXT_KEYS = %i[request_id requester_user_id session_token refresh_token].freeze
 
 end

@@ -80,6 +80,7 @@ services:
       context: ./services/notification
       additional_contexts:
         - protos=./protos
+        - certs=./certs
       dockerfile: Dockerfile
       # args:
     container_name: notification

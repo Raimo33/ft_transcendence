@@ -1,44 +1,40 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    match_state_app_service_handler.rb                 :+:      :+:    :+:    #
+#    notification_app_service_handler.rb                :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 17:29:28 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 13:40:12 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 14:09:04 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 require 'grpc'
-require 'eventmachine'
 require_relative '../config_handler'
-require_relative '../server.rb'
-require_relative '../protos/match_state_app_services_pb'
+require_relative '../connection_manager'
+require_relative '../protos/notification_app_services_pb'
 
-class MatchStateAppServiceHandler < MatchStateApp::Service
+class NotificationAppServiceHandler < NotificationApp::Service
   def initialize
     @config = ConfigHandler.instance.config
-    @server = Server.instance
+    @connection_manager = ConnectionManager.instance
   end
 
-  def setup_match_state(request, call)
-    match_id, user_id1, user_id2 = request.match_id, request.user_id1, request.user_id2
-    check_required_fields(match_id, user_id1, user_id2)
+  def notify_friend_request(request, call)
+    sender_id, receiver_id = request.sender_id, request.receiver_id
+    check_required_fields(sender_id, receiver_id)
 
-    @server.add_match(match_id, user_id1, user_id2)
+    @connection_manager.notify(
+
+    )
 
     Empty.new
   end
 
-  def close_match_state(request, call)
-    match_id = request.match_id
-    check_required_fields(match_id)
+  def notify_friend_request_accepted(request, call)
 
-    @server.remove_match(match_id)
-
-    Empty.new
-  end
+  def notify_match_found(request, call)
 
   private
 
