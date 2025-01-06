@@ -6,11 +6,11 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 23:26:29 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 16:00:29 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-#TODO ogni user online avra' il suo notification endpoint in base a user_id
+#TODO specificare che il metodo deve essere GET
 
 asyncapi: 3.0.0
 info:
@@ -31,7 +31,10 @@ servers:
 channels:
   notifications:
     description: Channel for receiving notifications via SSE.
-    address: /notifications
+    address: /notifications/{user_id}
+    bindings:
+      http:
+        method: GET
     messages:
       matchFound:
         $ref: '#/components/messages/MatchFoundNotification'
@@ -44,10 +47,21 @@ operations:
     action: receive
     channel:
       $ref: '#/channels/notifications'
+    bindings:
+      http:
+        method: GET
+        type: sse
     messages:
       - $ref: '#/channels/notifications/messages/matchFound'
       - $ref: '#/channels/notifications/messages/matchInvitation'
       - $ref: '#/channels/notifications/messages/friendRequest'
+  unsubscribeFromNotifications:
+    action: send
+    channel:
+      $ref: '#/channels/notifications'
+    bindings:
+      http:
+        method: DELETE
 components:
   messages:
     MatchFoundNotification:

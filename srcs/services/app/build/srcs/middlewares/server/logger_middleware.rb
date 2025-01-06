@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    logger_middleware.rb                               :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2025/01/03 21:32:26 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 15:33:11 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ require_relative '../../custom_logger'
 
 class LoggerMiddleware
 
-  def initialize(app, logger = Logger.new($stdout))
+  def initialize(app)
     @app = app
     @logger = CustomLogger.instance.logger
   end
@@ -28,12 +28,12 @@ class LoggerMiddleware
     operation_id = parsed_request.operation["operationId"]
     @logger.info("Received request #{request_id} on #{operation_id}")
 
-    status, headers, response = @app.call(env)
+    status, headers, body = @app.call(env)
 
     duration = Time.now - start_time
     @logger.info("Completed request #{request_id} in #{duration} seconds")
     
-    [status, headers, response]
+    [status, headers, body]
   end
 
 end

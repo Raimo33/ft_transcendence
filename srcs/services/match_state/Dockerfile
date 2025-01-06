@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 13:21:48 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 16:14:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,9 +22,9 @@ WORKDIR /app
 RUN gem install bundler
 RUN bundle install
 
-COPY ./build/srcs/                      /app/srcs/
+COPY ./build/srcs/ /app/srcs/
 COPY --from=protos match_state_app.proto /app/srcs/protos/
-COPY --from=certs jwtRS256.key.pub      /etc/ssl/public/jwtRS256.key.pub
+COPY --from=certs jwtRS256.key.pub /etc/ssl/public/jwtRS256.key.pub
 
 RUN adduser -DHS match_state
 RUN chown -R match_state:match_state /app

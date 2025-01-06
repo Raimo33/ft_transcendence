@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:14:03 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 15:03:27 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 15:26:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ class AuthMiddleware
   end
 
   def call(env)
-    auth_header = 
+    auth_header = env["HTTP_AUTHORIZATION"]
     raise Unauthorized.new("Authorization header not found") unless auth_header
 
     session_token = extract_session_token(auth_header)

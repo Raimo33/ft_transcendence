@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/06 13:45:12 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 14:12:43 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 16:08:45 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,9 +22,13 @@ class ConnectionHandlerModule
   def add_connection(user_id, stream)
     @connections[user_id] ||= []
     @connections[user_id] << stream
+
+    notify(user_id, 'connected', {})
   end
 
   def remove_connection(user_id, stream)
+    notify(user_id, 'disconnected', {})
+
     @connections[user_id]&.delete(stream)
     @connections.delete(user_id) if @connections[user_id]&.empty?
   end
@@ -33,7 +37,10 @@ class ConnectionHandlerModule
     return unless @connections[user_id]
 
     message = format_sse(event_type, data)
-    @connections[user_id].each { |stream| stream.write(message) }
+    @connections[user_id].each do |stream|
+      stream.write(message)
+      stream.flush
+    end
   end
 
   private

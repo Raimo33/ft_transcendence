@@ -1,36 +1,26 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    logger_middleware.rb                               :+:      :+:    :+:    #
+#    request_validation_middleware.rb                   :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/11/26 17:29:02 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 15:33:17 by craimond         ###   ########.fr        #
+#    Created: 2025/01/06 15:21:56 by craimond          #+#    #+#              #
+#    Updated: 2025/01/06 16:04:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require_relative '../../custom_logger'
+require_relative '../../shared/exceptions'
 
-class LoggerMiddleware
+class RequestValidationMiddleware
 
   def initialize(app)
     @app = app
-    @logger = CustomLogger.instance.logger
   end
 
   def call(env)
-    start_time = Time.now
-
-    request_id = RequestContext.request_id
-    @logger.info("Received request #{request_id}")
-
-    status, headers, body = @app.call(env)
-
-    duration = Time.now - start_time
-    @logger.info("Completed request #{request_id} in #{duration} seconds")
-    
-    [status, headers, body]
+    raise Unauthorized.new("Unauthorized") unless env["HTTP_AUTHORIZATION"]
+    raise NotAcceptable.new("Not acceptable") unless env["HTTP_ACCEPT"]&.include?('text/event-stream')
   end
 
 end
