@@ -6,11 +6,9 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/14 17:42:06 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 16:00:29 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/07 19:49:47 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
-
-#TODO specificare che il metodo deve essere GET
 
 asyncapi: 3.0.0
 info:

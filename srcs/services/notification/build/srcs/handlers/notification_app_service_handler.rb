@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/05 17:29:28 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 14:09:04 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/07 19:50:32 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,7 @@ class NotificationAppServiceHandler < NotificationApp::Service
     check_required_fields(sender_id, receiver_id)
 
     @connection_manager.notify(
-
+      #TODO: Implement this
     )
 
     Empty.new
