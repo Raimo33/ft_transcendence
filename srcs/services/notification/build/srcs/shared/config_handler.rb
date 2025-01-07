@@ -1,23 +1,26 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    Dockerfile                                         :+:      :+:    :+:    #
+#    config_handler.rb                                  :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
+#    By: craimond <claudio.raimondi@protonmail.c    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 13:22:06 by craimond         ###   ########.fr        #
+#    Created: 2024/11/23 16:21:31 by craimond          #+#    #+#              #
+#    Updated: 2025/01/03 21:16:10 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-FROM alpine:3.19
+require 'yaml'
+require 'singleton'
 
-SHELL ["/bin/ash", "-c"]
+class ConfigHandler
+  include Singleton
 
-RUN apk add --no-cache memcached
+  attr_reader :config
 
-USER memcached
-EXPOSE 11211
-VOLUME []
+  CONFIG_PATH  = "../config/config.yaml"
 
-ENTRYPOINT ["memcached"]
+  def initialize
+    @config = YAML.load_file(CONFIG_PATH)
+  end
+end

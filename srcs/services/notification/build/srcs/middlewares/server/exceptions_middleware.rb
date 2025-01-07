@@ -6,7 +6,7 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 17:28:24 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 15:04:58 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 15:04:46 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,8 +33,6 @@ class ExceptionsMiddleware
   private
 
   EXCEPTIONS_MAP = {
-    OpenapiFirst::RequestInvalidError => [400, "Invalid request data"],
-    OpenapiFirst::NotFoundError       => [404, "Resource not found"],
   }.freeze
 
   def handle_exception(exception)

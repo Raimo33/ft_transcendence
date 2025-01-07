@@ -1,23 +1,26 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    Dockerfile                                         :+:      :+:    :+:    #
+#    request_validation_middleware.rb                   :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 13:22:06 by craimond         ###   ########.fr        #
+#    Created: 2025/01/06 15:21:56 by craimond          #+#    #+#              #
+#    Updated: 2025/01/06 16:04:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-FROM alpine:3.19
+require_relative '../../shared/exceptions'
 
-SHELL ["/bin/ash", "-c"]
+class RequestValidationMiddleware
 
-RUN apk add --no-cache memcached
+  def initialize(app)
+    @app = app
+  end
 
-USER memcached
-EXPOSE 11211
-VOLUME []
+  def call(env)
+    raise Unauthorized.new("Unauthorized") unless env["HTTP_AUTHORIZATION"]
+    raise NotAcceptable.new("Not acceptable") unless env["HTTP_ACCEPT"]&.include?('text/event-stream')
+  end
 
-ENTRYPOINT ["memcached"]
+end

@@ -6,11 +6,10 @@
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/23 14:27:54 by craimond          #+#    #+#              #
-#    Updated: 2025/01/05 17:47:18 by craimond         ###   ########.fr        #
+#    Updated: 2025/01/06 14:20:50 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-require 'falcon'
 require 'openapi_first'
 require 'json'
 require 'async'
@@ -24,7 +23,7 @@ require_relative 'modules/auth_module'
 require_relative 'modules/match_module'
 require_relative 'modules/matchmaking_module'
 
-class Server
+class RequestHandler
 
   def initialize
     @config = ConfigHandler.instance.config

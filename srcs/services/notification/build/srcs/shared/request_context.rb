@@ -1,23 +1,35 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    Dockerfile                                         :+:      :+:    :+:    #
+#    request_context.rb                                 :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/10/20 12:03:18 by craimond          #+#    #+#              #
-#    Updated: 2025/01/06 13:22:06 by craimond         ###   ########.fr        #
+#    Created: 2025/01/03 21:22:14 by craimond          #+#    #+#              #
+#    Updated: 2025/01/06 14:44:27 by craimond         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-FROM alpine:3.19
+require 'securerandom'
 
-SHELL ["/bin/ash", "-c"]
+class RequestContext
 
-RUN apk add --no-cache memcached
+  def self.request_id
+    Thread.current[:request_id] ||= SecureRandom.uuid
+  end
 
-USER memcached
-EXPOSE 11211
-VOLUME []
+  def self.request_id=(id)
+    Thread.current[:request_id] = id
+  end
 
-ENTRYPOINT ["memcached"]
+  def self.clear
+    CONTEXT_KEYS.each do |key|
+      Thread.current[key] = nil
+    end
+  end
+
+  private
+
+  CONTEXT_KEYS = %i[request_id session_token refresh_token]
+
+end

@@ -327,13 +327,11 @@ Geth (Go Ethereum) is chosen for its ability to self-host an Ethereum node, ensu
   EXPOSE 
 
   ENTRYPOINT []
-  HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD []
   ```
   - Always specify the `SHELL`
   - Keep the **order** of instructions as in the example
   - Never use `--chmod` or `--chown` directly on `ADD` or `COPY` commands
   - Always specify a `WORKDIR`
-  - Always specify a `HEALTHCHECK`
   - Document open ports with `EXPOSE`
   - Use full paths even if `WORKDIR` is set
   - Keep consistency between all Dockerfiles

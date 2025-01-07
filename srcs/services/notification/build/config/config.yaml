@@ -1,0 +1,17 @@
+logging:
+  level: INFO
+  file: /dev/stdout
+
+grpc:
+  server:
+    bind: "0.0.0.0"
+    port: 50051
+    pool_size: 10
+
+server:
+  bind: "0.0.0.0"
+  port: 3000
+
+jwt:
+  public_key_path: /etc/ssl/public/jwtRS256.key.pub
+  algorithm: RS256

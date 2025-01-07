@@ -76,6 +76,10 @@ grpc:
       match_state: match_state.core:50051
       notification: notification.core:50051
 
+server:
+  bind: "0.0.0.0"
+  port: 3000
+
 postgresql:
   host: postgres.data
   port: 5432
